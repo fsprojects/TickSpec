@@ -3,8 +3,9 @@
 open System.Reflection
 open TickSpec
 
-do   let ass = Assembly.GetExecutingAssembly()
-     let definitions = new StepDefinitions(ass)
+do  let ass = Assembly.GetExecutingAssembly()
+    let definitions = new StepDefinitions(ass)
 
-     let s = ass.GetManifestResourceStream(@"Feature.txt")
-     definitions.Execute(s)
+    let source = @"Feature.txt"
+    let s = ass.GetManifestResourceStream(source)
+    definitions.Execute(source,s)

@@ -39,6 +39,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions.fs" />
+    <Compile Include="ScenarioRun.fs" />
+    <Compile Include="ScenarioGen.fs" />
+    <Compile Include="FeatureGen.fs" />
+    <Compile Include="StepAttributes.fs" />
+    <Compile Include="StepException.fs" />
     <Compile Include="TickSpec.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" />
