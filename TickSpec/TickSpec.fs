@@ -7,8 +7,10 @@ open System.IO
 open System.Reflection
 open System.Text.RegularExpressions
 
-/// Line state
-type internal Line = ScenarioStart | GivenStep | WhenStep | ThenStep
+/// Line type
+type internal LineType = ScenarioStart | GivenStep | WhenStep | ThenStep
+
+type Scenario = { Name:string; Action:Action }
 
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (methods:MethodInfo seq) =            
@@ -156,13 +158,29 @@ type StepDefinitions (methods:MethodInfo seq) =
         scenarios |> Seq.iter (fun scenario ->
             TickSpec.ScenarioRun.execute provider scenario
         )
-    /// Execute step definitions in specified lines from source document
-    member this.Execute (sourceUrl:string,lines:string[]) =
+    /// Generate scenario actions
+    member this.GenerateScenarios (sourceUrl:string,lines:string[]) =        
         let featureName,scenarios = parse lines
         let gen = FeatureGen(featureName,sourceUrl)  
-        scenarios |> Seq.iter (fun (scenarioName,lines) ->
-            gen.ExecuteScenario provider (scenarioName, Seq.toArray lines)
+        scenarios |> Seq.map (fun (scenarioName,lines) ->
+            let instance = 
+                gen.GenScenario provider (scenarioName, Seq.toArray lines)
+            let mi = instance.GetType().GetMethod("Run") 
+            let action =
+                 System.Action(fun () -> mi.Invoke(instance,null) |> ignore)             
+            {Name=scenarioName; Action=action}                           
         )
+    member this.GenerateScenarios (sourceUrl:string,reader:TextReader) =              
+        this.GenerateScenarios(sourceUrl, TextReader.readAllLines reader)        
+    member this.GenerateScenarios (sourceUrl:string,feature:System.IO.Stream) =        
+        use reader = new StreamReader(feature)
+        this.GenerateScenarios(sourceUrl, reader)
+    member this.GenerateScenarios (path:string) =
+        this.GenerateScenarios(path,File.ReadAllLines(path))
+    /// Execute step definitions in specified lines from source document
+    member this.Execute (sourceUrl:string,lines:string[]) =
+        let scenarios = this.GenerateScenarios(sourceUrl,lines)
+        scenarios |> Seq.iter (fun action -> action.Action.Invoke())                   
     member this.Execute (sourceUrl:string,reader:TextReader) =              
         this.Execute(sourceUrl, TextReader.readAllLines reader)           
     member this.Execute (sourceUrl:string,feature:System.IO.Stream) =        
@@ -170,3 +188,5 @@ type StepDefinitions (methods:MethodInfo seq) =
         this.Execute (sourceUrl,reader)
     member this.Execute (path:string) =
         this.Execute(path,File.ReadAllLines(path))
+
+        

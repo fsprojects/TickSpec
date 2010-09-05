@@ -32,19 +32,12 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
     /// Feature source document
     let doc = module_.DefineDocument(documentUrl, Guid.Empty, Guid.Empty, Guid.Empty)
     /// Generates scenario type from lines
-    member this.GenScenario (scenarioName,lines:(string * int * string * MethodInfo * string[]) []) =
-        let scenario = GenScenario module_ doc (scenarioName,lines)
-        assemblyBuilder.Save(assemblyName+".dll")
-        scenario
-    /// Executes scenario lines
-    member this.ExecuteScenario 
+    member this.GenScenario 
         (provider:IServiceProvider)
         (scenarioName,lines:(string * int * string * MethodInfo * string[]) []) =
-        
         let scenario = GenScenario module_ doc (scenarioName,lines)
-        
-        let runMethod = scenario.GetMethod("Run")
+        //assemblyBuilder.Save(assemblyName+".dll")
         let cons = scenario.GetConstructor([|typeof<IServiceProvider>|])                     
         let instance = cons.Invoke([|provider|])
-        runMethod.Invoke(instance,[||]) |> ignore
-
+        instance
+    

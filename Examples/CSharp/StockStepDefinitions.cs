@@ -1,4 +1,4 @@
-﻿namespace CSharp
+﻿namespace TickSpec.Examples.CSharp
 {
    using TickSpec;
    using System.Diagnostics;
