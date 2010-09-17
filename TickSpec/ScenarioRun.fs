@@ -6,22 +6,27 @@ open System.Text.RegularExpressions
 open System.Reflection
    
 /// Invokes method with match values as arguments
-let invoke (provider:IServiceProvider) (m:MethodInfo,args:string[]) =   
+let invoke (provider:IServiceProvider) (m:MethodInfo,args:string[],table:Table option) =   
     let buildArgs (xs:string[],m:MethodInfo) =    
-        Array.zip xs (m.GetParameters())
-        |> Array.map (fun (x,p) ->        
-            Convert.ChangeType(x,p.ParameterType)
-        )         
+        let ps = m.GetParameters()
+        args |> Array.mapi (fun i x ->        
+            let p = ps.[i].ParameterType
+            Convert.ChangeType(x,p)           
+        )             
     let instance =
         if m.IsStatic then null                
         else provider.GetService m.DeclaringType
-    m.Invoke(instance, buildArgs (args,m)) |> ignore  
+    let args = buildArgs (args,m)
+    let addTable = function
+        | Some x -> Array.append args [|box x|]
+        | None -> args 
+    m.Invoke(instance, addTable table) |> ignore  
 
 /// Execute feature lines
 let execute (provider:IServiceProvider) (scenario,lines) =    
-    lines |> Seq.iter (fun (_,n,line,m,args) ->
+    lines |> Seq.iter (fun (_,n,line,m,args,table) ->
         System.Diagnostics.Debug.WriteLine line
-        (m,args) |> invoke provider
+        (m,args,table) |> invoke provider
     )
     
 

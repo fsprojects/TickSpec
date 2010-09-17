@@ -6,6 +6,8 @@ open TickSpec
 do  let ass = Assembly.GetExecutingAssembly()
     let definitions = new StepDefinitions(ass)
 
-    let source = @"Feature.txt"
-    let s = ass.GetManifestResourceStream(source)
-    definitions.Execute(source,s)
+    [@"Feature.txt";@"Feature2.txt"]
+    |> Seq.iter (fun source ->
+        let s = ass.GetManifestResourceStream(source)
+        definitions.Execute(source,s)
+    )

@@ -12,6 +12,7 @@
       {
       }
 
+      [Given(@"I have (.*) black jumper left in stock")]
       [Given(@"I have (.*) black jumpers left in stock")]
       public void GivenIHaveNBlackJumpersLeftInStock(int n)
       {

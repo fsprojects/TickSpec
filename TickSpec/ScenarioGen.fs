@@ -35,6 +35,53 @@ let CreateCons
     gen.Emit(OpCodes.Stfld,providerField)   
     gen.Emit(OpCodes.Ret)
         
+/// Pushes table parameter    
+let PushTable
+        (gen:ILGenerator)        
+        (table:Table) =
+        
+    gen.DeclareLocal(typeof<string[]>) |> ignore
+    gen.DeclareLocal(typeof<string[][]>) |> ignore
+
+    // Define header           
+    gen.Emit(OpCodes.Ldc_I4, table.Header.Length)
+    gen.Emit(OpCodes.Newarr,typeof<string>)
+    gen.Emit(OpCodes.Stloc_0)
+    // Fill header
+    table.Header |> Seq.iteri (fun i s ->        
+        gen.Emit(OpCodes.Ldloc_0)
+        gen.Emit(OpCodes.Ldc_I4, i)
+        gen.Emit(OpCodes.Ldstr,s)
+        gen.Emit(OpCodes.Stelem_Ref)
+    )
+    gen.Emit(OpCodes.Ldloc,0)       
+    // Define rows
+    gen.Emit(OpCodes.Ldc_I4,table.Rows.Length)
+    gen.Emit(OpCodes.Newarr,typeof<string[]>)
+    gen.Emit(OpCodes.Stloc,1)     
+    // Fill rows
+    table.Rows |> Seq.iteri (fun y row ->
+        // Define row
+        gen.Emit(OpCodes.Ldloc,1)
+        gen.Emit(OpCodes.Ldc_I4,y)
+        gen.Emit(OpCodes.Ldc_I4,row.Length)
+        gen.Emit(OpCodes.Newarr,typeof<string>)
+        gen.Emit(OpCodes.Stloc,0)
+        // Fill columns
+        row |> Seq.iteri (fun x col ->
+            gen.Emit(OpCodes.Ldloc,0)
+            gen.Emit(OpCodes.Ldc_I4,x)
+            gen.Emit(OpCodes.Ldstr,col)
+            gen.Emit(OpCodes.Stelem_Ref)           
+        )
+        gen.Emit(OpCodes.Ldloc,0)
+        gen.Emit(OpCodes.Stelem_Ref)
+    )
+    // Instantiate table
+    gen.Emit(OpCodes.Ldloc,1)    
+    let ci = typeof<Table>.GetConstructor([|typeof<string[]>;typeof<string[][]>|])
+    gen.Emit(OpCodes.Newobj,ci)     
+          
 /// Pushes parameter
 let PushParam 
         (gen:ILGenerator) 
@@ -61,7 +108,7 @@ let CreateStepMethod
         doc
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
-        (_,n:int,line:string,mi:MethodInfo,args:string[]) =            
+        (_,n:int,line:string,mi:MethodInfo,args:string[],table:Table option) =            
     /// Ste method builder
     let stepMethod = 
         scenarioBuilder.DefineMethod(sprintf "%d: %s" n line,
@@ -89,6 +136,8 @@ let CreateStepMethod
     // Emit parameters
     Seq.zip args (mi.GetParameters()) 
     |> Seq.iter (PushParam gen)
+    // Emit table parameter
+    table |> Option.iter (PushTable gen)
     // Emit method invoke
     if mi.IsStatic then 
         gen.EmitCall(OpCodes.Call, mi, null)                
@@ -123,7 +172,7 @@ let CreateRunMethod
 let GenScenario 
         (module_:ModuleBuilder) 
         doc
-        (scenarioName,lines:(string * int * string * MethodInfo * string[]) []) =
+        (scenarioName,lines:(string * int * string * MethodInfo * string[] * Table option) []) =
     
     let scenarioBuilder = 
         CreateScenarioType module_ scenarioName

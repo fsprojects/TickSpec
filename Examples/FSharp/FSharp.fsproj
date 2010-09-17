@@ -33,6 +33,8 @@
     <Compile Include="StockItem.fs" />
     <Compile Include="StockStepDefinitions.fs" />
     <EmbeddedResource Include="Feature.txt" />
+    <Compile Include="CourseStepDefinitions.fs" />
+    <EmbeddedResource Include="Feature2.txt" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

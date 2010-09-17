@@ -3,7 +3,7 @@
 open System
 
 /// Base attribute class for step annotations
-[<AbstractClass;AttributeUsage(AttributeTargets.Method,Inherited=true)>]
+[<AbstractClass;AttributeUsage(AttributeTargets.Method,AllowMultiple=true,Inherited=true)>]
 type StepAttribute internal (step:string) =
     inherit System.Attribute ()
     internal new () = StepAttribute(null)    
