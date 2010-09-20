@@ -1,5 +1,14 @@
 ﻿namespace TickSpec
 
+module internal List =
+    /// Computes all combinations
+    let rec combinations = function
+    | [] -> [[]]
+    | hs :: tss ->
+        [ for h in hs do
+            for ts in combinations tss ->
+                h :: ts ]
+
 module internal Seq =
     /// Skips elements in sequence until condition is met  
     let skipUntil (p:'a -> bool) (source:seq<_>) =  

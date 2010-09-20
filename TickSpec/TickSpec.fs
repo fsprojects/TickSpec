@@ -42,7 +42,9 @@ type StepDefinitions (methods:MethodInfo seq) =
         )
     /// Chooses defininitons for specified step and text
     let matchStep = function       
-        | ScenarioStart(_) | TableRow(_) -> invalidOp("")
+        | ScenarioStart(_)
+        | ExamplesStart | TableRow(_) -> 
+            invalidOp("")
         | GivenStep(text) -> chooseDefinitions text givens
         | WhenStep(text) -> chooseDefinitions text whens
         | ThenStep(text) -> chooseDefinitions text thens
@@ -56,24 +58,28 @@ type StepDefinitions (methods:MethodInfo seq) =
     let buildScenarios lines =
         lines
         |> Seq.scan (fun (scenario,lastStep,lastN,_) (n,line) ->               
-            let step = parseLine (lastStep,line)                
-            System.Diagnostics.Debug.WriteLine line
+            let step = parseLine (lastStep,line)                            
             match step with
-            | ScenarioStart(name) -> name, step, n, None
+            | ScenarioStart(name) ->
+                name, step, n, None
+            | ExamplesStart          
             | GivenStep(_) | WhenStep(_) | ThenStep(_) ->                                          
                 scenario, step, n, Some(scenario,n,line,step) 
             | TableRow(_) ->
                 scenario, step, lastN, Some(scenario,lastN,line,step)                                           
         ) ("",ScenarioStart(""),0,None)
+        // Handle tables
         |> Seq.choose (fun (_,_,_,step) -> step)
         |> Seq.groupBy (fun (_,n,_,_) -> n)
         |> Seq.map (fun (line,items) ->
             items |> Seq.fold (fun (row,table) (scenario,n,line,step) ->
                 match step with
-                | ScenarioStart(_) -> invalidOp("")
-                | GivenStep(_) | WhenStep(_) | ThenStep(_) ->
+                | ScenarioStart _ -> 
+                    invalidOp("")
+                | ExamplesStart
+                | GivenStep _ | WhenStep _ | ThenStep _ ->
                     (scenario,n,line,step),table
-                | TableRow(columns) ->
+                | TableRow columns ->
                     row,columns::table
             ) (("",0,"",ScenarioStart("")),[])
             |> (fun (line,table) -> 
@@ -83,20 +89,32 @@ type StepDefinitions (methods:MethodInfo seq) =
                     | x::xs -> Some(Table(x,xs |> List.toArray))
                     | [] -> None                 
             )
-        )   
+        )           
+        // Group into scenarios
         |> Seq.map (fun ((scenario,n,line,step),table) ->
-            let matches = matchStep step           
-            let fail e = StepException(e,n,scenario) |> raise
-            if matches.IsEmpty then fail "Missing step"                     
-            if matches.Length > 1 then fail "Ambiguous step"                                    
-            let r,m = matches.Head 
-            let tableCount = table |> Option.count
-            if m.GetParameters().Length <> (r.Groups.Count-1+tableCount) then
-                fail "Parameter count mismatch"         
-            scenario,n,line,m,extractArgs r,table
+            scenario,n,line,step,table
         )
-        |> Seq.groupBy (fun (scenario,_,_,_,_,_) -> scenario)                  
-        
+        |> Seq.groupBy (fun (scenario,_,_,_,_) -> scenario)                     
+        // Handle examples
+        |> Seq.map (fun (scenario,lines) -> 
+            scenario,
+                lines 
+                |> Seq.toArray
+                |> Array.partition (function 
+                    | _,_,_,ExamplesStart,_ -> true 
+                    | _ -> false                    
+                )                                 
+                |> (fun (examples,steps) ->
+                    steps, 
+                        let tables =
+                            examples      
+                            |> Array.choose (fun (_,_,_,_,table) -> table)
+                            |> Array.filter (fun table -> table.Rows.Length > 0)                                                                                                                        
+                        if tables.Length > 0 then Some tables
+                        else None                        
+                )                                
+        ) 
+        |> Seq.map (fun (name,(steps,examples)) -> name,steps,examples)                        
     /// Parse feature lines
     let parse (featureLines:string[]) =       
         let startsWith s (line:string) = line.Trim().StartsWith(s)
@@ -112,8 +130,63 @@ type StepDefinitions (methods:MethodInfo seq) =
             |> Seq.skip n
             |> Seq.skipUntil (snd >> startsWith "Scenario")
             |> Seq.filter (fun (_,line) -> line.Trim().Length > 0)          
+            |> Seq.filter (fun (_,line) -> not(line.Trim().StartsWith("#")))
             |> buildScenarios
         feature, scenarios
+    /// Resolves line        
+    let resolveLine (scenario,n,line,step,table) =
+        let matches = matchStep step           
+        let fail e = StepException(e,n,scenario) |> raise
+        if matches.IsEmpty then fail "Missing step"                     
+        if matches.Length > 1 then fail "Ambiguous step"                                    
+        let r,m = matches.Head
+        if m.ReturnType <> typeof<Void> then 
+            fail "Step methods must return void/unit"
+        let tableCount = table |> Option.count
+        if m.GetParameters().Length <> (r.Groups.Count-1+tableCount) then
+            fail "Parameter count mismatch"         
+        scenario,n,line,m,extractArgs r,table
+    /// Replace line with specified named values
+    let replaceLine 
+            (xs:seq<string * string>) 
+            (scenario,n,line,step,table:Table option) =
+        let replace s =
+            let lookup (m:Match) =
+                let x = m.Value.TrimStart([|'<'|]).TrimEnd([|'>'|])
+                xs |> Seq.tryFind (fun (k,_) -> k = x)
+                |> (function Some(_,v) -> v | None -> m.Value)
+            let pattern = "<([^<]*)>"
+            Regex.Replace(s, pattern, lookup)             
+        let step = 
+            match step with
+            | GivenStep s -> replace s |> GivenStep
+            | WhenStep s -> replace s |> WhenStep
+            | ThenStep s  -> replace s |> ThenStep
+            | _ -> invalidOp("")            
+        let table =
+            table 
+            |> Option.map (fun table ->
+                Table(table.Header,
+                    table.Rows |> Array.map (fun row ->
+                        row |> Array.map (fun col -> replace col)
+                    )
+                )
+            )            
+        (scenario,n,line,step,table)
+    /// Computes combinations of table values
+    let computeCombinations (tables:Table []) =
+        let values = 
+            tables 
+            |> Seq.map (fun table ->
+                table.Rows |> Array.map (fun row ->
+                    row                             
+                    |> Array.mapi (fun i col ->
+                        table.Header.[i],col
+                    )
+                )               
+            )
+            |> Seq.toList
+        values |> List.combinations        
     /// Type instance provider    
     let provider = CreateServiceProvider ()
     /// Constructs instance by reflecting against specified types
@@ -128,9 +201,23 @@ type StepDefinitions (methods:MethodInfo seq) =
         StepDefinitions(assembly.GetTypes())
     /// Execute step definitions in specified lines
     member this.Execute (lines:string[]) =
-        let featureName,scenarios = parse lines
-        scenarios |> Seq.iter (fun scenario ->
-            TickSpec.ScenarioRun.execute provider scenario
+        let featureName,scenarios = parse lines        
+        scenarios |> Seq.iter (function
+            | name,lines,None ->
+                let lines = lines |> Seq.map resolveLine
+                TickSpec.ScenarioRun.execute provider (name,lines)
+            | name,lines,Some(exampleTables) ->
+                /// All combinations of tables
+                let combinations = computeCombinations exampleTables                                                                        
+                // Execute each combination
+                combinations |> List.iter (fun combination ->
+                    let combination = Seq.concat combination
+                    let lines = 
+                        lines
+                        |> Seq.map (replaceLine combination)
+                        |> Seq.map resolveLine
+                    TickSpec.ScenarioRun.execute provider (name,lines)
+                )
         )
     member this.Execute (reader:TextReader) =
         this.Execute(TextReader.readAllLines reader)           
@@ -141,13 +228,34 @@ type StepDefinitions (methods:MethodInfo seq) =
     member this.GenerateScenarios (sourceUrl:string,lines:string[]) =        
         let featureName,scenarios = parse lines
         let gen = FeatureGen(featureName,sourceUrl)  
-        scenarios |> Seq.map (fun (scenarioName,lines) ->
+        let createAction (scenarioName, lines) =
             let instance = 
-                gen.GenScenario provider (scenarioName, Seq.toArray lines)
-            let mi = instance.GetType().GetMethod("Run") 
-            let action =
-                 System.Action(fun () -> mi.Invoke(instance,null) |> ignore)             
-            {Name=scenarioName; Action=action}                           
+                gen.GenScenario provider (scenarioName, lines)
+            let mi = instance.GetType().GetMethod("Run")             
+            fun () -> mi.Invoke(instance,null) |> ignore                                
+        scenarios |> Seq.map (function
+            | scenarioName,lines,None ->
+                let lines = lines |> Seq.map resolveLine |> Seq.toArray
+                let action = createAction (scenarioName, lines)
+                {Name=scenarioName; Action=System.Action(action)}
+            | scenarioName,lines,Some(exampleTables) ->
+                /// All combinations of tables
+                let combinations = computeCombinations exampleTables                                                                        
+                // Create action for each combination
+                combinations |> List.mapi (fun i combination ->
+                    let combination = Seq.concat combination
+                    let lines = 
+                        lines
+                        |> Seq.map (replaceLine combination)
+                        |> Seq.map resolveLine
+                        |> Seq.toArray
+                    createAction (sprintf "%s(%d)" scenarioName i,lines)                    
+                )                                    
+                |> (fun actions ->
+                    let action = fun () -> 
+                        actions |> Seq.iter (fun action -> action())
+                    {Name=scenarioName; Action=System.Action(action)}
+                )       
         )
     member this.GenerateScenarios (sourceUrl:string,reader:TextReader) =              
         this.GenerateScenarios(sourceUrl, TextReader.readAllLines reader)        
