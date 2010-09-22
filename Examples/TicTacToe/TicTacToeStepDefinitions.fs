@@ -8,14 +8,16 @@ let mutable layout = [|[||]|]
 let [<Given>] ``a board layout:`` (table:Table) =
     layout <- table.Rows         
 
+type Row = top = 0 | middle = 1 | bottom = 2
+type Col = left = 0 | middle = 1 | right = 2
+let [<Literal>] rowEx = "(top|middle|bottom)"
+let [<Literal>] colEx = "(left|middle|right)"
+
+[<When("a player marks (X|O) at {0} {1}", rowEx, colEx)>]
 let [<When>] ``a player marks (X|O) at (top|middle|bottom) (left|middle|right)`` 
-        (mark:string,row:string,col:string) =   
-    let y =
-        match row with
-        | "top" -> 0 | "middle" -> 1 | "bottom" -> 2 | s -> invalidOp(s)      
-    let x =
-        match col with
-        | "left" -> 0 | "middle" -> 1 | "right" -> 2 | s -> invalidOp(s)
+        (mark:string,row:Row,col:Col) =       
+    let y = int row             
+    let x = int col        
     Debug.Assert(System.String.IsNullOrEmpty(layout.[y].[x]))
     layout.[y].[x] <- mark      
     

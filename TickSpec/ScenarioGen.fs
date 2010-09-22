@@ -86,16 +86,33 @@ let PushTable
 let PushParam 
         (gen:ILGenerator) 
         (arg:string,param:ParameterInfo) =
-    // Emit string argument push
-    gen.Emit(OpCodes.Ldstr,arg)
-    let paramType = param.ParameterType
-    if paramType <> typeof<string> then                            
-        // Emit: System.Convert.ChangeType(arg,typeof<specified parameter>)
+           
+    let paramType = param.ParameterType        
+    
+    let emitParamType () = 
         gen.Emit(OpCodes.Ldtoken,paramType)   
         let mi = 
             typeof<Type>.GetMethod("GetTypeFromHandle", 
                 [|typeof<RuntimeTypeHandle>|])
+        gen.EmitCall(OpCodes.Call,mi,null)
+        
+    if  paramType = typeof<string> then
+        // Emit string argument
+        gen.Emit(OpCodes.Ldstr,arg)
+    elif paramType.IsEnum then
+        // Emit: System.Enum.Parse(typeof<specified argument>,arg)
+        emitParamType ()
+        gen.Emit(OpCodes.Ldstr,arg)
+        let mi = 
+            typeof<Enum>.GetMethod("Parse", 
+                [|typeof<Type>;typeof<string>|])        
         gen.EmitCall(OpCodes.Call,mi,null)         
+        // Emit cast to parameter type
+        gen.Emit(OpCodes.Unbox_Any,paramType)        
+    else                               
+        // Emit: System.Convert.ChangeType(arg,typeof<specified parameter>)
+        gen.Emit(OpCodes.Ldstr,arg)        
+        emitParamType  ()     
         let mi = 
             typeof<Convert>.GetMethod("ChangeType", 
                 [|typeof<obj>;typeof<Type>|])        

@@ -11,7 +11,8 @@ let invoke (provider:IServiceProvider) (m:MethodInfo,args:string[],table:Table o
         let ps = m.GetParameters()
         args |> Array.mapi (fun i x ->        
             let p = ps.[i].ParameterType
-            Convert.ChangeType(x,p)           
+            if p.IsEnum then Enum.Parse(p,x)
+            else Convert.ChangeType(x,p)           
         )             
     let instance =
         if m.IsStatic then null                
