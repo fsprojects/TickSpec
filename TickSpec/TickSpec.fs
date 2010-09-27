@@ -10,6 +10,7 @@ open TickSpec.LineParser
 open TickSpec.ServiceProvider
 
 type Scenario = { Name:string; Action:Action }
+    with override this.ToString() = this.Name
 
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (methods:MethodInfo seq) =            
