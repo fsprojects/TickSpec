@@ -2,6 +2,7 @@
 
 open System.Diagnostics
 open TickSpec
+open NUnit.Framework
 
 let mutable layout = [|[||]|]
 
@@ -36,7 +37,6 @@ let [<Then>] ``(X|O) wins`` (mark:string) =
         [0..2] |> Seq.forall (fun n -> layout.[n].[2 - n] = mark)
     ]
     |> Seq.exists (fun x -> x)
-    |> Debug.Assert
-   
+    |> Assert.IsTrue
     
 

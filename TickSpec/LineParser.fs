@@ -9,7 +9,7 @@ type internal LineType =
     | GivenStep of string
     | WhenStep of string
     | ThenStep of string   
-    | TableRow of string[]        
+    | TableRow of LineType * string[]        
 
 /// Try single parameter regular expression
 let tryRegex input pattern =
@@ -47,27 +47,42 @@ let (|Examples|_|) (s:string) =
 
 /// Line state given previous line state and new line text
 let parseLine = function         
-    | _, Scenario text ->
-        ScenarioStart text    
-    | _, Examples text ->
-        ExamplesStart 
+    | _, Scenario text -> ScenarioStart text |> Some   
+    | _, Examples text -> ExamplesStart |> Some
     | ScenarioStart _, Given text     
-    | GivenStep _, Given text 
-    | GivenStep _, And text | GivenStep _, But text -> 
-        GivenStep text
-    | ScenarioStart _, When text | TableRow _, When text
-    | GivenStep _, When text | WhenStep _, When text 
-    | WhenStep _, And text | WhenStep _, But text ->               
-        WhenStep text
-    | ScenarioStart _, Then text | TableRow _, Then text 
-    | GivenStep _, Then text
-    | WhenStep _, Then text | ThenStep _, Then text
-    | ThenStep _, And text | ThenStep _, But text -> 
-        ThenStep text        
-    | ExamplesStart _, Row xs
-    | GivenStep _, Row xs
-    | WhenStep _, Row xs 
-    | ThenStep _, Row xs
-    | TableRow _, Row xs ->
-        TableRow xs
-    | _, line -> invalidOp line
+    | GivenStep _, Given text | TableRow(GivenStep _,_), Given text
+    | GivenStep _, And text | TableRow(GivenStep _,_), And text 
+    | GivenStep _, But text | TableRow(GivenStep _,_), But text 
+        -> GivenStep text |> Some
+    | ScenarioStart _, When text 
+    | GivenStep _, When text | TableRow(GivenStep _,_), When text
+    | WhenStep _, When text | TableRow(WhenStep _,_), When text
+    | WhenStep _, And text | TableRow(WhenStep _,_), And text
+    | WhenStep _, But text | TableRow(WhenStep _,_), But text
+        -> WhenStep text |> Some
+    | ScenarioStart _, Then text  
+    | GivenStep _, Then text | TableRow (GivenStep _,_), Then text
+    | WhenStep _, Then text | TableRow (WhenStep _,_), Then text
+    | ThenStep _, Then text | TableRow (ThenStep _,_), Then text
+    | ThenStep _, And text | TableRow(ThenStep _,_), And text
+    | ThenStep _, But text | TableRow(ThenStep _,_), But text
+        -> ThenStep text |> Some
+    | (ExamplesStart _ as line), Row xs
+    | (GivenStep _ as line), Row xs 
+    | (WhenStep _ as line), Row xs 
+    | (ThenStep _ as line), Row xs
+    | TableRow (line,_), Row xs ->
+        TableRow(line,xs) |> Some
+    | _, line -> None
+
+let expectingLine = function
+    | ScenarioStart _ -> "Expecting Given, When or Then step"
+    | GivenStep _ | TableRow(GivenStep _,_) -> 
+        "Expecting Table row, Given, When, Then, And or But step"
+    | WhenStep _ | TableRow(WhenStep _,_) -> 
+        "Expecting Table row, When, Then, And or But step"
+    | ThenStep _ | TableRow(ThenStep _,_) -> 
+        "Expecting Table row, Then, And or But step"
+    | ExamplesStart _ | TableRow(ExamplesStart _,_) -> 
+        "Expecting Table row"
+    | TableRow(_,_) -> "Unexpected line"

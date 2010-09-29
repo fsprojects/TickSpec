@@ -28,12 +28,16 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
+    <StartAction>Program</StartAction>
+    <StartProgram>C:\Program Files\NUnit 2.5.7\bin\net-2.0\nunit.exe</StartProgram>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Fixture.fs" />
     <EmbeddedResource Include="Feature2.txt" />
     <Compile Include="StockItem.fs" />
     <Compile Include="StockStepDefinitions.fs" />
+    <EmbeddedResource Include="TicTacToe.txt" />
+    <Compile Include="TicTacToeStepDefinitions.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -45,8 +49,6 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\TickSpec\TickSpec.fsproj">
       <Name>TickSpec</Name>
       <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>

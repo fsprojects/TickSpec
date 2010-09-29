@@ -12,9 +12,9 @@ type TickCommand(scenario:Scenario,info:IMethodInfo) =
         member this.Execute testClass = 
             try 
                 scenario.Action.Invoke()
-                PassedResult(info, scenario.Name) :> MethodResult 
+                PassedResult(info, scenario.ToString()) :> MethodResult 
             with ex -> 
-                FailedResult(info, ex, scenario.Name) :> MethodResult 
+                FailedResult(info, ex, scenario.ToString()) :> MethodResult 
              
         member this.DisplayName = scenario.Name 
         member this.ToStartXml () = 

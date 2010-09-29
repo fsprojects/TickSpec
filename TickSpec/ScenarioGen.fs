@@ -40,45 +40,45 @@ let PushTable
         (gen:ILGenerator)        
         (table:Table) =
         
-    gen.DeclareLocal(typeof<string[]>) |> ignore
-    gen.DeclareLocal(typeof<string[][]>) |> ignore
+    let local0 = gen.DeclareLocal(typeof<string[]>).LocalIndex
+    let local1 = gen.DeclareLocal(typeof<string[][]>).LocalIndex
 
     // Define header           
     gen.Emit(OpCodes.Ldc_I4, table.Header.Length)
     gen.Emit(OpCodes.Newarr,typeof<string>)
-    gen.Emit(OpCodes.Stloc_0)
+    gen.Emit(OpCodes.Stloc,local0)
     // Fill header
     table.Header |> Seq.iteri (fun i s ->        
-        gen.Emit(OpCodes.Ldloc_0)
+        gen.Emit(OpCodes.Ldloc,local0)
         gen.Emit(OpCodes.Ldc_I4, i)
         gen.Emit(OpCodes.Ldstr,s)
         gen.Emit(OpCodes.Stelem_Ref)
     )
-    gen.Emit(OpCodes.Ldloc,0)       
+    gen.Emit(OpCodes.Ldloc,local0)       
     // Define rows
     gen.Emit(OpCodes.Ldc_I4,table.Rows.Length)
     gen.Emit(OpCodes.Newarr,typeof<string[]>)
-    gen.Emit(OpCodes.Stloc,1)     
+    gen.Emit(OpCodes.Stloc,local1)     
     // Fill rows
     table.Rows |> Seq.iteri (fun y row ->
         // Define row
-        gen.Emit(OpCodes.Ldloc,1)
+        gen.Emit(OpCodes.Ldloc,local1)
         gen.Emit(OpCodes.Ldc_I4,y)
         gen.Emit(OpCodes.Ldc_I4,row.Length)
         gen.Emit(OpCodes.Newarr,typeof<string>)
-        gen.Emit(OpCodes.Stloc,0)
+        gen.Emit(OpCodes.Stloc,local0)
         // Fill columns
         row |> Seq.iteri (fun x col ->
-            gen.Emit(OpCodes.Ldloc,0)
+            gen.Emit(OpCodes.Ldloc,local0)
             gen.Emit(OpCodes.Ldc_I4,x)
             gen.Emit(OpCodes.Ldstr,col)
             gen.Emit(OpCodes.Stelem_Ref)           
         )
-        gen.Emit(OpCodes.Ldloc,0)
+        gen.Emit(OpCodes.Ldloc,local0)
         gen.Emit(OpCodes.Stelem_Ref)
     )
     // Instantiate table
-    gen.Emit(OpCodes.Ldloc,1)    
+    gen.Emit(OpCodes.Ldloc,local1)    
     let ci = typeof<Table>.GetConstructor([|typeof<string[]>;typeof<string[][]>|])
     gen.Emit(OpCodes.Newobj,ci)     
           
@@ -86,39 +86,64 @@ let PushTable
 let PushParam 
         (gen:ILGenerator) 
         (arg:string,param:ParameterInfo) =
-           
-    let paramType = param.ParameterType        
-    
-    let emitParamType () = 
-        gen.Emit(OpCodes.Ldtoken,paramType)   
+               
+    let emitParamType (t:Type) = 
+        gen.Emit(OpCodes.Ldtoken,t)   
         let mi = 
             typeof<Type>.GetMethod("GetTypeFromHandle", 
                 [|typeof<RuntimeTypeHandle>|])
         gen.EmitCall(OpCodes.Call,mi,null)
+                            
+    let emitConvert (t:Type) (x:string) =
+        // Emit: System.Convert.ChangeType(arg,typeof<specified parameter>)
+        gen.Emit(OpCodes.Ldstr, x)        
+        emitParamType t     
+        let mi = 
+            typeof<Convert>.GetMethod("ChangeType", 
+                [|typeof<obj>;typeof<Type>|])        
+        gen.EmitCall(OpCodes.Call,mi,null)         
+        // Emit cast to parameter type
+        gen.Emit(OpCodes.Unbox_Any, t)         
         
-    if  paramType = typeof<string> then
-        // Emit string argument
-        gen.Emit(OpCodes.Ldstr,arg)
-    elif paramType.IsEnum then
+    let emitValue (t:Type) (x:string) =
+        if  t = typeof<string> then
+            // Emit string argument
+            gen.Emit(OpCodes.Ldstr,x)   
+        else
+            emitConvert t x
+        
+    let paramType = param.ParameterType                           
+    if paramType.IsEnum then
         // Emit: System.Enum.Parse(typeof<specified argument>,arg)
-        emitParamType ()
+        emitParamType paramType
         gen.Emit(OpCodes.Ldstr,arg)
         let mi = 
             typeof<Enum>.GetMethod("Parse", 
                 [|typeof<Type>;typeof<string>|])        
         gen.EmitCall(OpCodes.Call,mi,null)         
         // Emit cast to parameter type
-        gen.Emit(OpCodes.Unbox_Any,paramType)        
+        gen.Emit(OpCodes.Unbox_Any,paramType)   
+    elif paramType.IsArray then
+        let t = paramType.GetElementType()
+        let vs =
+            if String.IsNullOrEmpty(arg.Trim()) then [||]                                 
+            else arg.Split [|','|] |> Array.map (fun x -> x.Trim())                
+        // Define local
+        let local = gen.DeclareLocal(paramType).LocalIndex        
+        // Define array           
+        gen.Emit(OpCodes.Ldc_I4, vs.Length)
+        gen.Emit(OpCodes.Newarr,t)
+        gen.Emit(OpCodes.Stloc, local)
+        // Set values
+        vs |> Seq.iteri (fun i x ->
+            gen.Emit(OpCodes.Ldloc, local)
+            gen.Emit(OpCodes.Ldc_I4,i)
+            emitValue t x
+            gen.Emit(OpCodes.Stelem,t)
+        )
+        gen.Emit(OpCodes.Ldloc, local)        
     else                               
-        // Emit: System.Convert.ChangeType(arg,typeof<specified parameter>)
-        gen.Emit(OpCodes.Ldstr,arg)        
-        emitParamType  ()     
-        let mi = 
-            typeof<Convert>.GetMethod("ChangeType", 
-                [|typeof<obj>;typeof<Type>|])        
-        gen.EmitCall(OpCodes.Call,mi,null)         
-        // Emit cast to parameter type
-        gen.Emit(OpCodes.Unbox_Any,paramType)        
+        emitValue paramType arg       
         
 /// Creates step method        
 let CreateStepMethod

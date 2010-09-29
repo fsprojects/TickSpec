@@ -17,3 +17,14 @@ type Feature2 () =
         let source = @"Feature2.txt"
         let s = ass.GetManifestResourceStream(source)   
         definitions.GenerateScenarios(source,s)
+        
+[<TestFixture>]
+type TicTacToe () =
+    [<Test>]
+    [<TestCaseSource("Scenarios")>]
+    member this.TestScenario (scenario:Scenario) =       
+        scenario.Action.Invoke()        
+    static member Scenarios =
+        let source = @"TicTacToe.txt"
+        let s = ass.GetManifestResourceStream(source)   
+        definitions.GenerateScenarios(source,s)
