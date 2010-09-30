@@ -1,6 +1,5 @@
 ﻿module TicTacToeStepDefinitions
 
-open System.Diagnostics
 open TickSpec
 open NUnit.Framework
 
@@ -19,7 +18,7 @@ let [<When>] ``a player marks (X|O) at (top|middle|bottom) (left|middle|right)``
         (mark:string,row:Row,col:Col) =       
     let y = int row             
     let x = int col        
-    Debug.Assert(System.String.IsNullOrEmpty(layout.[y].[x]))
+    Assert.IsTrue(System.String.IsNullOrEmpty(layout.[y].[x]))
     layout.[y].[x] <- mark      
     
 let [<Then>] ``(X|O) wins`` (mark:string) =

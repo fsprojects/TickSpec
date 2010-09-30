@@ -6,22 +6,22 @@ open TickSpec.LineParser
 let buildScenarios lines =
     // Scan over lines
     lines
-    |> Seq.scan (fun (scenario,lastStep,lastN,_) (n,line) ->        
+    |> Seq.scan (fun (scenario,lastStep,lastN,_) (n,line) ->
         let step = 
             match parseLine (lastStep,line) with
             | Some newStep -> newStep
             | None -> 
                 let e = expectingLine lastStep
                 let m = sprintf "Syntax error on line %d %s\r\n%s" n line e
-                StepException(m,n,scenario) |> raise                                                
+                StepException(m,n,scenario) |> raise
         match step with
         | ScenarioStart(name) ->
             name, step, n, None
         | ExamplesStart          
-        | GivenStep(_) | WhenStep(_) | ThenStep(_) ->                                          
+        | GivenStep _ | WhenStep _ | ThenStep _ ->
             scenario, step, n, Some(scenario,n,line,step) 
-        | TableRow(_) ->
-            scenario, step, lastN, Some(scenario,lastN,line,step)                                           
+        | Item _ ->
+            scenario, step, lastN, Some(scenario,lastN,line,step)
     ) ("",ScenarioStart(""),0,None)
     // Handle tables
     |> Seq.choose (fun (_,_,_,step) -> step)
@@ -34,49 +34,66 @@ let buildScenarios lines =
             | ExamplesStart
             | GivenStep _ | WhenStep _ | ThenStep _ ->
                 (scenario,n,line,step),table
-            | TableRow (_,columns) ->
-                row,columns::table
+            | Item (_,item) ->
+                row, item::table
         ) (("",0,"",ScenarioStart("")),[])
-        |> (fun (line,table) -> 
-            let table = List.rev table
+        |> (fun (line, items) -> 
+            let items = List.rev items            
             line,
-                match table with
-                | x::xs -> Some(Table(x,xs |> List.toArray))
-                | [] -> None                 
+                match items with
+                | x::xs ->
+                    match x with
+                    | BulletPoint _ ->
+                        let bullets =
+                           items |> List.map (function
+                                | TableRow _ -> None
+                                | BulletPoint s -> Some s
+                            )
+                            |> List.choose (fun x -> x)
+                        Some(bullets |> List.toArray),None
+                    | TableRow header ->
+                        let rows =
+                            xs |> List.map (function
+                                | TableRow cols -> Some cols
+                                | BulletPoint _ -> None
+                            )
+                            |> List.choose (fun x -> x)
+                        None,Some(Table(header,rows |> List.toArray))
+                | [] -> None,None                
         )
     )           
     // Group into scenarios
-    |> Seq.map (fun ((scenario,n,line,step),table) ->
-        scenario,n,line,step,table
+    |> Seq.map (fun ((scenario,n,line,step),(bullets,table)) ->
+        scenario,n,line,step,bullets,table
     )
-    |> Seq.groupBy (fun (scenario,_,_,_,_) -> scenario)                     
+    |> Seq.groupBy (fun (scenario,_,_,_,_,_) -> scenario)
     // Handle examples
     |> Seq.map (fun (scenario,lines) -> 
         scenario,
             lines 
             |> Seq.toArray
             |> Array.partition (function 
-                | _,_,_,ExamplesStart,_ -> true 
-                | _ -> false                    
-            )                                 
+                | _,_,_,ExamplesStart,_,_ -> true 
+                | _ -> false
+            )
             |> (fun (examples,steps) ->
                 steps, 
                     let tables =
                         examples      
-                        |> Array.choose (fun (_,_,_,_,table) -> table)
-                        |> Array.filter (fun table -> table.Rows.Length > 0)                                                                                                                        
+                        |> Array.choose (fun (_,_,_,_,_,table) -> table)
+                        |> Array.filter (fun table -> table.Rows.Length > 0)
                     if tables.Length > 0 then Some tables
-                    else None                        
-            )                                
+                    else None
+            )
     ) 
-    |> Seq.map (fun (name,(steps,examples)) -> name,steps,examples)                        
+    |> Seq.map (fun (name,(steps,examples)) -> name,steps,examples)
 
 /// Parse feature lines
-let parse (featureLines:string[]) =       
+let parse (featureLines:string[]) =
     let startsWith s (line:string) = line.Trim().StartsWith(s)
     let lines =
         featureLines
-        |> Seq.mapi (fun i line -> (i+1,line))          
+        |> Seq.mapi (fun i line -> (i+1,line))
     let n, feature =
         lines
         |> Seq.tryFind (snd >> startsWith "Feature")
@@ -85,8 +102,12 @@ let parse (featureLines:string[]) =
         lines
         |> Seq.skip n
         |> Seq.skipUntil (snd >> startsWith "Scenario")
-        |> Seq.filter (fun (_,line) -> line.Trim().Length > 0)          
-        |> Seq.filter (fun (_,line) -> not(line.Trim().StartsWith("#")))
+        |> Seq.map (fun (n,line) -> 
+            let i = line.IndexOf("#")
+            if i = -1 then n,line
+            else n,line.Substring(0,i)
+        )
+        |> Seq.filter (fun (_,line) -> line.Trim().Length > 0)
         |> buildScenarios
     feature, scenarios
 

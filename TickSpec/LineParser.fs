@@ -2,6 +2,11 @@
 
 open System.Text.RegularExpressions
 
+/// Item type
+type internal ItemType =
+    | BulletPoint of string
+    | TableRow of string[]
+
 /// Line type
 type internal LineType = 
     | ScenarioStart of string
@@ -9,7 +14,7 @@ type internal LineType =
     | GivenStep of string
     | WhenStep of string
     | ThenStep of string   
-    | TableRow of LineType * string[]        
+    | Item of LineType * ItemType        
 
 /// Try single parameter regular expression
 let tryRegex input pattern =
@@ -42,6 +47,10 @@ let (|Row|_|) (s:string) =
         let cols = cols |> Array.map (fun s -> s.Trim())
         Row cols |> Some
     else None
+let (|Bullet|_|) (s:string) =    
+    if s.Trim().StartsWith("*") then 
+        s.Substring(s.IndexOf("*")+1).Trim() |> Some
+    else None       
 let (|Examples|_|) (s:string) =
     if s.Trim().StartsWith("Examples") then Some Examples else None
 
@@ -50,39 +59,44 @@ let parseLine = function
     | _, Scenario text -> ScenarioStart text |> Some   
     | _, Examples text -> ExamplesStart |> Some
     | ScenarioStart _, Given text     
-    | GivenStep _, Given text | TableRow(GivenStep _,_), Given text
-    | GivenStep _, And text | TableRow(GivenStep _,_), And text 
-    | GivenStep _, But text | TableRow(GivenStep _,_), But text 
+    | GivenStep _, Given text | Item(GivenStep _,_), Given text
+    | GivenStep _, And text | Item(GivenStep _,_), And text 
+    | GivenStep _, But text | Item(GivenStep _,_), But text 
         -> GivenStep text |> Some
     | ScenarioStart _, When text 
-    | GivenStep _, When text | TableRow(GivenStep _,_), When text
-    | WhenStep _, When text | TableRow(WhenStep _,_), When text
-    | WhenStep _, And text | TableRow(WhenStep _,_), And text
-    | WhenStep _, But text | TableRow(WhenStep _,_), But text
+    | GivenStep _, When text | Item(GivenStep _,_), When text
+    | WhenStep _, When text | Item(WhenStep _,_), When text
+    | WhenStep _, And text | Item(WhenStep _,_), And text
+    | WhenStep _, But text | Item(WhenStep _,_), But text
         -> WhenStep text |> Some
     | ScenarioStart _, Then text  
-    | GivenStep _, Then text | TableRow (GivenStep _,_), Then text
-    | WhenStep _, Then text | TableRow (WhenStep _,_), Then text
-    | ThenStep _, Then text | TableRow (ThenStep _,_), Then text
-    | ThenStep _, And text | TableRow(ThenStep _,_), And text
-    | ThenStep _, But text | TableRow(ThenStep _,_), But text
+    | GivenStep _, Then text | Item (GivenStep _,_), Then text
+    | WhenStep _, Then text | Item (WhenStep _,_), Then text
+    | ThenStep _, Then text | Item (ThenStep _,_), Then text
+    | ThenStep _, And text | Item(ThenStep _,_), And text
+    | ThenStep _, But text | Item(ThenStep _,_), But text
         -> ThenStep text |> Some
+    | (GivenStep _ as line), Bullet xs 
+    | (WhenStep _ as line), Bullet xs 
+    | (ThenStep _ as line), Bullet xs
+    | Item (line, BulletPoint(_)), Bullet xs ->
+        Item(line, BulletPoint xs) |> Some
     | (ExamplesStart _ as line), Row xs
     | (GivenStep _ as line), Row xs 
     | (WhenStep _ as line), Row xs 
     | (ThenStep _ as line), Row xs
-    | TableRow (line,_), Row xs ->
-        TableRow(line,xs) |> Some
+    | Item (line, TableRow _), Row xs ->
+        Item(line, TableRow xs) |> Some
     | _, line -> None
 
 let expectingLine = function
     | ScenarioStart _ -> "Expecting Given, When or Then step"
-    | GivenStep _ | TableRow(GivenStep _,_) -> 
-        "Expecting Table row, Given, When, Then, And or But step"
-    | WhenStep _ | TableRow(WhenStep _,_) -> 
-        "Expecting Table row, When, Then, And or But step"
-    | ThenStep _ | TableRow(ThenStep _,_) -> 
-        "Expecting Table row, Then, And or But step"
-    | ExamplesStart _ | TableRow(ExamplesStart _,_) -> 
+    | GivenStep _ | Item(GivenStep _,_) -> 
+        "Expecting Table row, Bullet, Given, When, Then, And or But step"
+    | WhenStep _ | Item(WhenStep _,_) -> 
+        "Expecting Table row, Bullet, When, Then, And or But step"
+    | ThenStep _ | Item(ThenStep _,_) -> 
+        "Expecting Table row, Bullet, Then, And or But step"
+    | ExamplesStart _ | Item(ExamplesStart _,TableRow _) -> 
         "Expecting Table row"
-    | TableRow(_,_) -> "Unexpected line"
+    | Item(_,_) -> "Unexpected line"
