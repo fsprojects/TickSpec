@@ -18,21 +18,35 @@ let defineProviderField
     scenarioBuilder.DefineField(
         "_provider",
         typeof<IServiceProvider>,
-        FieldAttributes.Private)
+        FieldAttributes.Private ||| FieldAttributes.InitOnly)
         
 /// Defines Constructor
 let defineCons 
         (scenarioBuilder:TypeBuilder)
-        (providerField:FieldBuilder) =
+        (providerField:FieldBuilder)
+        (parameters:(string * string)[]) =
     let cons = 
         scenarioBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Standard,
             [|typeof<System.IServiceProvider>|])
     let gen = cons.GetILGenerator() 
+    // Emit provider field
     gen.Emit(OpCodes.Ldarg_0)
     gen.Emit(OpCodes.Ldarg_1)
     gen.Emit(OpCodes.Stfld,providerField)
+    // Emit example parameters
+    parameters |> Seq.iter (fun (name,value) ->
+        let field =
+            scenarioBuilder.DefineField(
+                name,
+                typeof<string>,
+                FieldAttributes.Private ||| FieldAttributes.InitOnly)        
+        gen.Emit(OpCodes.Ldarg_0)
+        gen.Emit(OpCodes.Ldstr,value)
+        gen.Emit(OpCodes.Stfld,field)        
+    )  
+    // Emit return
     gen.Emit(OpCodes.Ret)
         
 /// Emits table argument    
@@ -158,18 +172,19 @@ let defineStepMethod
         doc
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
-        (_,n:int,line:string,mi:MethodInfo,args:string[],
-         bullets:string[] option,table:Table option) =
+        (line:Line,mi:MethodInfo,args:string[]) =    
+    /// Line number
+    let n = line.Number
     /// Step method builder
     let stepMethod = 
-        scenarioBuilder.DefineMethod(sprintf "%d: %s" n line,
+        scenarioBuilder.DefineMethod(sprintf "%d: %s" n line.Text,
             MethodAttributes.Public,
             typeof<Void>,
-            [||])
+             [||])
     /// Step method ILGenerator
     let gen = stepMethod.GetILGenerator()
-    // Set marker in source document
-    gen.MarkSequencePoint(doc,n,1,n,line.Length+1)
+    // Set marker in source document    
+    gen.MarkSequencePoint(doc,n,1,n,line.Text.Length+1)
     // For instance methods get instance value from service provider
     if not mi.IsStatic then
         gen.Emit(OpCodes.Ldarg_0)
@@ -189,12 +204,12 @@ let defineStepMethod
     Seq.zip args ps
     |> Seq.iter (emitArgument gen)
     // Emit bullets argument
-    bullets |> Option.iter (fun x ->
+    line.Bullets |> Option.iter (fun x ->
         let t = (ps.[ps.Length-1].ParameterType)
         emitArray gen t x
     )
     // Emit table argument
-    table |> Option.iter (emitTable gen)
+    line.Table |> Option.iter (emitTable gen)
     // Emit method invoke
     if mi.IsStatic then
         gen.EmitCall(OpCodes.Call, mi, null)
@@ -214,7 +229,7 @@ let defineRunMethod
         scenarioBuilder.DefineMethod("Run",
             MethodAttributes.Public,
             typeof<Void>,
-            [||])
+            [||])                           
     /// Run method ILGenerator
     let gen = runMethod.GetILGenerator()
     // Execute steps
@@ -229,16 +244,16 @@ let defineRunMethod
 let generateScenario 
         (module_:ModuleBuilder)
         doc
-        (scenarioName,lines:(string * int * string * MethodInfo * string[]
-                             * string[] option * Table option) []) =
+        (scenarioName,lines:(Line * MethodInfo * string[]) [],
+         parameters:(string * string)[]) =
     
     let scenarioBuilder =
         defineScenarioType module_ scenarioName
     
     let providerField = defineProviderField scenarioBuilder
-        
-    defineCons scenarioBuilder providerField
-        
+                              
+    defineCons scenarioBuilder providerField parameters
+            
     /// Scenario step methods
     let stepMethods =
         lines 

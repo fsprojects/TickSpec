@@ -6,7 +6,7 @@ open TickSpec
 do  let ass = Assembly.GetExecutingAssembly()
     let definitions = new StepDefinitions(ass)
 
-    [@"TicTacToe.txt"]
+    [@"TicTacToeXO.txt"]
     |> Seq.iter (fun source ->
         let s = ass.GetManifestResourceStream(source)
         definitions.Execute(source,s)

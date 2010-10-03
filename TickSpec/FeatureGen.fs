@@ -34,9 +34,10 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
     /// Generates scenario type from lines
     member this.GenScenario
         (provider:IServiceProvider)
-        (scenarioName,lines:(string * int * string * MethodInfo * string[]
-                             * string[] option * Table option) []) =
-        let scenario = generateScenario module_ doc (scenarioName,lines)
+        (scenarioName,
+         lines:(Line * MethodInfo * string[]) [], 
+         parameters:(string * string)[]) =
+        let scenario = generateScenario module_ doc (scenarioName,lines,parameters)
         let cons = scenario.GetConstructor([|typeof<IServiceProvider>|])
         let instance = cons.Invoke([|provider|])
         instance

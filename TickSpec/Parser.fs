@@ -62,32 +62,34 @@ let buildScenarios lines =
                 | [] -> None,None                
         )
     )           
-    // Group into scenarios
+    // Map to lines
     |> Seq.map (fun ((scenario,n,line,step),(bullets,table)) ->
-        scenario,n,line,step,bullets,table
+        let line = {Number=n;Text=line;Bullets=bullets;Table=table}
+        scenario,line,step
     )
-    |> Seq.groupBy (fun (scenario,_,_,_,_,_) -> scenario)
+    // Group into scenarios
+    |> Seq.groupBy (fun (scenario,_,_) -> scenario)        
     // Handle examples
     |> Seq.map (fun (scenario,lines) -> 
         scenario,
             lines 
             |> Seq.toArray
             |> Array.partition (function 
-                | _,_,_,ExamplesStart,_,_ -> true 
+                | _,_,ExamplesStart -> true 
                 | _ -> false
             )
             |> (fun (examples,steps) ->
                 steps, 
                     let tables =
                         examples      
-                        |> Array.choose (fun (_,_,_,_,_,table) -> table)
+                        |> Array.choose (fun (_,line,_) -> line.Table)
                         |> Array.filter (fun table -> table.Rows.Length > 0)
                     if tables.Length > 0 then Some tables
                     else None
             )
     ) 
     |> Seq.map (fun (name,(steps,examples)) -> name,steps,examples)
-
+        
 /// Parse feature lines
 let parse (featureLines:string[]) =
     let startsWith s (line:string) = line.Trim().StartsWith(s)

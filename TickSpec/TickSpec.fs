@@ -67,9 +67,7 @@ type StepDefinitions (methods:MethodInfo seq) =
             |> Seq.toList
         values |> List.combinations
     /// Replace line with specified named values
-    let replaceLine 
-            (xs:seq<string * string>) 
-            (scenario,n,line,step,bullets,table:Table option) =
+    let replaceLine (xs:seq<string * string>) (scenario,line,step) =
         let replace s =
             let lookup (m:Match) =
                 let x = m.Value.TrimStart([|'<'|]).TrimEnd([|'>'|])
@@ -84,7 +82,7 @@ type StepDefinitions (methods:MethodInfo seq) =
             | ThenStep s  -> replace s |> ThenStep
             | _ -> invalidOp("")
         let table =
-            table 
+            line.Table 
             |> Option.map (fun table ->
                 Table(table.Header,
                     table.Rows |> Array.map (fun row ->
@@ -92,24 +90,27 @@ type StepDefinitions (methods:MethodInfo seq) =
                     )
                 )
             )
-        (scenario,n,line,step,bullets,table)
+        let bullets =
+            line.Bullets
+            |> Option.map (fun bullets -> bullets |> Array.map replace)                                  
+        (scenario,{line with Table=table;Bullets=bullets},step)
     /// Resolves line
-    let resolveLine (scenario,n,line,step,bullets,table) =
+    let resolveLine (scenario,line,step) =
         let matches = matchStep step
         let fail e =
-            let m = sprintf "%s on line %d" e n 
-            StepException(m,n,scenario) |> raise
+            let m = sprintf "%s on line %d" e line.Number 
+            StepException(m,line.Number,scenario) |> raise
         if matches.IsEmpty then fail "Missing step"
         if matches.Length > 1 then fail "Ambiguous step"
         let r,m = matches.Head
         if m.ReturnType <> typeof<Void> then 
             fail "Step methods must return void/unit"
-        let tableCount = table |> Option.count
-        let bulletsCount = bullets |> Option.count
+        let tableCount = line.Table |> Option.count
+        let bulletsCount = line.Bullets |> Option.count
         let argCount = r.Groups.Count-1+tableCount+bulletsCount
         if m.GetParameters().Length <> argCount then
             fail "Parameter count mismatch"
-        scenario,n,line,m,extractArgs r,bullets,table
+        line,m,extractArgs r
     /// Type instance provider    
     let provider = CreateServiceProvider ()
     /// Constructs instance by reflecting against specified types
@@ -126,12 +127,12 @@ type StepDefinitions (methods:MethodInfo seq) =
     member this.GenerateScenarios (lines:string []) =
         let featureName,scenarios = parse lines
         scenarios |> Seq.collect (function
-            | name,lines,None ->
+            | scenarioName,lines,None ->
                 let lines = lines |> Seq.map resolveLine
                 let action =
-                    TickSpec.ScenarioRun.generate provider (name,lines)
+                    TickSpec.ScenarioRun.generate provider (scenarioName,lines)
                 Seq.singleton
-                    { Name=name;Action=Action(action);Parameters=[||] }
+                    {Name=scenarioName;Action=Action(action);Parameters=[||]}
             | name,lines,Some(exampleTables) ->
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
@@ -144,7 +145,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                         |> Seq.map resolveLine
                     let action = 
                         TickSpec.ScenarioRun.generate provider (name,lines)
-                    { Name=name;Action=Action(action);Parameters=combination }
+                    {Name=name;Action=Action(action);Parameters=combination}
                 )
         )        
     member this.GenerateScenarios (reader:TextReader) =
@@ -165,17 +166,17 @@ type StepDefinitions (methods:MethodInfo seq) =
     member this.GenerateScenarios (sourceUrl:string,lines:string[]) =
         let featureName,scenarios = parse lines
         let gen = FeatureGen(featureName,sourceUrl)
-        let createAction (scenarioName, lines) =
+        let createAction (scenarioName, lines, ps) =
             let instance = 
-                gen.GenScenario provider (scenarioName, lines)
+                gen.GenScenario provider (scenarioName, lines, ps)
             let mi = instance.GetType().GetMethod("Run")
-            fun () -> mi.Invoke(instance,null) |> ignore
+            Action(fun () -> mi.Invoke(instance,null) |> ignore)            
         scenarios |> Seq.collect (function
             | scenarioName,lines,None ->
                 let lines = lines |> Seq.map resolveLine |> Seq.toArray
-                let action = createAction (scenarioName, lines)
+                let action = createAction (scenarioName, lines, [||])
                 Seq.singleton
-                    {Name=scenarioName; Action=Action(action);Parameters=[||]}
+                    {Name=scenarioName;Action=action;Parameters=[||]}
             | scenarioName,lines,Some(exampleTables) ->
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
@@ -187,12 +188,11 @@ type StepDefinitions (methods:MethodInfo seq) =
                         |> Seq.map (replaceLine combination)
                         |> Seq.map resolveLine
                         |> Seq.toArray
-                    combination, createAction (sprintf "%s(%d)" scenarioName i, lines)
+                    let name = sprintf "%s(%d)" scenarioName i
+                    combination, createAction (name, lines, combination)
                 )
                 |> Seq.map (fun (ps,action) ->
-                    { Name=scenarioName; 
-                      Action=Action(action); 
-                      Parameters=ps }
+                    {Name=scenarioName;Action=action;Parameters=ps}
                 )
         )
     member this.GenerateScenarios (sourceUrl:string,reader:TextReader) =

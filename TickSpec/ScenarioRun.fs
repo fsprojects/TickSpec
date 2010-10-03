@@ -46,6 +46,6 @@ let invoke
 /// Generate execution function
 let generate (provider:IServiceProvider) (scenario,lines) =
     fun () ->
-        lines |> Seq.iter (fun (_,n,line,m,args,bullets,table) ->
+        lines |> Seq.iter (fun (line:Line,m,args) ->
             System.Diagnostics.Debug.WriteLine line
-            (m,args,bullets,table) |> invoke provider)
+            (m,args,line.Bullets,line.Table) |> invoke provider)

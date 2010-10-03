@@ -30,7 +30,7 @@
     <WarningLevel>3</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TicTacToe.txt" />
+    <EmbeddedResource Include="TicTacToeXO.txt" />
     <Compile Include="TicTacToeStepDefinitions.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

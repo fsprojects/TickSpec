@@ -43,6 +43,7 @@
     <Compile Include="Extensions.fs" />
     <Compile Include="ServiceProvider.fs" />
     <Compile Include="Table.fs" />
+    <Compile Include="Line.fs" />
     <Compile Include="ScenarioRun.fs" />
     <Compile Include="ScenarioGen.fs" />
     <Compile Include="FeatureGen.fs" />

@@ -26,13 +26,14 @@
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <StartAction>Program</StartAction>
     <StartProgram>C:\Program Files\NUnit 2.5.7\bin\net-2.0\nunit.exe</StartProgram>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Fixture.fs" />
+    <Compile Include="FeatureFixture.fs" />
+    <Compile Include="Fixtures.fs" />
     <EmbeddedResource Include="Feature2.txt" />
     <Compile Include="StockItem.fs" />
     <Compile Include="StockStepDefinitions.fs" />
