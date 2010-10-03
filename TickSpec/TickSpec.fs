@@ -101,7 +101,7 @@ type StepDefinitions (methods:MethodInfo seq) =
         let matches = matchStep step
         let fail e =
             let m = sprintf "%s on line %d" e line.Number 
-            StepException(m,line.Number,scenario) |> raise
+            StepException(m,line.Number,scenario.ToString()) |> raise
         if matches.IsEmpty then fail "Missing step"
         if matches.Length > 1 then fail "Ambiguous step"
         let r,m = matches.Head
@@ -127,10 +127,12 @@ type StepDefinitions (methods:MethodInfo seq) =
         StepDefinitions(assembly.GetTypes())
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
-        let featureName,scenarios = parse lines
+        let featureName,background,scenarios = parse lines
         scenarios |> Seq.collect (function
             | scenarioName,lines,None ->
-                let lines = lines |> Seq.map resolveLine
+                let lines = 
+                    Seq.append background lines 
+                    |> Seq.map resolveLine
                 let action =
                     TickSpec.ScenarioRun.generate provider (scenarioName,lines)
                 Seq.singleton
@@ -142,7 +144,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                 combinations |> Seq.map (fun combination ->
                     let combination = Seq.concat combination |> Seq.toArray
                     let lines = 
-                        lines
+                        Seq.append background lines                        
                         |> Seq.map (replaceLine combination)
                         |> Seq.map resolveLine
                     let action = 
@@ -166,7 +168,7 @@ type StepDefinitions (methods:MethodInfo seq) =
         this.Execute (reader)
     /// Generates feature in specified lines from source document
     member this.GenerateFeature (sourceUrl:string,lines:string[]) =
-        let featureName,scenarios = parse lines
+        let featureName,background,scenarios = parse lines
         let gen = FeatureGen(featureName,sourceUrl)
         let createAction (scenarioName, lines, ps) =
             let instance = 
@@ -175,7 +177,10 @@ type StepDefinitions (methods:MethodInfo seq) =
             Action(fun () -> mi.Invoke(instance,null) |> ignore)            
         { Name = featureName; Scenarios = scenarios |> Seq.collect (function
             | scenarioName,lines,None ->
-                let lines = lines |> Seq.map resolveLine |> Seq.toArray
+                let lines = 
+                    Seq.append background lines 
+                    |> Seq.map resolveLine 
+                    |> Seq.toArray
                 let action = createAction (scenarioName, lines, [||])
                 Seq.singleton
                     {Name=scenarioName;Action=action;Parameters=[||]}
@@ -186,7 +191,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                 combinations |> List.mapi (fun i combination ->
                     let combination = Seq.concat combination |> Seq.toArray
                     let lines = 
-                        lines
+                        Seq.append background lines
                         |> Seq.map (replaceLine combination)
                         |> Seq.map resolveLine
                         |> Seq.toArray

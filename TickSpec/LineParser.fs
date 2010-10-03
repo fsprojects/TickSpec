@@ -2,6 +2,15 @@
 
 open System.Text.RegularExpressions
 
+type ScenarioType =
+    | Named of string
+    | Background
+    with 
+    override this.ToString() =
+        match this with
+        | Named s -> s
+        | Background -> "Background"
+
 /// Item type
 type internal ItemType =
     | BulletPoint of string
@@ -9,7 +18,7 @@ type internal ItemType =
 
 /// Line type
 type internal LineType = 
-    | ScenarioStart of string
+    | ScenarioStart of ScenarioType
     | ExamplesStart
     | GivenStep of string
     | WhenStep of string
@@ -24,7 +33,10 @@ let tryRegex input pattern =
 
 let (|Scenario|_|) s = 
     tryRegex s "Scenario(.*)" 
-    |> Option.map (fun t -> Scenario t)   
+    |> Option.map (fun t -> Scenario t)
+let (|IsBackground|_|) s = 
+    tryRegex s "Background(.*)" 
+    |> Option.map (fun t -> IsBackground) 
 let (|Given|_|) s = 
     tryRegex s "Given\s+(.*)" 
     |> Option.map (fun t -> Given t)
@@ -56,9 +68,10 @@ let (|Examples|_|) (s:string) =
 
 /// Line state given previous line state and new line text
 let parseLine = function         
-    | _, Scenario text -> ScenarioStart text |> Some   
+    | _, Scenario text -> ScenarioStart (Named(text)) |> Some   
+    | _, IsBackground -> ScenarioStart (Background) |> Some   
     | _, Examples text -> ExamplesStart |> Some
-    | ScenarioStart _, Given text     
+    | ScenarioStart _, Given text
     | GivenStep _, Given text | Item(GivenStep _,_), Given text
     | GivenStep _, And text | Item(GivenStep _,_), And text 
     | GivenStep _, But text | Item(GivenStep _,_), But text 

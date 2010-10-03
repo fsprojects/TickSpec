@@ -13,16 +13,16 @@ let buildScenarios lines =
             | None -> 
                 let e = expectingLine lastStep
                 let m = sprintf "Syntax error on line %d %s\r\n%s" n line e
-                StepException(m,n,scenario) |> raise
+                StepException(m,n,scenario.ToString()) |> raise
         match step with
-        | ScenarioStart(name) ->
-            name, step, n, None
+        | ScenarioStart scenario -> 
+            scenario, step, n, None
         | ExamplesStart          
         | GivenStep _ | WhenStep _ | ThenStep _ ->
             scenario, step, n, Some(scenario,n,line,step) 
         | Item _ ->
             scenario, step, lastN, Some(scenario,lastN,line,step)
-    ) ("",ScenarioStart(""),0,None)
+    ) (Background,ScenarioStart(Background),0,None)
     // Handle tables
     |> Seq.choose (fun (_,_,_,step) -> step)
     |> Seq.groupBy (fun (_,n,_,_) -> n)
@@ -36,7 +36,7 @@ let buildScenarios lines =
                 (scenario,n,line,step),table
             | Item (_,item) ->
                 row, item::table
-        ) (("",0,"",ScenarioStart("")),[])
+        ) ((Background,0,"",ScenarioStart(Background)),[])
         |> (fun (line, items) -> 
             let items = List.rev items            
             line,
@@ -87,9 +87,9 @@ let buildScenarios lines =
                     if tables.Length > 0 then Some tables
                     else None
             )
-    ) 
-    |> Seq.map (fun (name,(steps,examples)) -> name,steps,examples)
-        
+    )     
+    |> Seq.map (fun (name,(steps,examples)) -> name,steps,examples)    
+      
 /// Parse feature lines
 let parse (featureLines:string[]) =
     let startsWith s (line:string) = line.Trim().StartsWith(s)
@@ -103,7 +103,10 @@ let parse (featureLines:string[]) =
     let scenarios =
         lines
         |> Seq.skip n
-        |> Seq.skipUntil (snd >> startsWith "Scenario")
+        |> Seq.skipUntil (fun (_,text) ->
+            text |> startsWith "Scenario" || 
+            text |> startsWith "Background"
+        )
         |> Seq.map (fun (n,line) -> 
             let i = line.IndexOf("#")
             if i = -1 then n,line
@@ -111,6 +114,17 @@ let parse (featureLines:string[]) =
         )
         |> Seq.filter (fun (_,line) -> line.Trim().Length > 0)
         |> buildScenarios
-    feature, scenarios
-
-
+    let background =
+        scenarios 
+        |> Seq.choose (function 
+            | (Background,lines,examples) -> Some (lines,examples)
+            | (Named _,_,_) -> None
+        ) 
+        |> Seq.collect (fun (lines,_) -> lines)                 
+    let scenarios =
+        scenarios
+        |> Seq.choose (function 
+            | (Background,_,_) -> None
+            | (Named name,lines,examples) -> Some(name,lines,examples)
+        )            
+    feature, background, scenarios

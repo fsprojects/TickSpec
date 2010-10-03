@@ -1,11 +1,13 @@
 ﻿Feature: Winning positions
 
-Scenario: Winning positions
+Background:
 	Given a board layout:
-		| 1 | 2 | 3	|
+		| 1 | 2 | 3 |
 		| O | O | X |
 		| O |   |   |
 		| X |   | X |
+
+Scenario: Winning positions
 	When a player marks X at <row> <col>	
 	Then X wins
 	
