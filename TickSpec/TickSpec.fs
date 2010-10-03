@@ -10,6 +10,8 @@ open TickSpec.ServiceProvider
 open TickSpec.LineParser
 open TickSpec.Parser
 
+type Feature = { Name : string; Scenarios : Scenario seq }
+
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (methods:MethodInfo seq) =
     /// Returns method's step attribute or null
@@ -162,8 +164,8 @@ type StepDefinitions (methods:MethodInfo seq) =
     member this.Execute (feature:System.IO.Stream) =
         use reader = new StreamReader(feature)
         this.Execute (reader)
-    /// Generate scenarios in specified lines from source document
-    member this.GenerateScenarios (sourceUrl:string,lines:string[]) =
+    /// Generates feature in specified lines from source document
+    member this.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureName,scenarios = parse lines
         let gen = FeatureGen(featureName,sourceUrl)
         let createAction (scenarioName, lines, ps) =
@@ -171,7 +173,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                 gen.GenScenario provider (scenarioName, lines, ps)
             let mi = instance.GetType().GetMethod("Run")
             Action(fun () -> mi.Invoke(instance,null) |> ignore)            
-        scenarios |> Seq.collect (function
+        { Name = featureName; Scenarios = scenarios |> Seq.collect (function
             | scenarioName,lines,None ->
                 let lines = lines |> Seq.map resolveLine |> Seq.toArray
                 let action = createAction (scenarioName, lines, [||])
@@ -194,7 +196,17 @@ type StepDefinitions (methods:MethodInfo seq) =
                 |> Seq.map (fun (ps,action) ->
                     {Name=scenarioName;Action=action;Parameters=ps}
                 )
-        )
+        )}
+    member this.GenerateFeature (sourceUrl:string,reader:TextReader) =
+        this.GenerateFeature(sourceUrl, TextReader.readAllLines reader)
+    member this.GenerateFeature (sourceUrl:string,feature:System.IO.Stream) =
+        use reader = new StreamReader(feature)
+        this.GenerateFeature(sourceUrl, reader)
+    member this.GenerateFeature (path:string) =
+        this.GenerateFeature(path,File.ReadAllLines(path))
+    /// Generates scenarios in specified lines from source document
+    member this.GenerateScenarios (sourceUrl:string,lines:string[]) =
+        this.GenerateFeature(sourceUrl,lines).Scenarios    
     member this.GenerateScenarios (sourceUrl:string,reader:TextReader) =
         this.GenerateScenarios(sourceUrl, TextReader.readAllLines reader)
     member this.GenerateScenarios (sourceUrl:string,feature:System.IO.Stream) =
@@ -202,7 +214,7 @@ type StepDefinitions (methods:MethodInfo seq) =
         this.GenerateScenarios(sourceUrl, reader)
     member this.GenerateScenarios (path:string) =
         this.GenerateScenarios(path,File.ReadAllLines(path))
-    /// Execute step definitions in specified lines from source document
+    /// Executes step definitions in specified lines from source document
     member this.Execute (sourceUrl:string,lines:string[]) =
         let scenarios = this.GenerateScenarios(sourceUrl,lines)
         scenarios |> Seq.iter (fun action -> action.Action.Invoke())
