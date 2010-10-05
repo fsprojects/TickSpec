@@ -23,7 +23,8 @@ type internal LineType =
     | GivenStep of string
     | WhenStep of string
     | ThenStep of string   
-    | Item of LineType * ItemType        
+    | Item of LineType * ItemType       
+    | Tag of string 
 
 /// Try single parameter regular expression
 let tryRegex input pattern =
@@ -65,9 +66,13 @@ let (|Bullet|_|) (s:string) =
     else None       
 let (|Examples|_|) (s:string) =
     if s.Trim().StartsWith("Examples") then Some Examples else None
-
+let (|Attribute|_|) (s:string) =
+    if s.Trim().StartsWith("@") then 
+        Attribute (s.Substring(s.IndexOf("@")+1).Trim()) |> Some
+    else None
+    
 /// Line state given previous line state and new line text
-let parseLine = function         
+let parseLine = function             
     | _, Scenario text -> ScenarioStart (Named(text)) |> Some   
     | _, IsBackground -> ScenarioStart (Background) |> Some   
     | _, Examples text -> ExamplesStart |> Some
@@ -100,6 +105,8 @@ let parseLine = function
     | (ThenStep _ as line), Row xs
     | Item (line, TableRow _), Row xs ->
         Item(line, TableRow xs) |> Some
+    | _, Attribute text -> 
+        Tag text |> Some        
     | _, line -> None
 
 let expectingLine = function
@@ -113,3 +120,4 @@ let expectingLine = function
     | ExamplesStart _ | Item(ExamplesStart _,TableRow _) -> 
         "Expecting Table row"
     | Item(_,_) -> "Unexpected line"
+    | Tag _ -> "Unexpected line"

@@ -3,7 +3,12 @@
 open System
 
 /// Executable scenario type
-type Scenario = { Name:string; Action:Action; Parameters:(string * string)[]}
+type Scenario = { 
+    Name:string; 
+    Action:Action; 
+    Parameters:(string * string)[]
+    Tags:string[]
+    }
     with 
     override this.ToString() = 
         if this.Parameters.Length=0 then this.Name

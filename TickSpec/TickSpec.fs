@@ -43,7 +43,7 @@ type StepDefinitions (methods:MethodInfo seq) =
         )
     /// Chooses defininitons for specified step and text
     let matchStep = function
-        | ScenarioStart _ | ExamplesStart | Item _ -> 
+        | ScenarioStart _ | ExamplesStart | Item _ | Tag _ -> 
             invalidOp("")
         | GivenStep text -> chooseDefinitions text givens
         | WhenStep text -> chooseDefinitions text whens
@@ -69,7 +69,7 @@ type StepDefinitions (methods:MethodInfo seq) =
             |> Seq.toList
         values |> List.combinations
     /// Replace line with specified named values
-    let replaceLine (xs:seq<string * string>) (scenario,line,step) =
+    let replaceLine (xs:seq<string * string>) (scenario,tags,line,step) =
         let replace s =
             let lookup (m:Match) =
                 let x = m.Value.TrimStart([|'<'|]).TrimEnd([|'>'|])
@@ -95,9 +95,9 @@ type StepDefinitions (methods:MethodInfo seq) =
         let bullets =
             line.Bullets
             |> Option.map (fun bullets -> bullets |> Array.map replace)                                  
-        (scenario,{line with Table=table;Bullets=bullets},step)
+        (scenario,tags,{line with Table=table;Bullets=bullets},step)
     /// Resolves line
-    let resolveLine (scenario,line,step) =
+    let resolveLine (scenario,_,line,step) =
         let matches = matchStep step
         let fail e =
             let m = sprintf "%s on line %d" e line.Number 
@@ -125,19 +125,21 @@ type StepDefinitions (methods:MethodInfo seq) =
     /// Constructs instance by reflecting against specified assembly
     new (assembly:Assembly) =
         StepDefinitions(assembly.GetTypes())
+    new () =
+        StepDefinitions(Assembly.GetCallingAssembly())
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
         let featureName,background,scenarios = parse lines
         scenarios |> Seq.collect (function
-            | scenarioName,lines,None ->
+            | scenarioName,tags,lines,None ->
                 let lines = 
                     Seq.append background lines 
                     |> Seq.map resolveLine
                 let action =
                     TickSpec.ScenarioRun.generate provider (scenarioName,lines)
                 Seq.singleton
-                    {Name=scenarioName;Action=Action(action);Parameters=[||]}
-            | name,lines,Some(exampleTables) ->
+                    {Name=scenarioName;Action=Action(action);Parameters=[||];Tags=tags}
+            | name,tags,lines,Some(exampleTables) ->
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
                 // Execute each combination
@@ -149,7 +151,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                         |> Seq.map resolveLine
                     let action = 
                         TickSpec.ScenarioRun.generate provider (name,lines)
-                    {Name=name;Action=Action(action);Parameters=combination}
+                    {Name=name;Action=Action(action);Parameters=combination;Tags=tags}
                 )
         )        
     member this.GenerateScenarios (reader:TextReader) =
@@ -176,15 +178,15 @@ type StepDefinitions (methods:MethodInfo seq) =
             let mi = instance.GetType().GetMethod("Run")
             Action(fun () -> mi.Invoke(instance,null) |> ignore)            
         { Name = featureName; Scenarios = scenarios |> Seq.collect (function
-            | scenarioName,lines,None ->
+            | scenarioName,tags,lines,None ->
                 let lines = 
                     Seq.append background lines 
                     |> Seq.map resolveLine 
                     |> Seq.toArray
                 let action = createAction (scenarioName, lines, [||])
                 Seq.singleton
-                    {Name=scenarioName;Action=action;Parameters=[||]}
-            | scenarioName,lines,Some(exampleTables) ->
+                    {Name=scenarioName;Action=action;Parameters=[||];Tags=tags}
+            | scenarioName,tags,lines,Some(exampleTables) ->
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
                 // Create run for each combination
@@ -199,7 +201,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                     combination, createAction (name, lines, combination)
                 )
                 |> Seq.map (fun (ps,action) ->
-                    {Name=scenarioName;Action=action;Parameters=ps}
+                    {Name=scenarioName;Action=action;Parameters=ps;Tags=tags}
                 )
         )}
     member this.GenerateFeature (sourceUrl:string,reader:TextReader) =
