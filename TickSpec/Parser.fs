@@ -6,39 +6,41 @@ open TickSpec.LineParser
 let buildScenarios lines =
     // Scan over lines
     lines
-    |> Seq.scan (fun (scenario,lastStep,lastN,tags,tags',_) (n,line) ->
+    |> Seq.scan (fun (scenario,scenarioN,lastStep,lastN,tags,tags',_) (lineN,line) ->
         let step = 
             match parseLine (lastStep,line) with
             | Some newStep -> newStep
             | None -> 
                 let e = expectingLine lastStep
-                let m = sprintf "Syntax error on line %d %s\r\n%s" n line e
-                StepException(m,n,scenario.ToString()) |> raise
+                let m = sprintf "Syntax error on line %d %s\r\n%s" lineN line e
+                StepException(m,lineN,scenario.ToString()) |> raise
         match step with
         | Tag tag ->
-            scenario, step, n, tag::tags, tags', None
+            scenario, scenarioN, step, lineN, tag::tags, tags', None
         | ScenarioStart scenario -> 
-            scenario, step, n, [], tags, None
+            scenario, scenarioN+1, step, lineN, [], tags, None
         | ExamplesStart          
         | GivenStep _ | WhenStep _ | ThenStep _ ->
-            scenario, step, n, tags, tags', Some(scenario,tags',n,line,step) 
+            scenario, scenarioN, step, lineN, tags, tags', 
+                Some(scenario,scenarioN,tags',lineN,line,step) 
         | Item _ ->
-            scenario, step, lastN, tags, tags', Some(scenario,tags',lastN,line,step)
-    ) (Background,ScenarioStart(Background),0,[],[],None)
+            scenario, scenarioN, step, lastN, tags, tags', 
+                Some(scenario,scenarioN,tags',lastN,line,step)
+    ) (Background,0,ScenarioStart(Background),0,[],[],None)
     // Handle tables
-    |> Seq.choose (fun (_,_,_,_,_,step) -> step)
-    |> Seq.groupBy (fun (_,_,n,_,_) -> n)
+    |> Seq.choose (fun (_,_,_,_,_,_,step) -> step)
+    |> Seq.groupBy (fun (_,_,_,lineN,_,_) -> lineN)    
     |> Seq.map (fun (line,items) ->
-        items |> Seq.fold (fun (row,table) (scenario,tags,n,line,step) ->
+        items |> Seq.fold (fun (row,table) (scenario,scenarioN,tags,lineN,line,step) ->
             match step with
             | ScenarioStart _ | Tag _ -> 
                 invalidOp("")
             | ExamplesStart
             | GivenStep _ | WhenStep _ | ThenStep _ ->
-                (scenario,tags,n,line,step),table
+                (scenario,scenarioN,tags,lineN,line,step),table
             | Item (_,item) ->
                 row, item::table
-        ) ((Background,[],0,"",ScenarioStart(Background)),[])
+        ) ((Background,0,[],0,"",ScenarioStart(Background)),[])
         |> (fun (line, items) -> 
             let items = List.rev items            
             line,
@@ -65,26 +67,42 @@ let buildScenarios lines =
         )
     )           
     // Map to lines
-    |> Seq.map (fun ((scenario,tags,n,line,step),(bullets,table)) ->
+    |> Seq.map (fun ((scenario,scenarioN,tags,n,line,step),(bullets,table)) ->
         let line = {Number=n;Text=line;Bullets=bullets;Table=table}
-        scenario,tags,line,step
+        scenario,scenarioN,tags,line,step
     )
     // Group into scenarios
-    |> Seq.groupBy (fun (scenario,tags,_,_) -> (scenario,tags))        
+    |> Seq.groupBy (fun (scenario,n,tags,_,_) -> (scenario,n,tags))              
+    |> (fun (scenarios) ->        
+        let names = scenarios |> Seq.map (fun ((name,_,_),_) -> name)
+        scenarios |> Seq.mapi (fun i ((name,_,tags),lines) ->
+            let names = names |> Seq.take (i+1)
+            let count = names |> Seq.filter ((=) name) |> Seq.length
+            let name = 
+                if count = 1 then name 
+                else
+                    match name with
+                    | Background ->
+                        let message = "Multiple Backgrounds not supported"
+                        raise (new System.NotSupportedException(message))
+                    | Named text -> Named (sprintf "%s~%d" text count)
+            (name,tags),lines
+        )
+    )
     // Handle examples
     |> Seq.map (fun (scenario,lines) -> 
         scenario,
             lines 
             |> Seq.toArray
             |> Array.partition (function 
-                | _,_,_,ExamplesStart -> true 
+                | _,_,_,_,ExamplesStart -> true 
                 | _ -> false
             )
             |> (fun (examples,steps) ->
                 steps, 
                     let tables =
                         examples      
-                        |> Array.choose (fun (_,_,line,_) -> line.Table)
+                        |> Array.choose (fun (_,_,_,line,_) -> line.Table)
                         |> Array.filter (fun table -> table.Rows.Length > 0)
                     if tables.Length > 0 then Some tables
                     else None

@@ -69,7 +69,7 @@ type StepDefinitions (methods:MethodInfo seq) =
             |> Seq.toList
         values |> List.combinations
     /// Replace line with specified named values
-    let replaceLine (xs:seq<string * string>) (scenario,tags,line,step) =
+    let replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
         let replace s =
             let lookup (m:Match) =
                 let x = m.Value.TrimStart([|'<'|]).TrimEnd([|'>'|])
@@ -95,15 +95,15 @@ type StepDefinitions (methods:MethodInfo seq) =
         let bullets =
             line.Bullets
             |> Option.map (fun bullets -> bullets |> Array.map replace)                                  
-        (scenario,tags,{line with Table=table;Bullets=bullets},step)
+        (scenario,n,tags,{line with Table=table;Bullets=bullets},step)
     /// Resolves line
-    let resolveLine (scenario,_,line,step) =
+    let resolveLine (scenario,_,_,line,step) =
         let matches = matchStep step
         let fail e =
             let m = sprintf "%s on line %d" e line.Number 
             StepException(m,line.Number,scenario.ToString()) |> raise
-        if matches.IsEmpty then fail "Missing step"
-        if matches.Length > 1 then fail "Ambiguous step"
+        if matches.IsEmpty then fail "Missing step definition"
+        if matches.Length > 1 then fail "Ambiguous step definition"
         let r,m = matches.Head
         if m.ReturnType <> typeof<Void> then 
             fail "Step methods must return void/unit"
