@@ -102,10 +102,11 @@ let parseLine = function
     | (ExamplesStart _ as line), Row xs
     | (GivenStep _ as line), Row xs 
     | (WhenStep _ as line), Row xs 
-    | (ThenStep _ as line), Row xs
-    | Item (line, TableRow _), Row xs ->
+    | (ThenStep _ as line), Row xs ->
         Item(line, TableRow xs) |> Some
-    | _, Attribute text -> 
+    | Item (line, TableRow ys), Row xs when ys.Length = xs.Length ->     
+        Item(line, TableRow xs) |> Some   
+    | _, Attribute text ->
         Tag text |> Some        
     | _, line -> None
 
@@ -117,7 +118,6 @@ let expectingLine = function
         "Expecting Table row, Bullet, When, Then, And or But step"
     | ThenStep _ | Item(ThenStep _,_) -> 
         "Expecting Table row, Bullet, Then, And or But step"
-    | ExamplesStart _ | Item(ExamplesStart _,TableRow _) -> 
-        "Expecting Table row"
-    | Item(_,_) -> "Unexpected line"
+    | ExamplesStart _ -> "Expecting Table row"
+    | Item(_,_) -> "Unexpected or invalid line"                       
     | Tag _ -> "Unexpected line"
