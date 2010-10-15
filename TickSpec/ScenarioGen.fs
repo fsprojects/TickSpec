@@ -1,6 +1,7 @@
 ﻿module internal TickSpec.ScenarioGen
 
 open System
+open System.Collections.Generic
 open System.Reflection
 open System.Reflection.Emit
         
@@ -97,6 +98,21 @@ let emitTable
         typeof<Table>.GetConstructor(
             [|typeof<string[]>;typeof<string[][]>|])
     gen.Emit(OpCodes.Newobj,ci)
+    
+/// Emit instance of specified type (obtained from service provider)
+let emitInstance (gen:ILGenerator) (providerField:FieldBuilder) (t:Type) =     
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld,providerField)
+    gen.Emit(OpCodes.Ldtoken,t)
+    let getType = 
+        typeof<Type>.GetMethod("GetTypeFromHandle",
+            [|typeof<RuntimeTypeHandle>|])
+    gen.EmitCall(OpCodes.Call,getType,null) 
+    let getService =
+        typeof<System.IServiceProvider>
+            .GetMethod("GetService",[|typeof<Type>|])
+    gen.EmitCall(OpCodes.Callvirt,getService,null)
+    gen.Emit(OpCodes.Unbox_Any,t)    
                         
 /// Emits type argument
 let emitType (gen:ILGenerator) (t:Type) =
@@ -119,14 +135,40 @@ let emitConvert (gen:ILGenerator) (t:Type) (x:string) =
     gen.Emit(OpCodes.Unbox_Any, t)
     
 /// Emits value    
-let emitValue (gen:ILGenerator) (t:Type) (x:string) =
-    if  t = typeof<string> then
-        gen.Emit(OpCodes.Ldstr,x) // Emit string argument
+let emitValue 
+        (gen:ILGenerator) 
+        (providerField:FieldBuilder)
+        (parsers:IDictionary<Type,MethodInfo>) 
+        (paramType:Type) 
+        (arg:string) =
+    let hasParser, parser = parsers.TryGetValue(paramType)
+    if hasParser then           
+        gen.Emit(OpCodes.Ldstr,arg)
+        if not parser.IsStatic then
+            emitInstance gen providerField parser.DeclaringType
+        gen.EmitCall(OpCodes.Call,parser,null)  
+    elif paramType = typeof<string> then
+        gen.Emit(OpCodes.Ldstr,arg) // Emit string argument    
+    elif paramType.IsEnum then
+        // Emit: System.Enum.Parse(typeof<specified argument>,arg)
+        emitType gen paramType
+        gen.Emit(OpCodes.Ldstr,arg)
+        let mi = 
+            typeof<Enum>.GetMethod("Parse", 
+                [|typeof<Type>;typeof<string>|])
+        gen.EmitCall(OpCodes.Call,mi,null)
+        // Emit cast to parameter type
+        gen.Emit(OpCodes.Unbox_Any,paramType)   
     else
-        emitConvert gen t x
+        emitConvert gen paramType arg
         
 /// Emits array
-let emitArray (gen:ILGenerator) (paramType:Type) (vs:string[]) =
+let emitArray 
+        (gen:ILGenerator)
+        (providerField:FieldBuilder)
+        (parsers:IDictionary<Type,MethodInfo>)  
+        (paramType:Type) 
+        (vs:string[]) =
     let t = paramType.GetElementType()
     // Define local variable
     let local = gen.DeclareLocal(paramType).LocalIndex
@@ -138,40 +180,33 @@ let emitArray (gen:ILGenerator) (paramType:Type) (vs:string[]) =
     vs |> Seq.iteri (fun i x ->
         gen.Emit(OpCodes.Ldloc, local)
         gen.Emit(OpCodes.Ldc_I4,i)
-        emitValue gen t x
+        emitValue gen providerField parsers t x
         gen.Emit(OpCodes.Stelem,t)
     )
     gen.Emit(OpCodes.Ldloc, local)
         
 /// Emits argument
 let emitArgument
-        (gen:ILGenerator) 
+        (gen:ILGenerator)
+        (providerField:FieldBuilder)
+        (parsers:IDictionary<Type,MethodInfo>) 
         (arg:string,param:ParameterInfo) =
         
-    let paramType = param.ParameterType
-    if paramType.IsEnum then
-        // Emit: System.Enum.Parse(typeof<specified argument>,arg)
-        emitType gen paramType
-        gen.Emit(OpCodes.Ldstr,arg)
-        let mi = 
-            typeof<Enum>.GetMethod("Parse", 
-                [|typeof<Type>;typeof<string>|])
-        gen.EmitCall(OpCodes.Call,mi,null)
-        // Emit cast to parameter type
-        gen.Emit(OpCodes.Unbox_Any,paramType)
-    elif paramType.IsArray then
+    let paramType = param.ParameterType                      
+    if paramType.IsArray then
         let vs =
             if String.IsNullOrEmpty(arg.Trim()) then [||]
             else arg.Split [|','|] |> Array.map (fun x -> x.Trim())
-        emitArray gen paramType vs
+        emitArray gen providerField parsers paramType vs
     else
-        emitValue gen paramType arg
+        emitValue gen providerField parsers paramType arg                
         
 /// Defines step method
 let defineStepMethod
-        doc
+        doc        
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
+        (parsers:IDictionary<Type,MethodInfo>)
         (line:Line,mi:MethodInfo,args:string[]) =    
     /// Line number
     let n = line.Number
@@ -187,26 +222,15 @@ let defineStepMethod
     gen.MarkSequencePoint(doc,n,1,n,line.Text.Length+1)
     // For instance methods get instance value from service provider
     if not mi.IsStatic then
-        gen.Emit(OpCodes.Ldarg_0)
-        gen.Emit(OpCodes.Ldfld,providerField)
-        gen.Emit(OpCodes.Ldtoken,mi.DeclaringType)
-        let getType = 
-            typeof<Type>.GetMethod("GetTypeFromHandle",
-                [|typeof<RuntimeTypeHandle>|])
-        gen.EmitCall(OpCodes.Call,getType,null) 
-        let getService =
-            typeof<System.IServiceProvider>
-                .GetMethod("GetService",[|typeof<Type>|])
-        gen.EmitCall(OpCodes.Callvirt,getService,null)
-        gen.Emit(OpCodes.Unbox_Any,mi.DeclaringType)
+        emitInstance gen providerField mi.DeclaringType
     // Emit arguments
     let ps = mi.GetParameters()
     Seq.zip args ps
-    |> Seq.iter (emitArgument gen)
+    |> Seq.iter (emitArgument gen providerField parsers)
     // Emit bullets argument
     line.Bullets |> Option.iter (fun x ->
         let t = (ps.[ps.Length-1].ParameterType)
-        emitArray gen t x
+        emitArray gen providerField parsers t x
     )
     // Emit table argument
     line.Table |> Option.iter (emitTable gen)
@@ -244,6 +268,7 @@ let defineRunMethod
 let generateScenario 
         (module_:ModuleBuilder)
         doc
+        (parsers:IDictionary<Type,MethodInfo>)
         (scenarioName,lines:(Line * MethodInfo * string[]) [],
          parameters:(string * string)[]) =
     
@@ -257,7 +282,7 @@ let generateScenario
     /// Scenario step methods
     let stepMethods =
         lines 
-        |> Array.map (defineStepMethod doc scenarioBuilder providerField)
+        |> Array.map (defineStepMethod doc scenarioBuilder providerField parsers)
         
     defineRunMethod scenarioBuilder stepMethods
     

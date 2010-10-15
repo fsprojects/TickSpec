@@ -1,6 +1,7 @@
 ﻿namespace TickSpec
 
 open System
+open System.Collections.Generic
 open System.Diagnostics
 open System.Reflection
 open System.Reflection.Emit
@@ -34,10 +35,11 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
     /// Generates scenario type from lines
     member this.GenScenario
         (provider:IServiceProvider)
+        (parsers:IDictionary<Type,MethodInfo>)
         (scenarioName,
          lines:(Line * MethodInfo * string[]) [], 
          parameters:(string * string)[]) =
-        let scenario = generateScenario module_ doc (scenarioName,lines,parameters)
+        let scenario = generateScenario module_ doc parsers (scenarioName,lines,parameters)
         let cons = scenario.GetConstructor([|typeof<IServiceProvider>|])
         let instance = cons.Invoke([|provider|])
         instance

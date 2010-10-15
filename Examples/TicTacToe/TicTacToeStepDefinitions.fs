@@ -8,12 +8,17 @@ let mutable layout = [|[||]|]
 let [<Given>] ``a board layout:`` (table:Table) =
     layout <- table.Rows         
 
-type Row = top = 0 | middle = 1 | bottom = 2
-type Col = left = 0 | middle = 1 | right = 2
-let [<Literal>] rowEx = "(top|middle|bottom)"
-let [<Literal>] colEx = "(left|middle|right)"
+type Row = Top = 0 | Middle = 1 | Bottom = 2
+type Col = Left = 0 | Middle = 1 | Right = 2
 
-[<When("a player marks (X|O) at {0} {1}", rowEx, colEx)>]
+let [<Parser>] toCol = function
+    | "left" -> Col.Left | "middle" -> Col.Middle | "right" -> Col.Right
+    | _ -> raise (new System.InvalidCastException())
+
+let [<Parser>] toRow = function
+    | "top" -> Row.Top | "middle" -> Row.Middle | "bottom" -> Row.Bottom
+    | _ -> raise (new System.InvalidCastException())
+   
 let [<When>] ``a player marks (X|O) at (top|middle|bottom) (left|middle|right)`` 
         (mark:string,row:Row,col:Col) =       
     let y = int row             

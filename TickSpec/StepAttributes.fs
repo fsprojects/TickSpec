@@ -1,11 +1,11 @@
 ﻿namespace TickSpec
 
 open System
-
+      
 /// Base attribute class for step annotations
 [<AbstractClass;AttributeUsage(AttributeTargets.Method,AllowMultiple=true,Inherited=true)>]
 type StepAttribute internal (step:string) =
-    inherit System.Attribute ()    
+    inherit Attribute()    
     member this.Step = step
 /// Method annotation for given step
 [<AttributeUsage(AttributeTargets.Method,AllowMultiple=true)>]
@@ -28,3 +28,8 @@ type ThenAttribute(step) =
     new () = ThenAttribute(null)
     new (format,[<ParamArray>] args) = 
         ThenAttribute(String.Format(format,args))
+
+/// Method annotation for parsers of string -> 'a
+[<AttributeUsage(AttributeTargets.Method,AllowMultiple=false)>]
+type ParserAttribute () =
+    inherit Attribute()  

@@ -33,4 +33,10 @@ module internal Seq =
                 else isEOF := true
         }
     /// Read all lines to a string array
-    let readAllLines reader = reader |> readLines |> Seq.toArray
+    let readAllLines reader = reader |> readLines |> Seq.toArray    
+
+module internal Dict =
+    let ofSeq (pairs:('key * 'value) seq) =
+        let dict = System.Collections.Generic.Dictionary()
+        pairs |> Seq.iter (fun (key,value) -> dict.Add(key,value))
+        dict

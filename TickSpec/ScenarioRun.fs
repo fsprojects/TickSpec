@@ -2,6 +2,7 @@
 
 open System
 open System.Collections
+open System.Collections.Generic
 open System.Text.RegularExpressions
 open System.Reflection
    
@@ -20,32 +21,36 @@ let toArray (t:Type) (xs:string[]) =
    
 /// Invokes method with match values as arguments
 let invoke 
+        (parsers:IDictionary<Type,MethodInfo>)
         (provider:IServiceProvider) 
-        (m:MethodInfo,args:string[],
+        (meth:MethodInfo,args:string[],
          bullets:string[] option,table:Table option) =
-    let buildArgs (xs:string[],m:MethodInfo) =
-        let ps = m.GetParameters()
+    let getInstance (m:MethodInfo) =
+        if m.IsStatic then null
+        else provider.GetService m.DeclaringType
+    let buildArgs (xs:string[]) =
+        let ps = meth.GetParameters()
         args |> Array.mapi (fun i s ->
             let p = ps.[i].ParameterType
-            if p.IsEnum then Enum.Parse(p,s)
+            let hasParser, parser = parsers.TryGetValue(p)
+            if hasParser then               
+                parser.Invoke(getInstance parser, [|s|])
+            elif p.IsEnum then Enum.Parse(p,s)
             elif p.IsArray then
                 toArray (p.GetElementType()) (split s) |> box
             else Convert.ChangeType(s,p)
         )
-    let instance =
-        if m.IsStatic then null
-        else provider.GetService m.DeclaringType
-    let args = buildArgs (args,m)
+    let args = buildArgs (args)
     let tail =
         match bullets,table with
         | Some xs,None -> [|box (toArray (typeof<string>) xs)|]
         | None,Some x -> [|box x|]
         | _,_ -> [||]
-    m.Invoke(instance, Array.append args tail) |> ignore
+    meth.Invoke(getInstance meth, Array.append args tail) |> ignore
 
 /// Generate execution function
-let generate (provider:IServiceProvider) (scenario,lines) =
+let generate parsers (provider:IServiceProvider) (scenario,lines) =
     fun () ->
         lines |> Seq.iter (fun (line:Line,m,args) ->
             System.Diagnostics.Debug.WriteLine line
-            (m,args,line.Bullets,line.Table) |> invoke provider)
+            (m,args,line.Bullets,line.Table) |> invoke parsers provider)

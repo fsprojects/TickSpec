@@ -9,6 +9,9 @@ open System.Text.RegularExpressions
 open TickSpec.ServiceProvider
 open TickSpec.LineParser
 open TickSpec.Parser
+open TickSpec.ScenarioRun
+
+type Column = Left | Middle | Right
 
 type Feature = { Name : string; Scenarios : Scenario seq }
 
@@ -19,13 +22,25 @@ type StepDefinitions (methods:MethodInfo seq) =
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
     /// Step methods
     let givens, whens, thens =
-        methods |> Seq.fold (fun (gs,ws,ts) m ->
+        methods 
+        |> Seq.filter (fun m -> (GetStepAttributes m).Length > 0)
+        |> Seq.fold (fun (gs,ws,ts) m ->
             match (GetStepAttributes m).[0] with
             | :? GivenAttribute -> (m::gs,ws,ts)
             | :? WhenAttribute -> (gs,m::ws,ts)
             | :? ThenAttribute -> (gs,ws,m::ts)
             | _ -> invalidOp("")
         ) ([],[],[])    
+    /// Parser methods
+    let parsers =
+        methods 
+        |> Seq.filter (fun m ->
+            null <> Attribute.GetCustomAttribute(m,typeof<ParserAttribute>) //&&        
+            //m.GetParameters().Length > 0 &&
+            //m.GetParameters().[0].ParameterType = typeof<string>
+        )
+        |> Seq.map (fun m -> m.ReturnType, m)        
+        |> Dict.ofSeq
     /// Chooses matching definitions for specifed text
     let chooseDefinitions text definitions =  
         let chooseDefinition pattern =
@@ -119,8 +134,7 @@ type StepDefinitions (methods:MethodInfo seq) =
     new (types:Type[]) =
         let methods = 
             types 
-            |> Seq.collect (fun t -> t.GetMethods())
-            |> Seq.filter (fun m -> (GetStepAttributes m).Length > 0)
+            |> Seq.collect (fun t -> t.GetMethods())            
         StepDefinitions(methods)
     /// Constructs instance by reflecting against specified assembly
     new (assembly:Assembly) =
@@ -136,7 +150,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                     Seq.append background lines 
                     |> Seq.map resolveLine
                 let action =
-                    TickSpec.ScenarioRun.generate provider (scenarioName,lines)
+                    generate parsers provider (scenarioName,lines)
                 Seq.singleton
                     {Name=scenarioName;Action=Action(action);Parameters=[||];Tags=tags}
             | name,tags,lines,Some(exampleTables) ->
@@ -150,7 +164,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                         |> Seq.map (replaceLine combination)
                         |> Seq.map resolveLine
                     let action = 
-                        TickSpec.ScenarioRun.generate provider (name,lines)
+                        generate parsers provider (name,lines)
                     {Name=name;Action=Action(action);Parameters=combination;Tags=tags}
                 )
         )        
@@ -169,12 +183,12 @@ type StepDefinitions (methods:MethodInfo seq) =
         use reader = new StreamReader(feature)
         this.Execute (reader)
     /// Generates feature in specified lines from source document
-    member this.GenerateFeature (sourceUrl:string,lines:string[]) =
+    member this.GenerateFeature (sourceUrl:string,lines:string[]) =        
         let featureName,background,scenarios = parse lines
         let gen = FeatureGen(featureName,sourceUrl)
         let createAction (scenarioName, lines, ps) =
             let instance = 
-                gen.GenScenario provider (scenarioName, lines, ps)
+                gen.GenScenario provider parsers (scenarioName, lines, ps)
             let mi = instance.GetType().GetMethod("Run")
             Action(fun () -> mi.Invoke(instance,null) |> ignore)            
         { Name = featureName; Scenarios = scenarios |> Seq.collect (function
@@ -202,7 +216,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                 )
                 |> Seq.map (fun (ps,action) ->
                     {Name=scenarioName;Action=action;Parameters=ps;Tags=tags}
-                )
+                )                
         )}
     member this.GenerateFeature (sourceUrl:string,reader:TextReader) =
         this.GenerateFeature(sourceUrl, TextReader.readAllLines reader)

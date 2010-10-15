@@ -8,18 +8,21 @@ let mutable layout = [|[||]|]
 let [<Given>] ``a board layout:`` (table:Table) =
     layout <- table.Rows         
 
-type Row = top = 0 | middle = 1 | bottom = 2
-type Col = left = 0 | middle = 1 | right = 2
-let [<Literal>] rowEx = "(top|middle|bottom)"
-let [<Literal>] colEx = "(left|middle|right)"
+let (|Col|) = function
+    | "left" -> 0 | "middle" -> 1 | "right" -> 2
+    | _ -> raise (new System.InvalidCastException())
 
-[<When("a player marks (X|O) at {0} {1}", rowEx, colEx)>]
+let (|Row|) = function
+    | "top" -> 0 | "middle" -> 1 | "bottom" -> 2
+    | _ -> raise (new System.InvalidCastException())   
+
 let [<When>] ``a player marks (X|O) at (top|middle|bottom) (left|middle|right)`` 
-        (mark:string,row:Row,col:Col) =       
-    let y = int row             
-    let x = int col        
-    Assert.IsTrue(System.String.IsNullOrEmpty(layout.[y].[x]))
-    layout.[y].[x] <- mark      
+   (mark:string,Row row,Col col) =
+    Assert.IsTrue(System.String.IsNullOrEmpty(layout.[row].[col]))
+    layout.[row].[col] <- mark      
+
+let test (Row row,Col col) =
+    ()
     
 let [<Then>] ``(X|O) wins`` (mark:string) =
     [
