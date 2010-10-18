@@ -12,10 +12,10 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
     let assemblyName = "Feature"
     /// Feature dynamic assembly
     let assemblyBuilder =
-        Thread.GetDomain()
+        AppDomain.CurrentDomain
             .DefineDynamicAssembly(
                 AssemblyName(assemblyName),
-                AssemblyBuilderAccess.RunAndSave)
+                AssemblyBuilderAccess.Run)   
     /// Set assembly debuggable attribute
     do  let debuggableAttribute =
             let ctor = 
@@ -25,7 +25,7 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
                 DebuggableAttribute.DebuggingModes.DisableOptimizations |||
                 DebuggableAttribute.DebuggingModes.Default
             CustomAttributeBuilder(ctor, [|box arg|])
-        assemblyBuilder.SetCustomAttribute debuggableAttribute
+        assemblyBuilder.SetCustomAttribute debuggableAttribute   
     /// Feature dynamic module
     let module_ = 
         assemblyBuilder.DefineDynamicModule
@@ -39,8 +39,6 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
         (scenarioName,
          lines:(Line * MethodInfo * string[]) [], 
          parameters:(string * string)[]) =
-        let scenario = generateScenario module_ doc parsers (scenarioName,lines,parameters)
-        let cons = scenario.GetConstructor([|typeof<IServiceProvider>|])
-        let instance = cons.Invoke([|provider|])
-        instance
+        let scenario = generateScenario module_ doc parsers (scenarioName,lines,parameters)        
+        Activator.CreateInstance(scenario,[|box provider|])       
     

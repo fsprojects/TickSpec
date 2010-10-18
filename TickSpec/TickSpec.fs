@@ -223,8 +223,11 @@ type StepDefinitions (methods:MethodInfo seq) =
     member this.GenerateFeature (sourceUrl:string,feature:System.IO.Stream) =
         use reader = new StreamReader(feature)
         this.GenerateFeature(sourceUrl, reader)
+#if SILVERLIGHT
+#else   
     member this.GenerateFeature (path:string) =
         this.GenerateFeature(path,File.ReadAllLines(path))
+#endif
     /// Generates scenarios in specified lines from source document
     member this.GenerateScenarios (sourceUrl:string,lines:string[]) =
         this.GenerateFeature(sourceUrl,lines).Scenarios    
@@ -233,8 +236,11 @@ type StepDefinitions (methods:MethodInfo seq) =
     member this.GenerateScenarios (sourceUrl:string,feature:System.IO.Stream) =
         use reader = new StreamReader(feature)
         this.GenerateScenarios(sourceUrl, reader)
+#if SILVERLIGHT
+#else 
     member this.GenerateScenarios (path:string) =
         this.GenerateScenarios(path,File.ReadAllLines(path))
+#endif    
     /// Executes step definitions in specified lines from source document
     member this.Execute (sourceUrl:string,lines:string[]) =
         let scenarios = this.GenerateScenarios(sourceUrl,lines)
@@ -244,5 +250,8 @@ type StepDefinitions (methods:MethodInfo seq) =
     member this.Execute (sourceUrl:string,feature:System.IO.Stream) =
         use reader = new StreamReader(feature)
         this.Execute (sourceUrl,reader)
+#if SILVERLIGHT
+#else 
     member this.Execute (path:string) =
         this.Execute(path,File.ReadAllLines(path))
+#endif

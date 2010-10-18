@@ -20,22 +20,26 @@ let defineProviderField
         "_provider",
         typeof<IServiceProvider>,
         FieldAttributes.Private ||| FieldAttributes.InitOnly)
-        
+
 /// Defines Constructor
 let defineCons 
         (scenarioBuilder:TypeBuilder)
-        (providerField:FieldBuilder)
+        (providerField:FieldBuilder)        
         (parameters:(string * string)[]) =
     let cons = 
         scenarioBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Standard,
-            [|typeof<System.IServiceProvider>|])
-    let gen = cons.GetILGenerator() 
-    // Emit provider field
+            [|typeof<System.IServiceProvider>|])    
+    let gen = cons.GetILGenerator()     
+    gen.Emit(OpCodes.Ldarg_0);
+    gen.Emit(OpCodes.Call, typeof<obj>.GetConstructor(Type.EmptyTypes))
+
+    // Emit provider field    
     gen.Emit(OpCodes.Ldarg_0)
     gen.Emit(OpCodes.Ldarg_1)
-    gen.Emit(OpCodes.Stfld,providerField)
+    gen.Emit(OpCodes.Stfld,providerField)    
+    
     // Emit example parameters
     parameters |> Seq.iter (fun (name,value) ->
         let field =
@@ -46,7 +50,7 @@ let defineCons
         gen.Emit(OpCodes.Ldarg_0)
         gen.Emit(OpCodes.Ldstr,value)
         gen.Emit(OpCodes.Stfld,field)        
-    )  
+    )    
     // Emit return
     gen.Emit(OpCodes.Ret)
         
@@ -127,10 +131,14 @@ let emitConvert (gen:ILGenerator) (t:Type) (x:string) =
     // Emit: System.Convert.ChangeType(arg,typeof<specified parameter>)
     gen.Emit(OpCodes.Ldstr, x)
     emitType gen t
-    let mi =
+    let invariant =
+        typeof<System.Globalization.CultureInfo>.GetMethod("get_InvariantCulture")
+    gen.EmitCall(OpCodes.Call,invariant,null)
+    gen.Emit(OpCodes.Unbox_Any, typeof<IFormatProvider>)
+    let changeType =
         typeof<Convert>.GetMethod("ChangeType",
-            [|typeof<obj>;typeof<Type>|])
-    gen.EmitCall(OpCodes.Call,mi,null)
+            [|typeof<obj>;typeof<Type>;typeof<IFormatProvider>|])
+    gen.EmitCall(OpCodes.Call,changeType,null)
     // Emit cast to parameter type
     gen.Emit(OpCodes.Unbox_Any, t)
     
@@ -275,16 +283,16 @@ let generateScenario
     let scenarioBuilder =
         defineScenarioType module_ scenarioName
     
-    let providerField = defineProviderField scenarioBuilder
-                              
+    let providerField = defineProviderField scenarioBuilder                    
+    
     defineCons scenarioBuilder providerField parameters
-            
+               
     /// Scenario step methods
     let stepMethods =
         lines 
         |> Array.map (defineStepMethod doc scenarioBuilder providerField parsers)
         
-    defineRunMethod scenarioBuilder stepMethods
+    defineRunMethod scenarioBuilder stepMethods 
     
     /// Return scenario
     scenarioBuilder.CreateType()

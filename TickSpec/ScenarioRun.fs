@@ -14,7 +14,8 @@ let split (s:string) =
 
 /// Converts string array to array of specified type
 let toArray (t:Type) (xs:string[]) =
-    let vs = xs |> Array.map (fun x -> Convert.ChangeType(x,t))
+    let culture = System.Globalization.CultureInfo.InvariantCulture
+    let vs = xs |> Array.map (fun x -> Convert.ChangeType(x,t,culture))
     let ar = Array.CreateInstance(t,vs.Length)
     for i = 0 to ar.Length-1 do ar.SetValue(vs.[i],i)
     ar
@@ -35,10 +36,12 @@ let invoke
             let hasParser, parser = parsers.TryGetValue(p)
             if hasParser then               
                 parser.Invoke(getInstance parser, [|s|])
-            elif p.IsEnum then Enum.Parse(p,s)
+            elif p.IsEnum then Enum.Parse(p,s,ignoreCase=true)
             elif p.IsArray then
                 toArray (p.GetElementType()) (split s) |> box
-            else Convert.ChangeType(s,p)
+            else
+                let culture = System.Globalization.CultureInfo.InvariantCulture 
+                Convert.ChangeType(s,p,culture)
         )
     let args = buildArgs (args)
     let tail =
