@@ -5,6 +5,7 @@ open System
 /// Executable scenario type
 type Scenario = { 
     Name:string; 
+    Description:string;
     Action:Action; 
     Parameters:(string * string)[]
     Tags:string[]

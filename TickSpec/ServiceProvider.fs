@@ -1,26 +1,24 @@
-﻿module internal TickSpec.ServiceProvider
+﻿namespace TickSpec
 
 open System
 open System.Collections.Generic
 
 /// Creates instance service provider
-let CreateServiceProvider () = 
+type ServiceProvider () =
     /// Creates new instance
     let CreateInstance (t:Type) =
         let cons = t.GetConstructor([||])
         cons.Invoke([||])
     /// Type instances constructed for invoked steps
-    let instances = Dictionary<_,_>() 
+    let instances = Dictionary<_,_>()
     /// Gets type instance for specified type
-    let getInstance (t:Type) =        
+    let getInstance (t:Type) =
         match instances.TryGetValue t with
         | true, instance -> instance
         | false, _ ->
-            let instance = CreateInstance t    
+            let instance = CreateInstance t
             instances.Add(t,instance)
             instance
-    { new System.IServiceProvider with
+    interface System.IServiceProvider with
         member this.GetService(t:Type) =
             getInstance t
-    }
-

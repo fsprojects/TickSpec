@@ -6,14 +6,18 @@ open System.Collections.Generic
 open System.IO
 open System.Reflection
 open System.Text.RegularExpressions
-open TickSpec.ServiceProvider
 open TickSpec.LineParser
 open TickSpec.Parser
 open TickSpec.ScenarioRun
 
 type Column = Left | Middle | Right
 
-type Feature = { Name : string; Scenarios : Scenario seq }
+type Feature = { 
+    Name : string; 
+    Source : string;
+    Assembly : Assembly; 
+    Scenarios : Scenario seq
+    }
 
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (methods:MethodInfo seq) =
@@ -128,13 +132,16 @@ type StepDefinitions (methods:MethodInfo seq) =
         if m.GetParameters().Length <> argCount then
             fail "Parameter count mismatch"
         line,m,extractArgs r
-    /// Type instance provider    
-    let provider = CreateServiceProvider ()
+    /// Gets description as scenario lines
+    let getDescription steps =
+            steps 
+            |> Seq.map (fun (line,_,_) -> line.Text)
+            |> String.concat "\r\n"
     /// Constructs instance by reflecting against specified types
     new (types:Type[]) =
         let methods = 
             types 
-            |> Seq.collect (fun t -> t.GetMethods())            
+            |> Seq.collect (fun t -> t.GetMethods())
         StepDefinitions(methods)
     /// Constructs instance by reflecting against specified assembly
     new (assembly:Assembly) =
@@ -145,29 +152,31 @@ type StepDefinitions (methods:MethodInfo seq) =
     member this.GenerateScenarios (lines:string []) =
         let featureName,background,scenarios = parse lines
         scenarios |> Seq.collect (function
-            | scenarioName,tags,lines,None ->
-                let lines = 
-                    Seq.append background lines 
+            | scenarioName,tags,steps,None ->
+                let steps = 
+                    Seq.append background steps
                     |> Seq.map resolveLine
                 let action =
-                    generate parsers provider (scenarioName,lines)
+                    generate parsers (scenarioName,steps)
                 Seq.singleton
-                    {Name=scenarioName;Action=Action(action);Parameters=[||];Tags=tags}
-            | name,tags,lines,Some(exampleTables) ->
+                    {Name=scenarioName;Description=getDescription steps;
+                     Action=Action(action);Parameters=[||];Tags=tags}
+            | name,tags,steps,Some(exampleTables) ->
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
                 // Execute each combination
                 combinations |> Seq.map (fun combination ->
                     let combination = Seq.concat combination |> Seq.toArray
-                    let lines = 
-                        Seq.append background lines                        
+                    let steps = 
+                        Seq.append background steps
                         |> Seq.map (replaceLine combination)
                         |> Seq.map resolveLine
                     let action = 
-                        generate parsers provider (name,lines)
-                    {Name=name;Action=Action(action);Parameters=combination;Tags=tags}
+                        generate parsers (name,steps)
+                    {Name=name;Description=getDescription steps;
+                     Action=Action(action);Parameters=combination;Tags=tags}
                 )
-        )        
+        )
     member this.GenerateScenarios (reader:TextReader) =
         this.GenerateScenarios(TextReader.readAllLines reader)
     member this.GenerateScenarios (feature:System.IO.Stream) =
@@ -183,41 +192,46 @@ type StepDefinitions (methods:MethodInfo seq) =
         use reader = new StreamReader(feature)
         this.Execute (reader)
     /// Generates feature in specified lines from source document
-    member this.GenerateFeature (sourceUrl:string,lines:string[]) =        
+    member this.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureName,background,scenarios = parse lines
         let gen = FeatureGen(featureName,sourceUrl)
         let createAction (scenarioName, lines, ps) =
-            let instance = 
-                gen.GenScenario provider parsers (scenarioName, lines, ps)
+            let t = gen.GenScenario parsers (scenarioName, lines, ps)
+            let instance = Activator.CreateInstance t
             let mi = instance.GetType().GetMethod("Run")
-            Action(fun () -> mi.Invoke(instance,null) |> ignore)            
-        { Name = featureName; Scenarios = scenarios |> Seq.collect (function
-            | scenarioName,tags,lines,None ->
-                let lines = 
-                    Seq.append background lines 
+            Action(fun () -> mi.Invoke(instance,null) |> ignore)
+        { Name = featureName; 
+          Source = sourceUrl;
+          Assembly = gen.Assembly; 
+          Scenarios = scenarios |> Seq.collect (function
+            | scenarioName,tags,steps,None ->
+                let steps = 
+                    Seq.append background steps
                     |> Seq.map resolveLine 
                     |> Seq.toArray
-                let action = createAction (scenarioName, lines, [||])
+                let action = createAction (scenarioName, steps, [||])
                 Seq.singleton
-                    {Name=scenarioName;Action=action;Parameters=[||];Tags=tags}
-            | scenarioName,tags,lines,Some(exampleTables) ->
+                    { Name=scenarioName;Description=getDescription steps;
+                      Action=action;Parameters=[||];Tags=tags}
+            | scenarioName,tags,steps,Some(exampleTables) ->
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
                 // Create run for each combination
                 combinations |> List.mapi (fun i combination ->
                     let combination = Seq.concat combination |> Seq.toArray
-                    let lines = 
-                        Seq.append background lines
+                    let steps = 
+                        Seq.append background steps
                         |> Seq.map (replaceLine combination)
                         |> Seq.map resolveLine
                         |> Seq.toArray
                     let name = sprintf "%s(%d)" scenarioName i
-                    combination, createAction (name, lines, combination)
+                    steps, combination, createAction (name, steps, combination)
                 )
-                |> Seq.map (fun (ps,action) ->
-                    {Name=scenarioName;Action=action;Parameters=ps;Tags=tags}
-                )                
-        )}
+                |> Seq.map (fun (steps,ps,action) ->
+                    {Name=scenarioName;Description=getDescription steps;
+                     Action=action;Parameters=ps;Tags=tags}
+                )
+        ) |> Seq.toArray }
     member this.GenerateFeature (sourceUrl:string,reader:TextReader) =
         this.GenerateFeature(sourceUrl, TextReader.readAllLines reader)
     member this.GenerateFeature (sourceUrl:string,feature:System.IO.Stream) =

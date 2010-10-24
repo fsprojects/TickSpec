@@ -24,21 +24,23 @@ let defineProviderField
 /// Defines Constructor
 let defineCons 
         (scenarioBuilder:TypeBuilder)
-        (providerField:FieldBuilder)        
+        (providerField:FieldBuilder)
         (parameters:(string * string)[]) =
     let cons = 
         scenarioBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Standard,
-            [|typeof<System.IServiceProvider>|])    
-    let gen = cons.GetILGenerator()     
-    gen.Emit(OpCodes.Ldarg_0);
+            [||])  
+    let gen = cons.GetILGenerator()
+    // Call base constructor
+    gen.Emit(OpCodes.Ldarg_0)
     gen.Emit(OpCodes.Call, typeof<obj>.GetConstructor(Type.EmptyTypes))
 
-    // Emit provider field    
+    // Emit provider field
     gen.Emit(OpCodes.Ldarg_0)
-    gen.Emit(OpCodes.Ldarg_1)
-    gen.Emit(OpCodes.Stfld,providerField)    
+    let ctor = typeof<ServiceProvider>.GetConstructor([||])
+    gen.Emit(OpCodes.Newobj,ctor)
+    gen.Emit(OpCodes.Stfld,providerField)
     
     // Emit example parameters
     parameters |> Seq.iter (fun (name,value) ->
@@ -46,15 +48,15 @@ let defineCons
             scenarioBuilder.DefineField(
                 name,
                 typeof<string>,
-                FieldAttributes.Private ||| FieldAttributes.InitOnly)        
+                FieldAttributes.Private ||| FieldAttributes.InitOnly)
         gen.Emit(OpCodes.Ldarg_0)
         gen.Emit(OpCodes.Ldstr,value)
-        gen.Emit(OpCodes.Stfld,field)        
+        gen.Emit(OpCodes.Stfld,field)
     )    
     // Emit return
     gen.Emit(OpCodes.Ret)
         
-/// Emits table argument    
+/// Emits table argument
 let emitTable
         (gen:ILGenerator)
         (table:Table) =
@@ -104,7 +106,7 @@ let emitTable
     gen.Emit(OpCodes.Newobj,ci)
     
 /// Emit instance of specified type (obtained from service provider)
-let emitInstance (gen:ILGenerator) (providerField:FieldBuilder) (t:Type) =     
+let emitInstance (gen:ILGenerator) (providerField:FieldBuilder) (t:Type) =
     gen.Emit(OpCodes.Ldarg_0)
     gen.Emit(OpCodes.Ldfld,providerField)
     gen.Emit(OpCodes.Ldtoken,t)
@@ -150,13 +152,13 @@ let emitValue
         (paramType:Type) 
         (arg:string) =
     let hasParser, parser = parsers.TryGetValue(paramType)
-    if hasParser then           
+    if hasParser then
         gen.Emit(OpCodes.Ldstr,arg)
         if not parser.IsStatic then
             emitInstance gen providerField parser.DeclaringType
-        gen.EmitCall(OpCodes.Call,parser,null)  
+        gen.EmitCall(OpCodes.Call,parser,null)
     elif paramType = typeof<string> then
-        gen.Emit(OpCodes.Ldstr,arg) // Emit string argument    
+        gen.Emit(OpCodes.Ldstr,arg) // Emit string argument
     elif paramType.IsEnum then
         // Emit: System.Enum.Parse(typeof<specified argument>,arg)
         emitType gen paramType
@@ -210,7 +212,7 @@ let emitArgument
         emitValue gen providerField parsers paramType arg                
         
 /// Defines step method
-let defineStepMethod
+let defineStepMethod        
         doc        
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
@@ -223,7 +225,7 @@ let defineStepMethod
         scenarioBuilder.DefineMethod(sprintf "%d: %s" n line.Text,
             MethodAttributes.Public,
             typeof<Void>,
-             [||])
+             [||]) 
     /// Step method ILGenerator
     let gen = stepMethod.GetILGenerator()
     // Set marker in source document    
@@ -248,12 +250,12 @@ let defineStepMethod
     else
         gen.EmitCall(OpCodes.Callvirt, mi, null)
     // Emit return
-    gen.Emit(OpCodes.Ret);
+    gen.Emit(OpCodes.Ret)
     // Return step method
     stepMethod
     
 /// Defines Run method
-let defineRunMethod
+let defineRunMethod    
     (scenarioBuilder:TypeBuilder)
     (stepMethods:seq<MethodBuilder>) =
     /// Run method to execute all scenario steps
@@ -261,7 +263,7 @@ let defineRunMethod
         scenarioBuilder.DefineMethod("Run",
             MethodAttributes.Public,
             typeof<Void>,
-            [||])                           
+            [||])
     /// Run method ILGenerator
     let gen = runMethod.GetILGenerator()
     // Execute steps
@@ -271,9 +273,10 @@ let defineRunMethod
     )
     // Emit return
     gen.Emit(OpCodes.Ret)
-                
+
 /// Generates Type for specified Scenario
 let generateScenario 
+
         (module_:ModuleBuilder)
         doc
         (parsers:IDictionary<Type,MethodInfo>)
@@ -282,17 +285,17 @@ let generateScenario
     
     let scenarioBuilder =
         defineScenarioType module_ scenarioName
-    
-    let providerField = defineProviderField scenarioBuilder                    
+
+    let providerField = defineProviderField scenarioBuilder
     
     defineCons scenarioBuilder providerField parameters
                
     /// Scenario step methods
     let stepMethods =
         lines 
-        |> Array.map (defineStepMethod doc scenarioBuilder providerField parsers)
+        |> Array.map (defineStepMethod  doc scenarioBuilder providerField parsers)
         
-    defineRunMethod scenarioBuilder stepMethods 
+    defineRunMethod scenarioBuilder stepMethods
     
     /// Return scenario
     scenarioBuilder.CreateType()

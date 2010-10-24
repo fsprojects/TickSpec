@@ -32,9 +32,10 @@ let tryRegex input pattern =
     if m.Success then m.Groups.[1].Value |> Some
     else None
 
-let (|Scenario|_|) s = 
-    tryRegex s "Scenario(.*)" 
-    |> Option.map (fun t -> Scenario t)
+let (|Scenario|_|) (s:string) = 
+    let s = s.Trim()
+    if s.StartsWith("Scenario") || s.StartsWith("Story") then
+        Scenario s |> Some else None
 let (|IsBackground|_|) s = 
     tryRegex s "Background(.*)" 
     |> Option.map (fun t -> IsBackground) 

@@ -51,9 +51,12 @@ let invoke
         | _,_ -> [||]
     meth.Invoke(getInstance meth, Array.append args tail) |> ignore
 
-/// Generate execution function
-let generate parsers (provider:IServiceProvider) (scenario,lines) =
+/// Generate scenario execution function
+let generate parsers (scenario,lines) =
     fun () ->
+        /// Type instance provider
+        let provider = ServiceProvider()
+        // Iterate scenario lines
         lines |> Seq.iter (fun (line:Line,m,args) ->
             System.Diagnostics.Debug.WriteLine line
             (m,args,line.Bullets,line.Table) |> invoke parsers provider)

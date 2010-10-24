@@ -128,6 +128,7 @@ let parse (featureLines:string[]) =
         |> Seq.skipUntil (fun (_,text) ->
             text |> startsWith "@" ||
             text |> startsWith "Scenario" || 
+            text |> startsWith "Story" ||
             text |> startsWith "Background"
         )
         |> Seq.map (fun (n,line) -> 
