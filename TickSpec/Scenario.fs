@@ -2,11 +2,14 @@
 
 open System
 
+/// Action type
+type Action = delegate of unit -> unit
+
 /// Executable scenario type
 type Scenario = { 
     Name:string; 
     Description:string;
-    Action:Action; 
+    Action:Action;
     Parameters:(string * string)[]
     Tags:string[]
     }

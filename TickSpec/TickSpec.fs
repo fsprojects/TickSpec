@@ -160,7 +160,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                     generate parsers (scenarioName,steps)
                 Seq.singleton
                     {Name=scenarioName;Description=getDescription steps;
-                     Action=Action(action);Parameters=[||];Tags=tags}
+                     Action=TickSpec.Action(action);Parameters=[||];Tags=tags}
             | name,tags,steps,Some(exampleTables) ->
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
@@ -174,7 +174,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                     let action = 
                         generate parsers (name,steps)
                     {Name=name;Description=getDescription steps;
-                     Action=Action(action);Parameters=combination;Tags=tags}
+                     Action=TickSpec.Action(action);Parameters=combination;Tags=tags}
                 )
         )
     member this.GenerateScenarios (reader:TextReader) =
@@ -198,8 +198,8 @@ type StepDefinitions (methods:MethodInfo seq) =
         let createAction (scenarioName, lines, ps) =
             let t = gen.GenScenario parsers (scenarioName, lines, ps)
             let instance = Activator.CreateInstance t
-            let mi = instance.GetType().GetMethod("Run")
-            Action(fun () -> mi.Invoke(instance,null) |> ignore)
+            let mi = instance.GetType().GetMethod("Run")            
+            TickSpec.Action(fun () -> mi.Invoke(instance,[||]) |> ignore)
         { Name = featureName; 
           Source = sourceUrl;
           Assembly = gen.Assembly; 
