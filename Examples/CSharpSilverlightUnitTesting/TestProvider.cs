@@ -10,7 +10,8 @@
 
     public class TestProvider : IUnitTestProvider
     {
-        private const UnitTestProviderCapabilities MyCapabilities =            
+        private const UnitTestProviderCapabilities MyCapabilities =        
+            UnitTestProviderCapabilities.MethodCanIgnore |            
             UnitTestProviderCapabilities.MethodCanDescribe;
 
         public UnitTestProviderCapabilities Capabilities

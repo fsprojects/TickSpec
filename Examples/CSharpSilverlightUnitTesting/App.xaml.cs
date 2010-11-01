@@ -27,11 +27,13 @@
             settings.TestHarness = harness;
             harness.Settings = settings;
             harness.Initialize();          
-            var provider = new TestProvider();            
-            var filter = new TagTestRunFilter(settings, harness);
+            
 
             harness.TestRunStarting += (senderx, ex) =>
                 {
+                    var provider = new TestProvider();
+                    var filter = new TagTestRunFilter(settings, harness, settings.TagExpression);
+
                     var features = FeatureFactory.GetFeatures(typeof(App).Assembly);
                     foreach (var feature in features)
                     {
@@ -43,8 +45,6 @@
  
             this.RootVisual = UnitTestSystem.CreateTestPage(settings);            
         }
-
-        
 
         private void Application_Exit(object sender, EventArgs e)
         {

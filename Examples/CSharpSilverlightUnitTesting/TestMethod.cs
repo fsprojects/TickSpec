@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
+    using Microsoft.Silverlight.Testing;
     using Microsoft.Silverlight.Testing.UnitTesting.Metadata;
     using Microsoft.Silverlight.Testing.UnitTesting.Metadata.VisualStudio;
     using TickSpec;
@@ -11,11 +13,13 @@
     {
         readonly Feature _feature;
         readonly Scenario _scenario;
+        readonly bool _ignore;
 
         public TestMethod(Feature feature, Scenario scenario)
         {
             _feature = feature;
             _scenario = scenario;
+            _ignore = scenario.Tags.Contains("ignore");
         }
 
         public string Category
@@ -39,12 +43,16 @@
 
         public IEnumerable<Attribute> GetDynamicAttributes()
         {
-            return new Attribute[] { };
+            yield return new TagAttribute(_feature.Source);
+            yield return new TagAttribute(_feature.Name);
+            yield return new TagAttribute(_scenario.Name);
+            foreach (var tag in _scenario.Tags)
+                yield return new TagAttribute(tag);            
         }
 
         public bool Ignore
         {
-            get { return false; }
+            get { return _ignore; }
         }
 
         public void Invoke(object instance)
