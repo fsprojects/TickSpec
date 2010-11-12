@@ -2,6 +2,31 @@
 
 open TickSpec.LineParser
 
+let identity x = x
+
+let mapItems items = 
+    let items = List.rev items
+    match items with
+    | x::xs ->
+        match x with
+        | BulletPoint _ ->
+            let bullets =
+                items |> List.map (function
+                    | TableRow _ -> None
+                    | BulletPoint s -> Some s
+                )
+                |> List.choose identity
+            Some(bullets |> List.toArray),None
+        | TableRow header ->
+            let rows =
+                xs |> List.map (function
+                    | TableRow cols -> Some cols
+                    | BulletPoint _ -> None
+                )
+                |> List.choose identity
+            None,Some(Table(header,rows |> List.toArray))
+    | [] -> None,None
+
 /// Build scenarios in specified lines
 let buildScenarios lines =
     // Scan over lines
@@ -19,8 +44,7 @@ let buildScenarios lines =
             scenario, scenarioN, step, lineN, tag::tags, tags', None
         | ScenarioStart scenario -> 
             scenario, scenarioN+1, step, lineN, [], tags, None
-        | ExamplesStart          
-        | GivenStep _ | WhenStep _ | ThenStep _ ->
+        | ExamplesStart | GivenStep _ | WhenStep _ | ThenStep _ ->
             scenario, scenarioN, step, lineN, tags, tags', 
                 Some(scenario,scenarioN,tags',lineN,line,step) 
         | Item _ ->
@@ -33,47 +57,26 @@ let buildScenarios lines =
     |> Seq.map (fun (line,items) ->
         items |> Seq.fold (fun (row,table) (scenario,scenarioN,tags,lineN,line,step) ->
             match step with
-            | ScenarioStart _ | Tag _ -> 
-                invalidOp("")
-            | ExamplesStart
-            | GivenStep _ | WhenStep _ | ThenStep _ ->
+            | ScenarioStart Shared
+            | ExamplesStart | GivenStep _ | WhenStep _ | ThenStep _ ->
                 (scenario,scenarioN,tags,lineN,line,step),table
+            | Item (ScenarioStart Shared,item) ->
+                (scenario,scenarioN,tags,lineN,line,step), item::table
             | Item (_,item) ->
                 row, item::table
+            | ScenarioStart _ | Tag _ -> 
+                invalidOp("")
         ) ((Background,0,[],0,"",ScenarioStart(Background)),[])
-        |> (fun (line, items) -> 
-            let items = List.rev items            
-            line,
-                match items with
-                | x::xs ->
-                    match x with
-                    | BulletPoint _ ->
-                        let bullets =
-                           items |> List.map (function
-                                | TableRow _ -> None
-                                | BulletPoint s -> Some s
-                            )
-                            |> List.choose (fun x -> x)
-                        Some(bullets |> List.toArray),None
-                    | TableRow header ->
-                        let rows =
-                            xs |> List.map (function
-                                | TableRow cols -> Some cols
-                                | BulletPoint _ -> None
-                            )
-                            |> List.choose (fun x -> x)
-                        None,Some(Table(header,rows |> List.toArray))
-                | [] -> None,None                
-        )
-    )           
+        |> (fun (line, items) -> line, mapItems items)
+    )
     // Map to lines
     |> Seq.map (fun ((scenario,scenarioN,tags,n,line,step),(bullets,table)) ->
         let line = {Number=n;Text=line;Bullets=bullets;Table=table}
         scenario,scenarioN,tags,line,step
     )
     // Group into scenarios
-    |> Seq.groupBy (fun (scenario,n,tags,_,_) -> (scenario,n,tags))              
-    |> (fun (scenarios) ->        
+    |> Seq.groupBy (fun (scenario,n,tags,_,_) -> (scenario,n,tags))
+    |> (fun (scenarios) ->
         let names = scenarios |> Seq.map (fun ((name,_,_),_) -> name)
         scenarios |> Seq.mapi (fun i ((name,_,tags),lines) ->
             let names = names |> Seq.take (i+1)
@@ -86,15 +89,15 @@ let buildScenarios lines =
                         let message = "Multiple Backgrounds not supported"
                         raise (new System.NotSupportedException(message))
                     | Named text -> Named (sprintf "%s~%d" text count)
+                    | Shared -> Shared
             (name,tags),lines
         )
     )
-    // Handle examples
     |> Seq.map (fun (scenario,lines) -> 
         scenario,
             lines 
             |> Seq.toArray
-            |> Array.partition (function 
+            |> Array.partition (function
                 | _,_,_,_,ExamplesStart -> true 
                 | _ -> false
             )
@@ -107,11 +110,11 @@ let buildScenarios lines =
                     if tables.Length > 0 then Some tables
                     else None
             )
-    )     
+    )
     |> Seq.map (fun ((scenario,tags),(steps,examples)) -> 
         scenario,tags |> List.toArray,steps,examples
-    )    
-      
+    )
+
 /// Parse feature lines
 let parse (featureLines:string[]) =
     let startsWith s (line:string) = line.Trim().StartsWith(s)
@@ -129,7 +132,8 @@ let parse (featureLines:string[]) =
             text |> startsWith "@" ||
             text |> startsWith "Scenario" || 
             text |> startsWith "Story" ||
-            text |> startsWith "Background"
+            text |> startsWith "Background" ||
+            text |> startsWith "Shared"
         )
         |> Seq.map (fun (n,line) -> 
             let i = line.IndexOf("#")
@@ -141,14 +145,27 @@ let parse (featureLines:string[]) =
     let background =
         scenarios 
         |> Seq.choose (function 
-            | (Background,tags,lines,examples) -> Some (lines,examples)
-            | (Named _,_,_,_) -> None
+            | Background,tags,lines,examples -> Some (lines,examples)
+            | Named _,_,_,_ -> None
+            | Shared,_,_,_ -> None
         ) 
-        |> Seq.collect (fun (lines,_) -> lines)                 
+        |> Seq.collect (fun (lines,_) -> lines)
+    let sharedExamples =
+        scenarios
+        |> Seq.choose (function 
+            | Background,_,_,_ -> None
+            | Named _,_,_,_ -> None
+            | Shared,tags,lines,examples -> 
+                let tables = lines |> Seq.map (fun (_,_,_,line,_) -> line.Table) |> Seq.choose identity
+                examples |> (function Some x -> Seq.append tables x | None -> tables) 
+                |> Some
+        )
+        |> Seq.concat |> Seq.toArray
     let scenarios =
         scenarios
         |> Seq.choose (function 
-            | (Background,_,_,_) -> None
-            | (Named name,tags,lines,examples) -> Some(name,tags,lines,examples)
-        )            
-    feature, background, scenarios
+            | Background,_,_,_ -> None
+            | Named name,tags,lines,examples -> Some(name,tags,lines,examples)
+            | Shared,_,_,_ -> None
+        )
+    feature, background, scenarios, sharedExamples

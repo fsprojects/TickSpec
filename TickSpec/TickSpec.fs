@@ -62,11 +62,11 @@ type StepDefinitions (methods:MethodInfo seq) =
         )
     /// Chooses defininitons for specified step and text
     let matchStep = function
-        | ScenarioStart _ | ExamplesStart | Item _ | Tag _ -> 
-            invalidOp("")
         | GivenStep text -> chooseDefinitions text givens
         | WhenStep text -> chooseDefinitions text whens
         | ThenStep text -> chooseDefinitions text thens
+        | ScenarioStart _ | ExamplesStart | Item _ | Tag _ -> 
+            invalidOp("")
     /// Extract arguments from specified match
     let extractArgs (r:Match) =        
         let args = List<string>()
@@ -137,6 +137,17 @@ type StepDefinitions (methods:MethodInfo seq) =
             steps 
             |> Seq.map (fun (line,_,_) -> line.Text)
             |> String.concat "\r\n"
+    /// Appends shared examples to scenarios as examples
+    let appendSharedExamples (sharedExamples:Table[]) scenarios  =
+        if Seq.length sharedExamples = 0 then
+            scenarios
+        else
+            scenarios |> Seq.map (function 
+                | scenarioName,tags,steps,None ->
+                    scenarioName,tags,steps,Some(sharedExamples)
+                | scenarioName,tags,steps,Some(exampleTables) ->
+                    scenarioName,tags,steps,Some(Array.append exampleTables sharedExamples)
+            )
     /// Constructs instance by reflecting against specified types
     new (types:Type[]) =
         let methods = 
@@ -150,8 +161,10 @@ type StepDefinitions (methods:MethodInfo seq) =
         StepDefinitions(Assembly.GetCallingAssembly())
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
-        let featureName,background,scenarios = parse lines
-        scenarios |> Seq.collect (function
+        let featureName,background,scenarios,sharedExamples = parse lines
+        scenarios 
+        |> appendSharedExamples sharedExamples
+        |> Seq.collect (function
             | scenarioName,tags,steps,None ->
                 let steps = 
                     Seq.append background steps
@@ -193,17 +206,17 @@ type StepDefinitions (methods:MethodInfo seq) =
         this.Execute (reader)
     /// Generates feature in specified lines from source document
     member this.GenerateFeature (sourceUrl:string,lines:string[]) =
-        let featureName,background,scenarios = parse lines
+        let featureName,background,scenarios,sharedExamples = parse lines
         let gen = FeatureGen(featureName,sourceUrl)
         let createAction (scenarioName, lines, ps) =
             let t = gen.GenScenario parsers (scenarioName, lines, ps)
             let instance = Activator.CreateInstance t
-            let mi = instance.GetType().GetMethod("Run")            
+            let mi = instance.GetType().GetMethod("Run")
             TickSpec.Action(fun () -> mi.Invoke(instance,[||]) |> ignore)
-        { Name = featureName; 
-          Source = sourceUrl;
-          Assembly = gen.Assembly; 
-          Scenarios = scenarios |> Seq.collect (function
+        let scenarios =
+            scenarios 
+            |> appendSharedExamples sharedExamples
+            |> Seq.collect (function
             | scenarioName,tags,steps,None ->
                 let steps = 
                     Seq.append background steps
@@ -231,7 +244,12 @@ type StepDefinitions (methods:MethodInfo seq) =
                     {Name=scenarioName;Description=getDescription steps;
                      Action=action;Parameters=ps;Tags=tags}
                 )
-        ) |> Seq.toArray }
+            )
+        { Name = featureName; 
+          Source = sourceUrl;
+          Assembly = gen.Assembly; 
+          Scenarios = scenarios |> Seq.toArray 
+        }
     member this.GenerateFeature (sourceUrl:string,reader:TextReader) =
         this.GenerateFeature(sourceUrl, TextReader.readAllLines reader)
     member this.GenerateFeature (sourceUrl:string,feature:System.IO.Stream) =

@@ -5,11 +5,13 @@ open System.Text.RegularExpressions
 type ScenarioType =
     | Named of string
     | Background
+    | Shared
     with 
     override this.ToString() =
         match this with
         | Named s -> s
         | Background -> "Background"
+        | Shared -> "Shared Examples"
 
 /// Item type
 type internal ItemType =
@@ -64,7 +66,9 @@ let (|Row|_|) (s:string) =
 let (|Bullet|_|) (s:string) =    
     if s.Trim().StartsWith("*") then 
         s.Substring(s.IndexOf("*")+1).Trim() |> Some
-    else None       
+    else None
+let (|SharedExamples|_|) (s:string) =
+    if s.Trim().StartsWith("Shared Examples") then Some SharedExamples else None      
 let (|Examples|_|) (s:string) =
     if s.Trim().StartsWith("Examples") then Some Examples else None
 let (|Attribute|_|) (s:string) =
@@ -75,20 +79,24 @@ let (|Attribute|_|) (s:string) =
 /// Line state given previous line state and new line text
 let parseLine = function             
     | _, Scenario text -> ScenarioStart (Named(text)) |> Some   
-    | _, IsBackground -> ScenarioStart (Background) |> Some   
-    | _, Examples text -> ExamplesStart |> Some
-    | ScenarioStart _, Given text
+    | _, IsBackground -> ScenarioStart Background |> Some
+    | _, SharedExamples -> ScenarioStart Shared |> Some   
+    | _, Examples -> ExamplesStart |> Some
+    | ScenarioStart (Named _), Given text    
+    | ScenarioStart Background, Given text
     | GivenStep _, Given text | Item(GivenStep _,_), Given text
     | GivenStep _, And text | Item(GivenStep _,_), And text 
     | GivenStep _, But text | Item(GivenStep _,_), But text 
         -> GivenStep text |> Some
-    | ScenarioStart _, When text 
+    | ScenarioStart (Named _), When text
+    | ScenarioStart Background, When text 
     | GivenStep _, When text | Item(GivenStep _,_), When text
     | WhenStep _, When text | Item(WhenStep _,_), When text
     | WhenStep _, And text | Item(WhenStep _,_), And text
     | WhenStep _, But text | Item(WhenStep _,_), But text
         -> WhenStep text |> Some
-    | ScenarioStart _, Then text  
+    | ScenarioStart (Named _), Then text  
+    | ScenarioStart Background, Then text
     | GivenStep _, Then text | Item (GivenStep _,_), Then text
     | WhenStep _, Then text | Item (WhenStep _,_), Then text
     | ThenStep _, Then text | Item (ThenStep _,_), Then text
@@ -100,7 +108,8 @@ let parseLine = function
     | (ThenStep _ as line), Bullet xs
     | Item (line, BulletPoint(_)), Bullet xs ->
         Item(line, BulletPoint xs) |> Some
-    | (ExamplesStart _ as line), Row xs
+    | (ScenarioStart Shared as line), Row xs
+    | (ExamplesStart as line), Row xs
     | (GivenStep _ as line), Row xs 
     | (WhenStep _ as line), Row xs 
     | (ThenStep _ as line), Row xs ->
@@ -119,6 +128,6 @@ let expectingLine = function
         "Expecting Table row, Bullet, When, Then, And or But step"
     | ThenStep _ | Item(ThenStep _,_) -> 
         "Expecting Table row, Bullet, Then, And or But step"
-    | ExamplesStart _ -> "Expecting Table row"
+    | ExamplesStart -> "Expecting Table row"
     | Item(_,_) -> "Unexpected or invalid line"                       
     | Tag _ -> "Unexpected line"
