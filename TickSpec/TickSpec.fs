@@ -10,8 +10,7 @@ open TickSpec.LineParser
 open TickSpec.Parser
 open TickSpec.ScenarioRun
 
-type Column = Left | Middle | Right
-
+/// Encapsulates Gherkin feature
 type Feature = { 
     Name : string; 
     Source : string;
@@ -33,16 +32,12 @@ type StepDefinitions (methods:MethodInfo seq) =
             | :? GivenAttribute -> (m::gs,ws,ts)
             | :? WhenAttribute -> (gs,m::ws,ts)
             | :? ThenAttribute -> (gs,ws,m::ts)
-            | _ -> invalidOp("")
+            | _ -> invalidOp "Unhandled StepAttribute"
         ) ([],[],[])    
     /// Parser methods
     let parsers =
         methods 
-        |> Seq.filter (fun m ->
-            null <> Attribute.GetCustomAttribute(m,typeof<ParserAttribute>) //&&        
-            //m.GetParameters().Length > 0 &&
-            //m.GetParameters().[0].ParameterType = typeof<string>
-        )
+        |> Seq.filter (fun m -> null <> Attribute.GetCustomAttribute(m,typeof<ParserAttribute>))
         |> Seq.map (fun m -> m.ReturnType, m)        
         |> Dict.ofSeq
     /// Chooses matching definitions for specifed text
@@ -62,11 +57,9 @@ type StepDefinitions (methods:MethodInfo seq) =
         )
     /// Chooses defininitons for specified step and text
     let matchStep = function
-        | GivenStep text -> chooseDefinitions text givens
-        | WhenStep text -> chooseDefinitions text whens
-        | ThenStep text -> chooseDefinitions text thens
-        | ScenarioStart _ | ExamplesStart | Item _ | Tag _ -> 
-            invalidOp("")
+        | Given text -> chooseDefinitions text givens
+        | When text -> chooseDefinitions text whens
+        | Then text -> chooseDefinitions text thens
     /// Extract arguments from specified match
     let extractArgs (r:Match) =        
         let args = List<string>()
@@ -98,10 +91,9 @@ type StepDefinitions (methods:MethodInfo seq) =
             Regex.Replace(s, pattern, lookup)
         let step = 
             match step with
-            | GivenStep s -> replace s |> GivenStep
-            | WhenStep s -> replace s |> WhenStep
-            | ThenStep s  -> replace s |> ThenStep
-            | _ -> invalidOp("")
+            | Given s -> replace s |> Given
+            | When s -> replace s |> When
+            | Then s  -> replace s |> Then
         let table =
             line.Table 
             |> Option.map (fun table ->

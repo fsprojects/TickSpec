@@ -1,61 +1,71 @@
 ﻿module internal TickSpec.LineParser
 
 open System.Text.RegularExpressions
+open System.Globalization
 
-type ScenarioType =
+/// Block type
+type BlockType =
     | Named of string
     | Background
-    | Shared
+    | Shared of string option
     with 
     override this.ToString() =
         match this with
         | Named s -> s
         | Background -> "Background"
-        | Shared -> "Shared Examples"
+        | Shared None -> "Shared Examples"
+        | Shared (Some(tag)) -> "Shared Examples of " + tag
 
 /// Item type
 type internal ItemType =
     | BulletPoint of string
     | TableRow of string[]
 
+/// Step type
+type StepType =
+    | Given of string
+    | When of string
+    | Then of string
+
 /// Line type
 type internal LineType = 
-    | ScenarioStart of ScenarioType
+    | BlockStart of BlockType
     | ExamplesStart
-    | GivenStep of string
-    | WhenStep of string
-    | ThenStep of string   
-    | Item of LineType * ItemType       
+    | Step of StepType   
+    | Item of LineType * ItemType
     | Tag of string 
 
 /// Try single parameter regular expression
 let tryRegex input pattern =
-    let m = Regex.Match(input, pattern)
+    let m = Regex.Match(input, pattern, RegexOptions.IgnoreCase)
     if m.Success then m.Groups.[1].Value |> Some
     else None
 
+let startsWith (pattern:string) (s:string) = 
+    s.StartsWith(pattern, ignoreCase=true, culture=CultureInfo.InvariantCulture) 
+
 let (|Scenario|_|) (s:string) = 
     let s = s.Trim()
-    if s.StartsWith("Scenario") || s.StartsWith("Story") then
+    if s |> startsWith "Scenario" || s |> startsWith "Story" then
         Scenario s |> Some else None
 let (|IsBackground|_|) s = 
     tryRegex s "Background(.*)" 
     |> Option.map (fun t -> IsBackground) 
-let (|Given|_|) s = 
+let (|GivenLine|_|) s = 
     tryRegex s "Given\s+(.*)" 
-    |> Option.map (fun t -> Given t)
-let (|When|_|) s = 
+    |> Option.map (fun t -> GivenLine t)
+let (|WhenLine|_|) s = 
     tryRegex s "When\s+(.*)" 
-    |> Option.map (fun t -> When t)
-let (|Then|_|) s = 
+    |> Option.map (fun t -> WhenLine t)
+let (|ThenLine|_|) s = 
     tryRegex s "Then\s+(.*)" 
-    |> Option.map (fun t -> Then t)
-let (|And|_|) s = 
+    |> Option.map (fun t -> ThenLine t)
+let (|AndLine|_|) s = 
     tryRegex s "And\s+(.*)" 
-    |> Option.map (fun t -> And t)
-let (|But|_|) s = 
+    |> Option.map (fun t -> AndLine t)
+let (|ButLine|_|) s = 
     tryRegex s "But\s+(.*)" 
-    |> Option.map (fun t -> But t) 
+    |> Option.map (fun t -> ButLine t) 
 let (|Row|_|) (s:string) =    
     if s.Trim().StartsWith("|") then 
         let options = System.StringSplitOptions.RemoveEmptyEntries
@@ -67,52 +77,56 @@ let (|Bullet|_|) (s:string) =
     if s.Trim().StartsWith("*") then 
         s.Substring(s.IndexOf("*")+1).Trim() |> Some
     else None
+let (|SharedExamplesOf|_|) s =
+    tryRegex s @"Shared\s+Examples\s+Of\s+@(.*[^:])"
+    |> Option.map (fun t -> SharedExamplesOf t)
 let (|SharedExamples|_|) (s:string) =
-    if s.Trim().StartsWith("Shared Examples") then Some SharedExamples else None      
+    if s.Trim() |> startsWith("Shared Examples") then Some SharedExamples else None
 let (|Examples|_|) (s:string) =
-    if s.Trim().StartsWith("Examples") then Some Examples else None
+    if s.Trim() |> startsWith("Examples") then Some Examples else None
 let (|Attribute|_|) (s:string) =
     if s.Trim().StartsWith("@") then 
         Attribute (s.Substring(s.IndexOf("@")+1).Trim()) |> Some
     else None
-    
+
 /// Line state given previous line state and new line text
 let parseLine = function             
-    | _, Scenario text -> ScenarioStart (Named(text)) |> Some   
-    | _, IsBackground -> ScenarioStart Background |> Some
-    | _, SharedExamples -> ScenarioStart Shared |> Some   
+    | _, Scenario text -> BlockStart (Named(text)) |> Some   
+    | _, IsBackground -> BlockStart Background |> Some
+    | _, SharedExamplesOf tag -> BlockStart (Shared(Some(tag))) |> Some
+    | _, SharedExamples -> BlockStart (Shared(None)) |> Some   
     | _, Examples -> ExamplesStart |> Some
-    | ScenarioStart (Named _), Given text    
-    | ScenarioStart Background, Given text
-    | GivenStep _, Given text | Item(GivenStep _,_), Given text
-    | GivenStep _, And text | Item(GivenStep _,_), And text 
-    | GivenStep _, But text | Item(GivenStep _,_), But text 
-        -> GivenStep text |> Some
-    | ScenarioStart (Named _), When text
-    | ScenarioStart Background, When text 
-    | GivenStep _, When text | Item(GivenStep _,_), When text
-    | WhenStep _, When text | Item(WhenStep _,_), When text
-    | WhenStep _, And text | Item(WhenStep _,_), And text
-    | WhenStep _, But text | Item(WhenStep _,_), But text
-        -> WhenStep text |> Some
-    | ScenarioStart (Named _), Then text  
-    | ScenarioStart Background, Then text
-    | GivenStep _, Then text | Item (GivenStep _,_), Then text
-    | WhenStep _, Then text | Item (WhenStep _,_), Then text
-    | ThenStep _, Then text | Item (ThenStep _,_), Then text
-    | ThenStep _, And text | Item(ThenStep _,_), And text
-    | ThenStep _, But text | Item(ThenStep _,_), But text
-        -> ThenStep text |> Some
-    | (GivenStep _ as line), Bullet xs 
-    | (WhenStep _ as line), Bullet xs 
-    | (ThenStep _ as line), Bullet xs
+    | BlockStart (Named _), GivenLine text    
+    | BlockStart Background, GivenLine text
+    | Step(Given _), GivenLine text | Item(Step(Given _),_), GivenLine text
+    | Step(Given _), AndLine text | Item(Step(Given _),_), AndLine text 
+    | Step(Given _), ButLine text | Item(Step(Given _),_), ButLine text 
+        -> Step(Given text) |> Some
+    | BlockStart (Named _), WhenLine text
+    | BlockStart Background, WhenLine text 
+    | Step(Given _), WhenLine text | Item(Step(Given _),_), WhenLine text
+    | Step(When _), WhenLine text | Item(Step(When _),_), WhenLine text
+    | Step(When _), AndLine text | Item(Step(When _),_), AndLine text
+    | Step(When _), ButLine text | Item(Step(When _),_), ButLine text
+        -> Step(When text) |> Some
+    | BlockStart (Named _), ThenLine text  
+    | BlockStart Background, ThenLine text
+    | Step(Given _), ThenLine text | Item (Step(Given _),_), ThenLine text
+    | Step(When _), ThenLine text | Item (Step(When _),_), ThenLine text
+    | Step(Then _), ThenLine text | Item (Step(Then _),_), ThenLine text
+    | Step(Then _), AndLine text | Item(Step(Then _),_), AndLine text
+    | Step(Then _), ButLine text | Item(Step(Then _),_), ButLine text
+        -> Step(Then text) |> Some
+    | (Step(Given _) as line), Bullet xs 
+    | (Step(When _) as line), Bullet xs 
+    | (Step(Then _) as line), Bullet xs
     | Item (line, BulletPoint(_)), Bullet xs ->
         Item(line, BulletPoint xs) |> Some
-    | (ScenarioStart Shared as line), Row xs
+    | (BlockStart (Shared(_)) as line), Row xs
     | (ExamplesStart as line), Row xs
-    | (GivenStep _ as line), Row xs 
-    | (WhenStep _ as line), Row xs 
-    | (ThenStep _ as line), Row xs ->
+    | (Step(Given _) as line), Row xs 
+    | (Step(When _) as line), Row xs 
+    | (Step(Then _) as line), Row xs ->
         Item(line, TableRow xs) |> Some
     | Item (line, TableRow ys), Row xs when ys.Length = xs.Length ->     
         Item(line, TableRow xs) |> Some   
@@ -121,12 +135,13 @@ let parseLine = function
     | _, line -> None
 
 let expectingLine = function
-    | ScenarioStart _ -> "Expecting Given, When or Then step"
-    | GivenStep _ | Item(GivenStep _,_) -> 
+    | BlockStart (Named _) | BlockStart Background -> "Expecting Given, When or Then step"
+    | BlockStart (Shared _) -> "Expecting Table row"
+    | Step(Given _) | Item(Step(Given _),_) -> 
         "Expecting Table row, Bullet, Given, When, Then, And or But step"
-    | WhenStep _ | Item(WhenStep _,_) -> 
+    | Step(When _) | Item(Step(When _),_) -> 
         "Expecting Table row, Bullet, When, Then, And or But step"
-    | ThenStep _ | Item(ThenStep _,_) -> 
+    | Step(Then _) | Item(Step(Then _),_) -> 
         "Expecting Table row, Bullet, Then, And or But step"
     | ExamplesStart -> "Expecting Table row"
     | Item(_,_) -> "Unexpected or invalid line"                       
