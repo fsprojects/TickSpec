@@ -61,13 +61,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files\Microsoft F#\Silverlight\Libraries\Client\v4.0\FSharp.Core.dll</HintPath>
+      <HintPath>..\..\Lib\SL4\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Silverlight.Testing">
-      <HintPath>..\..\..\..\..\..\..\..\..\Program Files\Microsoft SDKs\Silverlight\v4.0\Toolkit\Apr10\Testing\Microsoft.Silverlight.Testing.dll</HintPath>
+      <HintPath>..\..\Lib\SL4\Testing\Microsoft.Silverlight.Testing.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight">
-      <HintPath>..\..\..\..\..\..\..\..\..\Program Files\Microsoft SDKs\Silverlight\v4.0\Toolkit\Apr10\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
+      <HintPath>..\..\Lib\SL4\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System.Windows" />
@@ -77,7 +77,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Windows.Browser" />
     <Reference Include="TickSpec.Silverlight">
-      <HintPath>.\TickSpec.Silverlight.dll</HintPath>
+      <HintPath>..\..\Lib\SL4\TickSpec.Silverlight.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

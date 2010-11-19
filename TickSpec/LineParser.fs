@@ -42,7 +42,7 @@ let tryRegex input pattern =
     else None
 
 let startsWith (pattern:string) (s:string) = 
-    s.StartsWith(pattern, ignoreCase=true, culture=CultureInfo.InvariantCulture) 
+    s.StartsWith(pattern, System.StringComparison.InvariantCultureIgnoreCase) 
 
 let (|Scenario|_|) (s:string) = 
     let s = s.Trim()

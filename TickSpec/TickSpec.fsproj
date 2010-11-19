@@ -11,6 +11,7 @@
     <AssemblyName>TickSpec</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <Name>TickSpec</Name>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -59,4 +60,9 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(TargetDir)\TickSpec.dll" ..\..\..\Lib\net20
+copy "$(TargetDir)\TickSpec.xml" ..\..\..\Lib\net20
+copy "$(TargetDir)\TickSpec.pdb" ..\..\..\Lib\net20</PostBuildEvent>
+  </PropertyGroup>
 </Project>
