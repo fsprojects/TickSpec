@@ -174,6 +174,7 @@ let parse (featureLines:string[]) =
             | Shared _,_,_,_ -> None
         ) 
         |> Seq.collect (fun (lines,_) -> lines |> toSteps)
+        |> Seq.toArray
     let scenarios =
         blocks
         |> Seq.choose (function 
