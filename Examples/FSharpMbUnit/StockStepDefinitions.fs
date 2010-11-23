@@ -16,8 +16,7 @@ let [<When>] ``he returns the jumper for a refund`` () =
       
 let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) =     
     let passed = (stockItem.Count = n)
-    //Assert.IsTrue(passed)
-    ()
+    Assert.IsTrue(passed)    
     
 let mutable blueItem = { Count = 0 }
 let mutable blackItem = { Count = 0 }

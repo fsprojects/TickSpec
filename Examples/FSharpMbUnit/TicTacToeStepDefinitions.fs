@@ -19,10 +19,7 @@ let (|Row|) = function
 let [<When>] ``a player marks (X|O) at (top|middle|bottom) (left|middle|right)`` 
    (mark:string,Row row,Col col) =
     Assert.IsTrue(System.String.IsNullOrEmpty(layout.[row].[col]))
-    layout.[row].[col] <- mark      
-
-let test (Row row,Col col) =
-    ()
+    layout.[row].[col] <- mark
     
 let [<Then>] ``(X|O) wins`` (mark:string) =
     [
@@ -40,5 +37,3 @@ let [<Then>] ``(X|O) wins`` (mark:string) =
     ]
     |> Seq.exists (fun x -> x)
     |> Assert.IsTrue
-    
-
