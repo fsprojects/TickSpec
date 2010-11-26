@@ -7,6 +7,7 @@ Scenario: Winning positions
 		| <O> |     |     |
 		| <X> |     | <X> |
 	When a player marks <X> at <row> <col>
+	And viewed with a <rotation> degree rotation
 	Then <X> wins
 	
 Examples:
@@ -19,4 +20,11 @@ Examples:
 	| X | O |
 	| X | O |
 	| O | X |
+
+Shared Examples:
+	| rotation |
+	| 0        |
+	| 90       |
+	| 180      |
+	| 270      |
 

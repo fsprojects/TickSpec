@@ -9,15 +9,13 @@ open Wiggle
 
 type Board () as this =
     inherit UserControl ()
-    let width, height = 640.0, 480.0
+    let width, height = 800.0, 600.0
     let markSize = height/8.0
     do this.Width <- width; this.Height <- height
-    let grid = Grid()
-    let container = Grid(Background=SolidColorBrush(Colors.Transparent))
+    let panel = Grid(Background=SolidColorBrush(Colors.Transparent))
     let canvas = Canvas()
-    do  grid.Children.Add canvas
-        grid.Children.Add container
-        this.Content <- grid
+    do  panel.Children.Add canvas
+        this.Content <- panel
     let add (x:#UIElement) = canvas.Children.Add x
     do for i = 1 to 2 do
         let x = float i * width / 3.0
@@ -49,12 +47,12 @@ type Board () as this =
         ((float col * width) / 3.0) + (width / 6.0),
         ((float row * height) / 3.0) + (height / 6.0)
     let subscriptions =
-        [container.MouseMove.Subscribe (fun (me:MouseEventArgs) ->
-            let point = me.GetPosition(container)
+        [panel.MouseMove.Subscribe (fun (me:MouseEventArgs) ->
+            let point = me.GetPosition(panel)
             setPosition(!cursor,point.X,point.Y)
          )
-         container.MouseLeftButtonDown.Subscribe (fun (me:MouseButtonEventArgs) ->
-            let point = me.GetPosition(container)
+         panel.MouseLeftButtonDown.Subscribe (fun (me:MouseButtonEventArgs) ->
+            let point = me.GetPosition(panel)
             let col, row = int (point.X*3.0/width), int (point.Y*3.0/height)
             if board.[col,row].IsNone then
                 board.[col,row] <- Some mark
