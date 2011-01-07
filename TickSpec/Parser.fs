@@ -65,7 +65,7 @@ let buildBlocks lines =
             | Item (_,item) ->
                 row, item::table
             | BlockStart _ | Tag _ -> 
-                invalidOp ""
+                invalidOp "Unexpected token"
         ) ((Background,0,[],0,"",BlockStart(Background)),[])
         |> (fun (line, items) -> line, mapItems items)
     )
@@ -116,8 +116,8 @@ let buildBlocks lines =
         block,tags |> List.toArray,steps,examples
     )
 
-/// Parse feature lines
-let parse (featureLines:string[]) =
+/// Parse blocks
+let parseBlocks (featureLines:string[]) =
     let startsWith s (line:string) = line.Trim().StartsWith(s)
     let lines =
         featureLines
@@ -125,7 +125,7 @@ let parse (featureLines:string[]) =
     let n, feature =
         lines
         |> Seq.tryFind (snd >> startsWith "Feature")
-        |> (function Some line -> line | None -> invalidOp(""))
+        |> (function Some line -> line | None -> invalidOp("Expecting Feature keyword"))
     let blocks =
         lines
         |> Seq.skip n
