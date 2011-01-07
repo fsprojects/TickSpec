@@ -1,4 +1,4 @@
-﻿module internal TickSpec.Parser
+﻿module internal TickSpec.BlockParser
 
 open TickSpec.LineParser
 

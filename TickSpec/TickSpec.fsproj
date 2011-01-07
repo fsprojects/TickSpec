@@ -48,7 +48,8 @@
     <Compile Include="StepAttributes.fs" />
     <Compile Include="StepException.fs" />
     <Compile Include="LineParser.fs" />
-    <Compile Include="Parser.fs" />
+    <Compile Include="BlockParser.fs" />
+    <Compile Include="FeatureParser.fs" />
     <Compile Include="Scenario.fs" />
     <Compile Include="TickSpec.fs" />
   </ItemGroup>
