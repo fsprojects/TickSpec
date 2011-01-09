@@ -18,6 +18,7 @@ let computeCombinations (tables:Table []) =
         )
         |> Seq.toList
     values |> List.combinations
+    
 /// Replace line with specified named values
 let replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
     let replace s =
@@ -57,17 +58,22 @@ let appendSharedExamples (sharedExamples:Table[]) scenarios  =
             | scenarioName,tags,steps,Some(exampleTables) ->
                 scenarioName,tags,steps,Some(Array.append exampleTables sharedExamples)
         )
+          
 /// Parses lines of feature
 let parseFeature (lines:string[]) =
+    let toStep (_,_,_,line,step) = step,line
     let featureName,background,scenarios,sharedExamples = parseBlocks lines     
-    featureName,
+    let scenarios =
         scenarios 
         |> appendSharedExamples sharedExamples
         |> Seq.collect (function
             | name,tags,steps,None ->
-                let steps = Seq.append background steps
+                let steps = 
+                    Seq.append background steps
+                    |> Seq.map toStep 
+                    |> Seq.toArray
                 Seq.singleton
-                    (name, tags, steps, [||])
+                    { Name=name; Tags=tags; Steps=steps; Parameters=[||] }
             | name,tags,steps,Some(exampleTables) ->            
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
@@ -77,7 +83,10 @@ let parseFeature (lines:string[]) =
                     let combination = Seq.concat combination |> Seq.toArray
                     let steps =
                         Seq.append background steps
-                        |> Seq.map (replaceLine combination)                                          
-                    name, tags, steps, combination
+                        |> Seq.map (replaceLine combination)      
+                        |> Seq.map toStep 
+                        |> Seq.toArray
+                    { Name=name; Tags=tags; Steps=steps; Parameters=combination }                                   
                 )
         )
+    { Name=featureName; Scenarios=scenarios |> Seq.toArray }

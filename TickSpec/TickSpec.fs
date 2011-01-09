@@ -67,11 +67,11 @@ type StepDefinitions (methods:MethodInfo seq) =
             r.Groups.[i].Value |> args.Add
         args.ToArray()      
     /// Resolves line
-    let resolveLine (scenario,_,_,line,step) =
+    let resolveLine (scenario:ScenarioSource) (step,line) =
         let matches = matchStep step
         let fail e =
-            let m = sprintf "%s on line %d" e line.Number 
-            StepException(m,line.Number,scenario.ToString()) |> raise
+            let m = sprintf "%s on line %d" e line.Number
+            StepException(m,line.Number,scenario.Name) |> raise
         if matches.IsEmpty then fail "Missing step definition"
         if matches.Length > 1 then fail "Ambiguous step definition"
         let r,m = matches.Head
@@ -101,13 +101,16 @@ type StepDefinitions (methods:MethodInfo seq) =
         StepDefinitions(Assembly.GetCallingAssembly())
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
-        let _, scenarioBlocks = parseFeature lines
-        scenarioBlocks
-        |> Seq.map (fun (name, tags, steps, parameters) ->
-            let steps = steps |> Seq.map resolveLine
-            let action = generate parsers (name,steps)
-            {Name=name;Description=getDescription steps;
-             Action=TickSpec.Action(action);Parameters=parameters;Tags=tags}
+        let featureSource = parseFeature lines
+        featureSource.Scenarios
+        |> Seq.map (fun scenario ->
+            let steps = 
+                scenario.Steps 
+                |> Seq.map (resolveLine scenario)
+                |> Seq.toArray
+            let action = generate parsers (scenario.Name,steps)
+            {Name=scenario.Name;Description=getDescription steps;
+             Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
         )
     member this.GenerateScenarios (reader:TextReader) =
         this.GenerateScenarios(TextReader.readAllLines reader)
@@ -125,22 +128,25 @@ type StepDefinitions (methods:MethodInfo seq) =
         this.Execute (reader)
     /// Generates feature in specified lines from source document
     member this.GenerateFeature (sourceUrl:string,lines:string[]) =
-        let featureName, scenarioBlocks = parseFeature lines
-        let gen = FeatureGen(featureName,sourceUrl)
+        let featureSource = parseFeature lines
+        let gen = FeatureGen(featureSource.Name,sourceUrl)
         let createAction (scenarioName, lines, ps) =
             let t = gen.GenScenario parsers (scenarioName, lines, ps)
             let instance = Activator.CreateInstance t
             let mi = instance.GetType().GetMethod("Run")
             TickSpec.Action(fun () -> mi.Invoke(instance,[||]) |> ignore)      
         let scenarios = 
-            scenarioBlocks
-            |> Seq.map (fun (name, tags, lines, parameters) ->
-                let steps = lines |> Seq.map resolveLine |> Seq.toArray           
-                let action = createAction (name, steps, parameters)           
-                { Name=name;Description=getDescription steps;
-                      Action=action;Parameters=parameters;Tags=tags}
+            featureSource.Scenarios
+            |> Seq.map (fun scenario ->
+                let steps = 
+                    scenario.Steps 
+                    |> Seq.map (resolveLine scenario) 
+                    |> Seq.toArray           
+                let action = createAction (scenario.Name, steps, scenario.Parameters)           
+                { Name=scenario.Name;Description=getDescription steps;
+                      Action=action;Parameters=scenario.Parameters;Tags=scenario.Tags}
             )
-        { Name = featureName; 
+        { Name = featureSource.Name; 
           Source = sourceUrl;
           Assembly = gen.Assembly; 
           Scenarios = scenarios |> Seq.toArray 
