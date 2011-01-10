@@ -40,8 +40,7 @@
   <ItemGroup>
     <Compile Include="Extensions.fs" />
     <Compile Include="ServiceProvider.fs" />
-    <Compile Include="Table.fs" />
-    <Compile Include="Line.fs" />
+    <Compile Include="FeatureSource.fs" />
     <Compile Include="ScenarioRun.fs" />
     <Compile Include="ScenarioGen.fs" />
     <Compile Include="FeatureGen.fs" />
@@ -49,7 +48,6 @@
     <Compile Include="StepException.fs" />
     <Compile Include="LineParser.fs" />
     <Compile Include="BlockParser.fs" />
-    <Compile Include="FeatureSource.fs" />
     <Compile Include="FeatureParser.fs" />
     <Compile Include="Scenario.fs" />
     <Compile Include="TickSpec.fs" />

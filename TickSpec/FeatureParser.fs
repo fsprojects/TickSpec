@@ -1,11 +1,11 @@
-﻿module internal TickSpec.FeatureParser
+﻿module TickSpec.FeatureParser
 
 open System.Text.RegularExpressions
 open TickSpec.LineParser
 open TickSpec.BlockParser
 
 /// Computes combinations of table values
-let computeCombinations (tables:Table []) =
+let internal computeCombinations (tables:Table []) =
     let values = 
         tables 
         |> Seq.map (fun table ->
@@ -20,7 +20,7 @@ let computeCombinations (tables:Table []) =
     values |> List.combinations
     
 /// Replace line with specified named values
-let replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
+let internal replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
     let replace s =
         let lookup (m:Match) =
             let x = m.Value.TrimStart([|'<'|]).TrimEnd([|'>'|])
@@ -48,7 +48,7 @@ let replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
     (scenario,n,tags,{line with Table=table;Bullets=bullets},step)
 
 /// Appends shared examples to scenarios as examples
-let appendSharedExamples (sharedExamples:Table[]) scenarios  =
+let internal appendSharedExamples (sharedExamples:Table[]) scenarios  =
     if Seq.length sharedExamples = 0 then
         scenarios
     else

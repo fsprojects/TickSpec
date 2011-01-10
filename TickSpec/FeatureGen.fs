@@ -38,6 +38,6 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
     member this.GenScenario       
         (parsers:IDictionary<Type,MethodInfo>)
         (scenarioName,
-         lines:(Line * MethodInfo * string[]) [], 
+         lines:(LineSource * MethodInfo * string[]) [], 
          parameters:(string * string)[]) =
         generateScenario module_ doc parsers (scenarioName,lines,parameters)

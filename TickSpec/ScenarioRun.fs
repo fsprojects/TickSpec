@@ -57,6 +57,5 @@ let generate parsers (scenario,lines) =
         /// Type instance provider
         let provider = ServiceProvider()
         // Iterate scenario lines
-        lines |> Seq.iter (fun (line:Line,m,args) ->
-            System.Diagnostics.Debug.WriteLine line
+        lines |> Seq.iter (fun (line:LineSource,m,args) ->
             (m,args,line.Bullets,line.Table) |> invoke parsers provider)

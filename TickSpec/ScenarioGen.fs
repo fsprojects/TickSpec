@@ -217,7 +217,7 @@ let defineStepMethod
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
         (parsers:IDictionary<Type,MethodInfo>)
-        (line:Line,mi:MethodInfo,args:string[]) =    
+        (line:LineSource,mi:MethodInfo,args:string[]) =    
     /// Line number
     let n = line.Number
     /// Step method builder
@@ -280,7 +280,7 @@ let generateScenario
         (module_:ModuleBuilder)
         doc
         (parsers:IDictionary<Type,MethodInfo>)
-        (scenarioName,lines:(Line * MethodInfo * string[]) [],
+        (scenarioName,lines:(LineSource * MethodInfo * string[]) [],
          parameters:(string * string)[]) =
     
     let scenarioBuilder =

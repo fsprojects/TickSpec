@@ -4,7 +4,7 @@ open System.Text.RegularExpressions
 open System.Globalization
 
 /// Block type
-type BlockType =
+type internal BlockType =
     | Named of string
     | Background
     | Shared of string option
@@ -20,12 +20,6 @@ type BlockType =
 type internal ItemType =
     | BulletPoint of string
     | TableRow of string[]
-
-/// Step type
-type StepType =
-    | Given of string
-    | When of string
-    | Then of string
 
 /// Line type
 type internal LineType = 
