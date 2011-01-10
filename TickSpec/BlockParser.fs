@@ -40,8 +40,8 @@ let buildBlocks lines =
                 let m = sprintf "Syntax error on line %d %s\r\n%s" lineN line e
                 StepException(m,lineN,block.ToString()) |> raise
         match step with
-        | Tag tag ->
-            block, blockN, step, lineN, tag::tags, tags', None
+        | TagLine tag ->
+            block, blockN, step, lineN, tag@tags, tags', None
         | BlockStart block -> 
             block, blockN+1, step, lineN, [], tags, None
         | ExamplesStart | Step _ ->
@@ -64,7 +64,7 @@ let buildBlocks lines =
                 (block,blockN,tags,lineN,line,step), item::table
             | Item (_,item) ->
                 row, item::table
-            | BlockStart _ | Tag _ -> 
+            | BlockStart _ | TagLine _ -> 
                 invalidOp "Unexpected token"
         ) ((Background,0,[],0,"",BlockStart(Background)),[])
         |> (fun (line, items) -> line, mapItems items)

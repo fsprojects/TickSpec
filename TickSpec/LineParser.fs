@@ -27,7 +27,7 @@ type internal LineType =
     | ExamplesStart
     | Step of StepType   
     | Item of LineType * ItemType
-    | Tag of string 
+    | TagLine of string list
 
 /// Try single parameter regular expression
 let tryRegex input pattern =
@@ -78,9 +78,11 @@ let (|SharedExamples|_|) (s:string) =
     if s.Trim() |> startsWith("Shared Examples") then Some SharedExamples else None
 let (|Examples|_|) (s:string) =
     if s.Trim() |> startsWith("Examples") then Some Examples else None
-let (|Attribute|_|) (s:string) =
+let (|Attributes|_|) (s:string) =
     if s.Trim().StartsWith("@") then 
-        Attribute (s.Substring(s.IndexOf("@")+1).Trim()) |> Some
+        let tags = 
+            seq { for tag in Regex.Matches(s,@"@(\w+)") do yield tag.Value.Substring(1) }
+        Attributes (tags |> Seq.toList) |> Some
     else None
 
 /// Line state given previous line state and new line text
@@ -124,8 +126,8 @@ let parseLine = function
         Item(line, TableRow xs) |> Some
     | Item (line, TableRow ys), Row xs when ys.Length = xs.Length ->     
         Item(line, TableRow xs) |> Some   
-    | _, Attribute text ->
-        Tag text |> Some        
+    | _, Attributes values ->
+        TagLine values |> Some        
     | _, line -> None
 
 let expectingLine = function
@@ -139,4 +141,4 @@ let expectingLine = function
         "Expecting Table row, Bullet, Then, And or But step"
     | ExamplesStart -> "Expecting Table row"
     | Item(_,_) -> "Unexpected or invalid line"                       
-    | Tag _ -> "Unexpected line"
+    | TagLine _ -> "Unexpected line"
