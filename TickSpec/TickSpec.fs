@@ -19,33 +19,10 @@ type Feature = {
     }
 
 /// Encapsulates step definitions for execution against features
-type StepDefinitions (methods:MethodInfo seq) =
+type StepDefinitions (givens,whens,thens,valueParsers) =
     /// Returns method's step attribute or null
     static let GetStepAttributes (m:MemberInfo) = 
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
-    /// Step methods
-    let givens, whens, thens =
-        methods 
-        |> Seq.map (fun m -> m, GetStepAttributes m)
-        |> Seq.filter (fun (m,ca) -> ca.Length > 0)
-        |> Seq.collect (fun (m,ca) -> ca |> Seq.map (fun a -> a,m))
-        |> Seq.fold (fun (gs,ws,ts) (a,m) -> 
-            let pattern = 
-                match (a :?> StepAttribute).Step with
-                | null -> m.Name
-                | step -> step
-            match a with
-            | :? GivenAttribute -> ((pattern,m)::gs,ws,ts)
-            | :? WhenAttribute -> (gs,(pattern,m)::ws,ts)
-            | :? ThenAttribute -> (gs,ws,(pattern,m)::ts)
-            | _ -> invalidOp "Unhandled StepAttribute"
-        ) ([],[],[])    
-    /// Parser methods
-    let parsers =
-        methods 
-        |> Seq.filter (fun m -> null <> Attribute.GetCustomAttribute(m,typeof<ParserAttribute>))
-        |> Seq.map (fun m -> m.ReturnType, m)        
-        |> Dict.ofSeq
     /// Chooses matching definitions for specifed text
     let chooseDefinitions text definitions =  
         let chooseDefinition pattern =
@@ -87,17 +64,42 @@ type StepDefinitions (methods:MethodInfo seq) =
             steps 
             |> Seq.map (fun (line,_,_) -> line.Text)
             |> String.concat "\r\n"
+    new () =
+        StepDefinitions(Assembly.GetCallingAssembly())
+    /// Constructs instance by reflecting against specified assembly
+    new (assembly:Assembly) =
+        StepDefinitions(assembly.GetTypes())
     /// Constructs instance by reflecting against specified types
     new (types:Type[]) =
         let methods = 
             types 
             |> Seq.collect (fun t -> t.GetMethods())
         StepDefinitions(methods)
-    /// Constructs instance by reflecting against specified assembly
-    new (assembly:Assembly) =
-        StepDefinitions(assembly.GetTypes())
-    new () =
-        StepDefinitions(Assembly.GetCallingAssembly())
+    new (methods:MethodInfo seq) =
+        /// Step methods
+        let givens, whens, thens =
+            methods 
+            |> Seq.map (fun m -> m, GetStepAttributes m)
+            |> Seq.filter (fun (m,ca) -> ca.Length > 0)
+            |> Seq.collect (fun (m,ca) -> ca |> Seq.map (fun a -> a,m))
+            |> Seq.fold (fun (gs,ws,ts) (a,m) -> 
+                let pattern = 
+                    match (a :?> StepAttribute).Step with
+                    | null -> m.Name
+                    | step -> step
+                match a with
+                | :? GivenAttribute -> ((pattern,m)::gs,ws,ts)
+                | :? WhenAttribute -> (gs,(pattern,m)::ws,ts)
+                | :? ThenAttribute -> (gs,ws,(pattern,m)::ts)
+                | _ -> invalidOp "Unhandled StepAttribute"
+            ) ([],[],[])    
+        /// Parser methods
+        let valueParsers =
+            methods 
+            |> Seq.filter (fun m -> null <> Attribute.GetCustomAttribute(m,typeof<ParserAttribute>))
+            |> Seq.map (fun m -> m.ReturnType, m)        
+            |> Dict.ofSeq
+        StepDefinitions(givens,whens,thens,valueParsers)
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
         let featureSource = parseFeature lines
@@ -107,7 +109,7 @@ type StepDefinitions (methods:MethodInfo seq) =
                 scenario.Steps 
                 |> Seq.map (resolveLine scenario)
                 |> Seq.toArray
-            let action = generate parsers (scenario.Name,steps)
+            let action = generate valueParsers (scenario.Name,steps)
             {Name=scenario.Name;Description=getDescription steps;
              Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
         )
@@ -130,7 +132,7 @@ type StepDefinitions (methods:MethodInfo seq) =
         let featureSource = parseFeature lines
         let gen = FeatureGen(featureSource.Name,sourceUrl)
         let createAction (scenarioName, lines, ps) =
-            let t = gen.GenScenario parsers (scenarioName, lines, ps)
+            let t = gen.GenScenario valueParsers (scenarioName, lines, ps)
             let instance = Activator.CreateInstance t
             let mi = instance.GetType().GetMethod("Run")
             TickSpec.Action(fun () -> mi.Invoke(instance,[||]) |> ignore)      
