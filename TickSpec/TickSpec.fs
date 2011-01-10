@@ -26,12 +26,18 @@ type StepDefinitions (methods:MethodInfo seq) =
     /// Step methods
     let givens, whens, thens =
         methods 
-        |> Seq.filter (fun m -> (GetStepAttributes m).Length > 0)
-        |> Seq.fold (fun (gs,ws,ts) m ->
-            match (GetStepAttributes m).[0] with
-            | :? GivenAttribute -> (m::gs,ws,ts)
-            | :? WhenAttribute -> (gs,m::ws,ts)
-            | :? ThenAttribute -> (gs,ws,m::ts)
+        |> Seq.map (fun m -> m, GetStepAttributes m)
+        |> Seq.filter (fun (m,ca) -> ca.Length > 0)
+        |> Seq.collect (fun (m,ca) -> ca |> Seq.map (fun a -> a,m))
+        |> Seq.fold (fun (gs,ws,ts) (a,m) -> 
+            let pattern = 
+                match (a :?> StepAttribute).Step with
+                | null -> m.Name
+                | step -> step
+            match a with
+            | :? GivenAttribute -> ((pattern,m)::gs,ws,ts)
+            | :? WhenAttribute -> (gs,(pattern,m)::ws,ts)
+            | :? ThenAttribute -> (gs,ws,(pattern,m)::ts)
             | _ -> invalidOp "Unhandled StepAttribute"
         ) ([],[],[])    
     /// Parser methods
@@ -45,15 +51,8 @@ type StepDefinitions (methods:MethodInfo seq) =
         let chooseDefinition pattern =
             let r = Regex.Match(text,pattern)
             if r.Success then Some r else None
-        definitions |> List.choose (fun (m:MethodInfo) ->
-            let steps = 
-                Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
-                |> Array.map (fun a -> (a :?> StepAttribute).Step)
-                |> Array.filter ((<>) null)
-            match steps |> Array.tryPick chooseDefinition with
-            | Some r -> Some r
-            | None -> chooseDefinition m.Name
-            |> Option.map (fun r -> r,m)
+        definitions |> List.choose (fun (pattern:string,m:MethodInfo) ->
+            chooseDefinition pattern |> Option.map (fun r -> r,m)
         )
     /// Chooses defininitons for specified step and text
     let matchStep = function
