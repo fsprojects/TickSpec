@@ -55,23 +55,24 @@ let buildBlocks lines =
     |> Seq.choose (fun (_,_,_,_,_,_,step) -> step)
     |> Seq.groupBy (fun (_,_,_,lineN,_,_) -> lineN)    
     |> Seq.map (fun (line,items) ->
-        items |> Seq.fold (fun (row,table) (block,blockN,tags,lineN,line,step) ->
+        items |> Seq.fold (fun (text,row,table) (block,blockN,tags,lineN,line,step) ->
+            let text = if String.length text = 0 then line else text + "\r\n" + line            
             match step with
             | BlockStart (Shared _)
             | ExamplesStart | Step _ ->
-                (block,blockN,tags,lineN,line,step),table
+                text, (block,blockN,tags,lineN,line,step), table
             | Item (BlockStart (Shared _),item) ->
-                (block,blockN,tags,lineN,line,step), item::table
+                text, (block,blockN,tags,lineN,line,step), item::table
             | Item (_,item) ->
-                row, item::table
+                text, row, item::table
             | BlockStart _ | TagLine _ -> 
                 invalidOp "Unexpected token"
-        ) ((Background,0,[],0,"",BlockStart(Background)),[])
-        |> (fun (line, items) -> line, mapItems items)
+        ) ("",(Background,0,[],0,"",BlockStart(Background)),[])
+        |> (fun (text, line, items) -> text, line, mapItems items)
     )
     // Map to lines
-    |> Seq.map (fun ((block,blockN,tags,n,line,step),(bullets,table)) ->
-        let line = {Number=n;Text=line;Bullets=bullets;Table=table}
+    |> Seq.map (fun (text, (block,blockN,tags,n,line,step), (bullets,table)) ->
+        let line = {Number=n;Text=text;Bullets=bullets;Table=table}
         block,blockN,tags,line,step
     )
     // Group into blocks
