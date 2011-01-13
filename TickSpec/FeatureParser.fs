@@ -30,9 +30,9 @@ let internal replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
         Regex.Replace(s, pattern, lookup)
     let step = 
         match step with
-        | Given s -> replace s |> Given
-        | When s -> replace s |> When
-        | Then s  -> replace s |> Then
+        | GivenStep s -> replace s |> GivenStep
+        | WhenStep s -> replace s |> WhenStep
+        | ThenStep s  -> replace s |> ThenStep
     let table =
         line.Table 
         |> Option.map (fun table ->

@@ -14,11 +14,11 @@ and ScenarioSource =
     }
 and StepSource = StepType * LineSource
 and StepType =
-    | Given of string
-    | When of string
-    | Then of string
+    | GivenStep of string
+    | WhenStep of string
+    | ThenStep of string
 and LineSource =
-    {        
+    {       
         Number : int
         Text : string        
         Bullets : string[] option

@@ -33,9 +33,9 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
         )
     /// Chooses defininitons for specified step and text
     let matchStep = function
-        | Given text -> chooseDefinitions text givens
-        | When text -> chooseDefinitions text whens
-        | Then text -> chooseDefinitions text thens
+        | GivenStep text -> chooseDefinitions text givens
+        | WhenStep text -> chooseDefinitions text whens
+        | ThenStep text -> chooseDefinitions text thens
     /// Extract arguments from specified match
     let extractArgs (r:Match) =        
         let args = List<string>()

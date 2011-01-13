@@ -61,7 +61,7 @@ let (|ButLine|_|) s =
     tryRegex s "But\s+(.*)" 
     |> Option.map (fun t -> ButLine t) 
 let (|Row|_|) (s:string) =    
-    if s.Trim().StartsWith("|") then 
+    if s.Trim().StartsWith("|") then
         let options = System.StringSplitOptions.RemoveEmptyEntries
         let cols = s.Trim().Split([|'|'|],options)
         let cols = cols |> Array.map (fun s -> s.Trim())
@@ -79,7 +79,7 @@ let (|SharedExamples|_|) (s:string) =
 let (|Examples|_|) (s:string) =
     if s.Trim() |> startsWith("Examples") then Some Examples else None
 let (|Attributes|_|) (s:string) =
-    if s.Trim().StartsWith("@") then 
+    if s.Trim().StartsWith("@") then
         let tags = 
             seq { for tag in Regex.Matches(s,@"@(\w+)") do yield tag.Value.Substring(1) }
         Attributes (tags |> Seq.toList) |> Some
@@ -94,35 +94,35 @@ let parseLine = function
     | _, Examples -> ExamplesStart |> Some
     | BlockStart (Named _), GivenLine text    
     | BlockStart Background, GivenLine text
-    | Step(Given _), GivenLine text | Item(Step(Given _),_), GivenLine text
-    | Step(Given _), AndLine text | Item(Step(Given _),_), AndLine text 
-    | Step(Given _), ButLine text | Item(Step(Given _),_), ButLine text 
-        -> Step(Given text) |> Some
+    | Step(GivenStep _), GivenLine text | Item(Step(GivenStep _),_), GivenLine text
+    | Step(GivenStep _), AndLine text | Item(Step(GivenStep _),_), AndLine text 
+    | Step(GivenStep _), ButLine text | Item(Step(GivenStep _),_), ButLine text 
+        -> Step(GivenStep text) |> Some
     | BlockStart (Named _), WhenLine text
     | BlockStart Background, WhenLine text 
-    | Step(Given _), WhenLine text | Item(Step(Given _),_), WhenLine text
-    | Step(When _), WhenLine text | Item(Step(When _),_), WhenLine text
-    | Step(When _), AndLine text | Item(Step(When _),_), AndLine text
-    | Step(When _), ButLine text | Item(Step(When _),_), ButLine text
-        -> Step(When text) |> Some
+    | Step(GivenStep _), WhenLine text | Item(Step(GivenStep _),_), WhenLine text
+    | Step(WhenStep _), WhenLine text | Item(Step(WhenStep _),_), WhenLine text
+    | Step(WhenStep _), AndLine text | Item(Step(WhenStep _),_), AndLine text
+    | Step(WhenStep _), ButLine text | Item(Step(WhenStep _),_), ButLine text
+        -> Step(WhenStep text) |> Some
     | BlockStart (Named _), ThenLine text  
     | BlockStart Background, ThenLine text
-    | Step(Given _), ThenLine text | Item (Step(Given _),_), ThenLine text
-    | Step(When _), ThenLine text | Item (Step(When _),_), ThenLine text
-    | Step(Then _), ThenLine text | Item (Step(Then _),_), ThenLine text
-    | Step(Then _), AndLine text | Item(Step(Then _),_), AndLine text
-    | Step(Then _), ButLine text | Item(Step(Then _),_), ButLine text
-        -> Step(Then text) |> Some
-    | (Step(Given _) as line), Bullet xs 
-    | (Step(When _) as line), Bullet xs 
-    | (Step(Then _) as line), Bullet xs
+    | Step(GivenStep _), ThenLine text | Item (Step(GivenStep _),_), ThenLine text
+    | Step(WhenStep _), ThenLine text | Item (Step(WhenStep _),_), ThenLine text
+    | Step(ThenStep _), ThenLine text | Item (Step(ThenStep _),_), ThenLine text
+    | Step(ThenStep _), AndLine text | Item(Step(ThenStep _),_), AndLine text
+    | Step(ThenStep _), ButLine text | Item(Step(ThenStep _),_), ButLine text
+        -> Step(ThenStep text) |> Some
+    | (Step(GivenStep _) as line), Bullet xs 
+    | (Step(WhenStep _) as line), Bullet xs 
+    | (Step(ThenStep _) as line), Bullet xs
     | Item (line, BulletPoint(_)), Bullet xs ->
         Item(line, BulletPoint xs) |> Some
     | (BlockStart (Shared(_)) as line), Row xs
     | (ExamplesStart as line), Row xs
-    | (Step(Given _) as line), Row xs 
-    | (Step(When _) as line), Row xs 
-    | (Step(Then _) as line), Row xs ->
+    | (Step(GivenStep _) as line), Row xs 
+    | (Step(WhenStep _) as line), Row xs 
+    | (Step(ThenStep _) as line), Row xs ->
         Item(line, TableRow xs) |> Some
     | Item (line, TableRow ys), Row xs when ys.Length = xs.Length ->     
         Item(line, TableRow xs) |> Some   
@@ -133,11 +133,11 @@ let parseLine = function
 let expectingLine = function
     | BlockStart (Named _) | BlockStart Background -> "Expecting Given, When or Then step"
     | BlockStart (Shared _) -> "Expecting Table row"
-    | Step(Given _) | Item(Step(Given _),_) -> 
+    | Step(GivenStep _) | Item(Step(GivenStep _),_) -> 
         "Expecting Table row, Bullet, Given, When, Then, And or But step"
-    | Step(When _) | Item(Step(When _),_) -> 
+    | Step(WhenStep _) | Item(Step(WhenStep _),_) -> 
         "Expecting Table row, Bullet, When, Then, And or But step"
-    | Step(Then _) | Item(Step(Then _),_) -> 
+    | Step(ThenStep _) | Item(Step(ThenStep _),_) -> 
         "Expecting Table row, Bullet, Then, And or But step"
     | ExamplesStart -> "Expecting Table row"
     | Item(_,_) -> "Unexpected or invalid line"                       
