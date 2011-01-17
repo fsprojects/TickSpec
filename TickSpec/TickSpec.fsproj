@@ -49,7 +49,7 @@
     <Compile Include="LineParser.fs" />
     <Compile Include="BlockParser.fs" />
     <Compile Include="FeatureParser.fs" />
-    <Compile Include="Scenario.fs" />
+    <Compile Include="Feature.fs" />
     <Compile Include="TickSpec.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" />

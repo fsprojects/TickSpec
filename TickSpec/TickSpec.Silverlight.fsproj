@@ -50,16 +50,16 @@
   <ItemGroup>
     <Compile Include="Extensions.fs" />
     <Compile Include="ServiceProvider.fs" />
-    <Compile Include="Table.fs" />
-    <Compile Include="Line.fs" />
+    <Compile Include="FeatureSource.fs" />
     <Compile Include="ScenarioRun.fs" />
     <Compile Include="ScenarioGen.fs" />
     <Compile Include="FeatureGen.fs" />
     <Compile Include="StepAttributes.fs" />
     <Compile Include="StepException.fs" />
     <Compile Include="LineParser.fs" />
-    <Compile Include="Parser.fs" />
-    <Compile Include="Scenario.fs" />
+    <Compile Include="BlockParser.fs" />
+    <Compile Include="FeatureParser.fs" />
+    <Compile Include="Feature.fs" />
     <Compile Include="TickSpec.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />

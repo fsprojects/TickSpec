@@ -5,8 +5,15 @@ open System
 /// Action type
 type Action = delegate of unit -> unit
 
+/// Encapsulates Gherkin feature
+type Feature = { 
+    Name : string; 
+    Source : string;
+    Assembly : System.Reflection.Assembly;
+    Scenarios : Scenario seq
+    }
 /// Executable scenario type
-type Scenario = { 
+and Scenario = { 
     Name:string; 
     Description:string;
     Action:Action;

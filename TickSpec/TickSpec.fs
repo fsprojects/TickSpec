@@ -10,14 +10,6 @@ open TickSpec.LineParser
 open TickSpec.FeatureParser
 open TickSpec.ScenarioRun
 
-/// Encapsulates Gherkin feature
-type Feature = { 
-    Name : string; 
-    Source : string;
-    Assembly : Assembly; 
-    Scenarios : Scenario seq
-    }
-
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (givens,whens,thens,valueParsers) =
     /// Returns method's step attribute or null
