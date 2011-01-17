@@ -97,7 +97,10 @@ and TestMethod (feature:Feature,scenario:Scenario) =
                 yield scenario.Name
                 for tag in scenario.Tags do yield tag
             }
-            |> Seq.map (fun name -> TagAttribute(name)) 
+            |> Seq.map (fun name -> 
+                let name = name.Replace("(","_").Replace(")","_")
+                TagAttribute(name)
+            ) 
             |> Seq.cast
         member this.Ignore = ignore
         member this.Invoke(instance) = scenario.Action.Invoke()
