@@ -81,16 +81,22 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
             methods 
             |> Seq.map (fun m -> m, GetStepAttributes m)
             |> Seq.filter (fun (m,ca) -> ca.Length > 0)
-            |> Seq.collect (fun (m,ca) -> ca |> Seq.map (fun a -> a,m))
-            |> Seq.fold (fun (gs,ws,ts) (a,m) -> 
-                let pattern = 
-                    match (a :?> StepAttribute).Step with
-                    | null -> m.Name
-                    | step -> step
+            |> Seq.collect (fun (m,ca) -> 
+                ca 
+                |> Array.map (fun a -> 
+                    let p = 
+                        match (a :?> StepAttribute).Step with
+                        | null -> m.Name
+                        | step -> step
+                    p,a,m                
+                )
+                |> Seq.distinctBy (fun (p,a,m) -> p)
+            )           
+            |> Seq.fold (fun (gs,ws,ts) (p,a,m) -> 
                 match a with
-                | :? GivenAttribute -> ((pattern,m)::gs,ws,ts)
-                | :? WhenAttribute -> (gs,(pattern,m)::ws,ts)
-                | :? ThenAttribute -> (gs,ws,(pattern,m)::ts)
+                | :? GivenAttribute -> ((p,m)::gs,ws,ts)
+                | :? WhenAttribute -> (gs,(p,m)::ws,ts)
+                | :? ThenAttribute -> (gs,ws,(p,m)::ts)
                 | _ -> invalidOp "Unhandled StepAttribute"
             ) ([],[],[])    
         /// Parser methods
