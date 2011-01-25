@@ -19,6 +19,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpMbUnit", "Examples\FS
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Interactive", "Examples\Interactive\Interactive.fsproj", "{BA6F3A69-34F3-4D85-8804-DD354F8E17FA}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Functional", "Examples\Functional\Functional.fsproj", "{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{BA6F3A69-34F3-4D85-8804-DD354F8E17FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA6F3A69-34F3-4D85-8804-DD354F8E17FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA6F3A69-34F3-4D85-8804-DD354F8E17FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,5 +75,6 @@ Global
 		{5DFF73BD-8C5D-4EE2-B5DD-2D244EC06A61} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
 		{685FFC31-EC8E-4C0C-AA20-B7151A9C1CDE} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
 		{BA6F3A69-34F3-4D85-8804-DD354F8E17FA} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
+		{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
 	EndGlobalSection
 EndGlobal

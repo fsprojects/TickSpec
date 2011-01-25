@@ -12,6 +12,8 @@ and ScenarioSource =
         Steps: StepSource []; 
         Parameters: (string * string) [] 
     }
+    with
+    override this.ToString() = this.Name
 and StepSource = StepType * LineSource
 and StepType =
     | GivenStep of string
