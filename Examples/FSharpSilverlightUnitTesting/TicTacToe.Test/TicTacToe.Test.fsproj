@@ -51,7 +51,6 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.Common.targets" />
   <ItemGroup>
-    <Compile Include="Test.fs" />
     <Compile Include="App.fs" />
     <Content Include="AppManifest.xml" />
     <EmbeddedResource Include="TicTacToeXO.txt" />
@@ -82,6 +81,11 @@
     <ProjectReference Include="..\Game\Game.fsproj">
       <Name>Game</Name>
       <Project>{45b6eb9f-b2ac-4ba5-9fcc-6425f74539a0}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\TickSpec.Silverlight.UnitTesting\TickSpec.Silverlight.UnitTesting.fsproj">
+      <Name>TickSpec.Silverlight.UnitTesting</Name>
+      <Project>{3eb18be7-24f1-480a-913f-7349b660d48f}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

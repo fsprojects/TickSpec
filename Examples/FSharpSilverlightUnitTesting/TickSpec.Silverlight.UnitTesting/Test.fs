@@ -2,32 +2,6 @@ namespace TickSpec
 
 open TickSpec
 open System.Reflection
-
-[<AutoOpen>]
-module FeatureFactory =
-    let GetFeatures (assembly:Assembly) =
-        let definitions = StepDefinitions(assembly)
-        let sources =
-            assembly.GetManifestResourceNames()
-            |> Seq.filter (fun name -> 
-                name.EndsWith(".txt") || 
-                name.EndsWith(".story") ||
-                name.EndsWith(".feature")
-            )
-        let namespaces  =
-            assembly.GetTypes()
-            |> Seq.map (fun t -> t.Namespace)
-            |> Seq.distinct
-            |> Seq.filter (fun t -> t <> null)
-            |> Seq.sortBy(fun s -> - s.Length)
-        seq {
-            for source in sources do
-                let stream = assembly.GetManifestResourceStream source
-                let ns = namespaces |> Seq.tryFind(fun s -> s.StartsWith(s + "."))
-                let filename = match ns with Some ns -> source.Substring(ns.Length+1) | None -> source
-                yield definitions.GenerateFeature(filename,stream)
-        }
-
 open System.Collections.Generic
 open Microsoft.Silverlight.Testing
 open Microsoft.Silverlight.Testing.Harness
@@ -35,7 +9,7 @@ open Microsoft.Silverlight.Testing.UnitTesting.Metadata
 
 type TestProvider () =
     let capabilities = 
-        UnitTestProviderCapabilities.MethodCanIgnore |||           
+        UnitTestProviderCapabilities.MethodCanIgnore |||
         UnitTestProviderCapabilities.MethodCanDescribe
     let featureLookup = Dictionary<Assembly,Feature>()
     let assemblyLookup = Dictionary<Assembly,IAssembly>()
@@ -98,7 +72,11 @@ and TestMethod (feature:Feature,scenario:Scenario) =
                 for tag in scenario.Tags do yield tag
             }
             |> Seq.map (fun name -> 
-                let name = name.Replace("(","_").Replace(")","_")
+                let name = 
+                    name
+                        .Replace("(","_")
+                        .Replace(")","_")
+                        .Replace("-","_")
                 TagAttribute(name)
             ) 
             |> Seq.cast
