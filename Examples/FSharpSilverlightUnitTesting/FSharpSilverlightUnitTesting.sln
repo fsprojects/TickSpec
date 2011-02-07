@@ -7,8 +7,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TicTacToe.Test", "TicTacToe
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TicTacToe", "TicTacToe\TicTacToe.fsproj", "{667A244A-7627-4A2A-B3DB-6A88A444609D}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Silverlight.UnitTesting", "TickSpec.Silverlight.UnitTesting\TickSpec.Silverlight.UnitTesting.fsproj", "{3EB18BE7-24F1-480A-913F-7349B660D48F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,10 +25,6 @@ Global
 		{667A244A-7627-4A2A-B3DB-6A88A444609D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{667A244A-7627-4A2A-B3DB-6A88A444609D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{667A244A-7627-4A2A-B3DB-6A88A444609D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3EB18BE7-24F1-480A-913F-7349B660D48F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3EB18BE7-24F1-480A-913F-7349B660D48F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3EB18BE7-24F1-480A-913F-7349B660D48F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3EB18BE7-24F1-480A-913F-7349B660D48F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

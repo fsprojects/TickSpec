@@ -76,16 +76,14 @@
     <Reference Include="TickSpec.Silverlight">
       <HintPath>..\..\..\Lib\SL4\TickSpec.Silverlight.dll</HintPath>
     </Reference>
+    <Reference Include="TickSpec.Silverlight.UnitTesting">
+      <HintPath>..\..\..\Lib\SL4\Testing\TickSpec.Silverlight.UnitTesting.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Game\Game.fsproj">
       <Name>Game</Name>
       <Project>{45b6eb9f-b2ac-4ba5-9fcc-6425f74539a0}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\TickSpec.Silverlight.UnitTesting\TickSpec.Silverlight.UnitTesting.fsproj">
-      <Name>TickSpec.Silverlight.UnitTesting</Name>
-      <Project>{3eb18be7-24f1-480a-913f-7349b660d48f}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
