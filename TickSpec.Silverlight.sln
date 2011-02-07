@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Silverlight", "TickSpec\TickSpec.Silverlight.fsproj", "{48545EEA-059D-4B59-9EE4-243AB49DEE3C}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Silverlight.UnitTesting", "TickSpec.Silverlight.UnitTesting\TickSpec.Silverlight.UnitTesting.fsproj", "{3EB18BE7-24F1-480A-913F-7349B660D48F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{48545EEA-059D-4B59-9EE4-243AB49DEE3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48545EEA-059D-4B59-9EE4-243AB49DEE3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48545EEA-059D-4B59-9EE4-243AB49DEE3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48545EEA-059D-4B59-9EE4-243AB49DEE3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EB18BE7-24F1-480A-913F-7349B660D48F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EB18BE7-24F1-480A-913F-7349B660D48F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EB18BE7-24F1-480A-913F-7349B660D48F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EB18BE7-24F1-480A-913F-7349B660D48F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
