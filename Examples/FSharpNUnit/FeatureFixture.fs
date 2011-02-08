@@ -14,10 +14,9 @@ type FeatureFixture (source:string) =
     [<Test>]
     [<TestCaseSource("Scenarios")>]
     member this.TestScenario (scenario:Scenario) =
-        scenario.Action.Invoke()        
+        if scenario.Tags |> Seq.exists ((=) "ignore") then
+            raise (new IgnoreException("Ignored: " + scenario.Name))
+        scenario.Action.Invoke()
     member this.Scenarios =       
         let s = ass.GetManifestResourceStream(source)   
         definitions.GenerateScenarios(source,s)
-        |> Seq.filter (fun scenario ->
-            scenario.Tags |> Seq.exists ((=) "ignore") |> not
-        )

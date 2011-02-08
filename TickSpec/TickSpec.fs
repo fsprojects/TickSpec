@@ -54,7 +54,7 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
     /// Gets description as scenario lines
     let getDescription steps =
             steps 
-            |> Seq.map (fun (line,_,_) -> line.Text)
+            |> Seq.map (fun (_,line) -> line.Text)
             |> String.concat "\r\n"
     new () =
         StepDefinitions(Assembly.GetCallingAssembly())
@@ -104,11 +104,11 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
         featureSource.Scenarios
         |> Seq.map (fun scenario ->
             let steps = 
-                scenario.Steps 
+                scenario.Steps
                 |> Seq.map (resolveLine scenario)
                 |> Seq.toArray
             let action = generate valueParsers (scenario.Name,steps)
-            {Name=scenario.Name;Description=getDescription steps;
+            {Name=scenario.Name;Description=getDescription scenario.Steps;
              Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
         )
     member this.GenerateScenarios (reader:TextReader) =
@@ -129,25 +129,29 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
     member this.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureSource = parseFeature lines
         let gen = FeatureGen(featureSource.Name,sourceUrl)
-        let createAction (scenarioName, lines, ps) =
-            let t = gen.GenScenario valueParsers (scenarioName, lines, ps)
-            let instance = Activator.CreateInstance t
-            let mi = instance.GetType().GetMethod("Run")
-            TickSpec.Action(fun () -> mi.Invoke(instance,[||]) |> ignore)      
+        let genType scenario =
+            let lines = 
+                scenario.Steps
+                |> Seq.map (resolveLine scenario)
+                |> Seq.toArray
+            gen.GenScenario valueParsers (scenario.Name, lines, scenario.Parameters)
+        let createAction scenario =
+            let t = lazy (genType scenario)
+            TickSpec.Action(fun () ->
+                let instance = t.Force() |> Activator.CreateInstance
+                let mi = instance.GetType().GetMethod("Run")
+                mi.Invoke(instance,[||]) |> ignore
+            )      
         let scenarios = 
             featureSource.Scenarios
             |> Seq.map (fun scenario ->
-                let steps = 
-                    scenario.Steps 
-                    |> Seq.map (resolveLine scenario) 
-                    |> Seq.toArray           
-                let action = createAction (scenario.Name, steps, scenario.Parameters)           
-                { Name=scenario.Name;Description=getDescription steps;
-                      Action=action;Parameters=scenario.Parameters;Tags=scenario.Tags}
+                let action = createAction scenario
+                { Name=scenario.Name;Description=getDescription scenario.Steps;
+                  Action=action;Parameters=scenario.Parameters;Tags=scenario.Tags}
             )
-        { Name = featureSource.Name; 
+        { Name = featureSource.Name;
           Source = sourceUrl;
-          Assembly = gen.Assembly; 
+          Assembly = gen.Assembly;
           Scenarios = scenarios |> Seq.toArray 
         }
     member this.GenerateFeature (sourceUrl:string,reader:TextReader) =
