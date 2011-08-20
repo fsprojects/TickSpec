@@ -78,6 +78,7 @@ let buildBlocks lines =
     // Group into blocks
     |> Seq.groupBy (fun (block,n,tags,_,_) -> (block,n,tags))
     |> (fun (blocks) ->
+        let blocks = Seq.cache blocks
         let names = blocks |> Seq.map (fun ((name,_,_),_) -> name)
         blocks |> Seq.mapi (fun i ((name,_,tags),lines) ->
             let names = names |> Seq.take (i+1)

@@ -104,6 +104,7 @@ let parseLine = function
     | Step(WhenStep _), WhenLine text | Item(Step(WhenStep _),_), WhenLine text
     | Step(WhenStep _), AndLine text | Item(Step(WhenStep _),_), AndLine text
     | Step(WhenStep _), ButLine text | Item(Step(WhenStep _),_), ButLine text
+    | Step(ThenStep _), WhenLine text | Item(Step(ThenStep _),_), WhenLine text
         -> Step(WhenStep text) |> Some
     | BlockStart (Named _), ThenLine text  
     | BlockStart Background, ThenLine text
