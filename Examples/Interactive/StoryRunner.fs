@@ -1,6 +1,10 @@
 ﻿[<AutoOpen>]
 module Interactive
 
+#if INTERACTIVE
+#r @"..\..\Lib\net20\TickSpec.dll"
+#endif
+
 module internal TextReader =
     open System.IO
     /// Reads lines from TextReader
@@ -83,7 +87,7 @@ let Execute (lines:string[]) =
         | Pending () -> 
             ConsoleColor.Yellow, ignore
         | e -> 
-            ConsoleColor.Red, (fun () -> Console.WriteLine e)
+            ConsoleColor.Red, (fun () -> Console.WriteLine e.Message)
         |> fun (color,detail) -> 
             Console.ForegroundColor <- color
             Console.WriteLine line.Text

@@ -1,4 +1,8 @@
-﻿open NUnit.Framework
+﻿#if INTERACTIVE
+#r @"..\..\lib\net20\TickSpec.dll"
+#r @"..\..\lib\net20\nunit.framework.dll"
+#endif
+
 open System.Reflection
 open TickSpec
 
@@ -58,6 +62,8 @@ type Calculator = { Values : int list } with
     member this.Top = List.head this.Values
     static member Create() = { Values = [] }
 
+open NUnit.Framework
+
 module AdditionSteps =
     let performStep (calc:Calculator) (step,line:LineSource) =
         match step with
@@ -84,7 +90,7 @@ module Runner =
 [<TestFixture>]
 type AdditionFixture () =
     [<Test>]
-    [<TestCaseSource(typeof<ScenarioSource>,"Scenarios")>]
+    [<TestCaseSource("Scenarios")>]
     member this.TestScenario (scenario:ScenarioSource) =
         scenario.Steps |> Seq.scan AdditionSteps.performStep (Calculator.Create())
         |> ignore  

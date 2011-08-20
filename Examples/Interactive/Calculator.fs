@@ -1,8 +1,9 @@
 ﻿module Calculator.Test
 
-let (|Int|) = function s -> System.Int32.Parse(s)
-
 #nowarn "25" // warning FS0025: Incomplete pattern matches on this expression.
+
+
+let (|Int|) = function s -> System.Int32.Parse(s)
 
 type Calculator () =
     let mutable values = []
@@ -17,7 +18,7 @@ do
         calculator.Push n    
     
     When "I press add" <| fun [] ->
-        pending()
+        invalidOp "Bang"
 
     Then "the result should be (.*) on the screen" <| fun [Int n] ->
         pending()
