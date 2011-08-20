@@ -8,6 +8,6 @@ let definitions = new StepDefinitions(ass)
 
 [<TickFact>]
 let Feature1 () =
-    let source = @"Feature2.txt"
+    let source = @"FeatureX.txt"
     let s = ass.GetManifestResourceStream(source)   
     definitions.GenerateScenarios(source,s)   
