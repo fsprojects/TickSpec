@@ -12,8 +12,8 @@ type BindingAttribute() =
     Inherited=true)>]
 type StepScopeAttribute() =
     inherit Attribute()
-    let mutable tag = ""
-    let mutable feature = ""
+    let mutable tag : string = null
+    let mutable feature : string = null
     member scope.Tag
         with get () = tag
         and set value = tag <- value
