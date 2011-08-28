@@ -202,14 +202,14 @@ let emitArgument
         (parsers:IDictionary<Type,MethodInfo>) 
         (arg:string,param:ParameterInfo) =
         
-    let paramType = param.ParameterType                      
+    let paramType = param.ParameterType
     if paramType.IsArray then
         let vs =
             if String.IsNullOrEmpty(arg.Trim()) then [||]
             else arg.Split [|','|] |> Array.map (fun x -> x.Trim())
         emitArray gen providerField parsers paramType vs
     else
-        emitValue gen providerField parsers paramType arg                
+        emitValue gen providerField parsers paramType arg
         
 /// Defines step method
 let defineStepMethod        
@@ -257,6 +257,11 @@ let defineStepMethod
 /// Defines Run method
 let defineRunMethod    
     (scenarioBuilder:TypeBuilder)
+    (providerField:FieldBuilder)
+    (beforeScenarioEvents:MethodInfo seq,
+     afterScenarioEvents:MethodInfo seq,
+     beforeStepEvents:MethodInfo seq,
+     afterStepEvents:MethodInfo seq)
     (stepMethods:seq<MethodBuilder>) =
     /// Run method to execute all scenario steps
     let runMethod =
@@ -266,19 +271,35 @@ let defineRunMethod
             [||])
     /// Run method ILGenerator
     let gen = runMethod.GetILGenerator()
+    
+    // Emit event methods
+    let emitEvents (ms:MethodInfo seq) = 
+        ms |> Seq.iter (fun mi ->
+            if mi.IsStatic then
+                gen.EmitCall(OpCodes.Call, mi, null)
+            else
+                emitInstance gen providerField mi.DeclaringType
+                gen.EmitCall(OpCodes.Callvirt, mi, null)
+        )
+    
+    beforeScenarioEvents |> emitEvents
     // Execute steps
     stepMethods |> Seq.iter (fun stepMethod ->
+        beforeStepEvents |> emitEvents
         gen.Emit(OpCodes.Ldarg_0)
         gen.EmitCall(OpCodes.Callvirt,stepMethod,null)
+        afterStepEvents |> emitEvents
     )
+    afterScenarioEvents |> emitEvents
+    
     // Emit return
     gen.Emit(OpCodes.Ret)
 
 /// Generates Type for specified Scenario
-let generateScenario 
-
+let generateScenario
         (module_:ModuleBuilder)
         doc
+        events
         (parsers:IDictionary<Type,MethodInfo>)
         (scenarioName,lines:(LineSource * MethodInfo * string[]) [],
          parameters:(string * string)[]) =
@@ -295,7 +316,7 @@ let generateScenario
         lines 
         |> Array.map (defineStepMethod  doc scenarioBuilder providerField parsers)
         
-    defineRunMethod scenarioBuilder stepMethods
+    defineRunMethod scenarioBuilder providerField events stepMethods
     
     /// Return scenario
     scenarioBuilder.CreateType()

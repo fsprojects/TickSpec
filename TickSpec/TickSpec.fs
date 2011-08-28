@@ -11,7 +11,7 @@ open TickSpec.FeatureParser
 open TickSpec.ScenarioRun
 
 /// Encapsulates step definitions for execution against features
-type StepDefinitions (givens,whens,thens,valueParsers) =
+type StepDefinitions (givens,whens,thens,events,valueParsers) =
     /// Returns method's step attribute or null
     static let GetStepAttributes (m:MemberInfo) = 
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
@@ -82,7 +82,7 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
                         match (a :?> StepAttribute).Step with
                         | null -> m.Name
                         | step -> step
-                    p,a,m                
+                    p,a,m
                 )
                 |> Seq.distinctBy (fun (p,a,m) -> p)
             )           
@@ -92,14 +92,24 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
                 | :? WhenAttribute -> (gs,(p,m)::ws,ts)
                 | :? ThenAttribute -> (gs,ws,(p,m)::ts)
                 | _ -> invalidOp "Unhandled StepAttribute"
-            ) ([],[],[])    
+            ) ([],[],[])
+        
+        let filter (t:Type) (elements:MethodInfo seq) =
+            elements |> Seq.filter (fun m -> null <> Attribute.GetCustomAttribute(m,t))
+        /// Step events
+        let events = methods |> filter typeof<EventAttribute>
+        let beforeScenario = events |> filter typeof<BeforeScenarioAttribute>
+        let afterScenario = events |> filter typeof<AfterScenarioAttribute>
+        let beforeStep = events |> filter typeof<BeforeStepAttribute>
+        let afterStep = events |> filter typeof<AfterStepAttribute>
+        let events = beforeScenario, afterScenario, beforeStep, afterStep
         /// Parser methods
         let valueParsers =
             methods 
-            |> Seq.filter (fun m -> null <> Attribute.GetCustomAttribute(m,typeof<ParserAttribute>))
-            |> Seq.map (fun m -> m.ReturnType, m)        
+            |> filter typeof<ParserAttribute>
+            |> Seq.map (fun m -> m.ReturnType, m)
             |> Dict.ofSeq
-        StepDefinitions(givens,whens,thens,valueParsers)
+        StepDefinitions(givens,whens,thens,events,valueParsers)
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
         let featureSource = parseFeature lines
@@ -136,7 +146,10 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
                 scenario.Steps
                 |> Seq.map (resolveLine scenario)
                 |> Seq.toArray
-            gen.GenScenario valueParsers (scenario.Name, lines, scenario.Parameters)
+            gen.GenScenario 
+                events
+                valueParsers
+                (scenario.Name, lines, scenario.Parameters)
         let createAction scenario =
             let t = lazy (genType scenario)
             TickSpec.Action(fun () ->
@@ -168,7 +181,7 @@ type StepDefinitions (givens,whens,thens,valueParsers) =
 #endif
     /// Generates scenarios in specified lines from source document
     member this.GenerateScenarios (sourceUrl:string,lines:string[]) =
-        this.GenerateFeature(sourceUrl,lines).Scenarios    
+        this.GenerateFeature(sourceUrl,lines).Scenarios
     member this.GenerateScenarios (sourceUrl:string,reader:TextReader) =
         this.GenerateScenarios(sourceUrl, TextReader.readAllLines reader)
     member this.GenerateScenarios (sourceUrl:string,feature:System.IO.Stream) =

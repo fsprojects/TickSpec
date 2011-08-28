@@ -44,6 +44,7 @@
     <Compile Include="ScenarioRun.fs" />
     <Compile Include="ScenarioGen.fs" />
     <Compile Include="FeatureGen.fs" />
+    <Compile Include="EventAttributes.fs" />
     <Compile Include="StepAttributes.fs" />
     <Compile Include="StepException.fs" />
     <Compile Include="LineParser.fs" />

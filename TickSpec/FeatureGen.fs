@@ -35,9 +35,10 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
     /// Assembly of generated feature
     member this.Assembly = assemblyBuilder :> Assembly
     /// Generates scenario type from lines
-    member this.GenScenario       
+    member this.GenScenario
+        (events)
         (parsers:IDictionary<Type,MethodInfo>)
         (scenarioName,
          lines:(LineSource * MethodInfo * string[]) [], 
          parameters:(string * string)[]) =
-        generateScenario module_ doc parsers (scenarioName,lines,parameters)
+        generateScenario module_ doc events parsers (scenarioName,lines,parameters)
