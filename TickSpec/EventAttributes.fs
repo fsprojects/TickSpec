@@ -3,27 +3,21 @@
 open System
 
 [<AbstractClass;AttributeUsage(AttributeTargets.Method,AllowMultiple=true,Inherited=true)>]
-type EventAttribute internal (tag:string) =
+type EventAttribute internal () =
     inherit Attribute()
-    do  if tag <> null then raise (new NotImplementedException())
-    member this.Tag = tag
 
 [<AttributeUsage(AttributeTargets.Method,AllowMultiple=true,Inherited=true)>]
-type BeforeScenarioAttribute (tag:string) =
-    inherit EventAttribute(tag)
-    new() = BeforeScenarioAttribute(null)
+type BeforeScenarioAttribute () =
+    inherit EventAttribute()
   
 [<AttributeUsage(AttributeTargets.Method,AllowMultiple=true,Inherited=true)>]  
-type AfterScenarioAttribute (tag:string) =
-    inherit EventAttribute(tag)
-    new() = AfterScenarioAttribute(null)
+type AfterScenarioAttribute () =
+    inherit EventAttribute()
     
 [<AttributeUsage(AttributeTargets.Method,AllowMultiple=true,Inherited=true)>]
-type BeforeStepAttribute (tag:string) =
-    inherit EventAttribute(tag)
-    new() = BeforeStepAttribute(null)
+type BeforeStepAttribute () =
+    inherit EventAttribute()
   
 [<AttributeUsage(AttributeTargets.Method,AllowMultiple=true,Inherited=true)>]  
-type AfterStepAttribute (tag:string) =
-    inherit EventAttribute(tag)
-    new() = AfterStepAttribute(null)
+type AfterStepAttribute () =
+    inherit EventAttribute()
