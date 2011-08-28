@@ -15,19 +15,25 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     /// Returns method's step attribute or null
     static let GetStepAttributes (m:MemberInfo) = 
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
+    static let IsMethodInScope tags (scopedTags,_,m) =
+        match scopedTags with
+        | [] -> true            
+        | xs -> xs |> List.exists (fun tag -> tags |> Seq.exists ((=) tag))
     /// Chooses matching definitions for specifed text
-    let chooseDefinitions text definitions =  
+    let chooseDefinitions tags text definitions =  
         let chooseDefinition pattern =
             let r = Regex.Match(text,pattern)
             if r.Success then Some r else None
-        definitions |> List.choose (fun (pattern:string,m:MethodInfo) ->
+        definitions
+        |> List.filter (fun (_,m) -> m |> IsMethodInScope tags)
+        |> List.choose (fun (pattern:string,(_,_,m):string list * string list * MethodInfo) ->
             chooseDefinition pattern |> Option.map (fun r -> r,m)
         )
     /// Chooses defininitons for specified step and text
-    let matchStep = function
-        | GivenStep text -> chooseDefinitions text givens
-        | WhenStep text -> chooseDefinitions text whens
-        | ThenStep text -> chooseDefinitions text thens
+    let matchStep tags = function
+        | GivenStep text -> chooseDefinitions tags text givens
+        | WhenStep text -> chooseDefinitions tags text whens
+        | ThenStep text -> chooseDefinitions tags text thens
     /// Extract arguments from specified match
     let extractArgs (r:Match) =        
         let args = List<string>()
@@ -36,7 +42,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         args.ToArray()      
     /// Resolves line
     let resolveLine (scenario:ScenarioSource) (step,line) =
-        let matches = matchStep step
+        let matches = matchStep scenario.Tags step
         let fail e =
             let m = sprintf "%s on line %d" e line.Number
             StepException(m,line.Number,scenario.Name) |> raise
@@ -53,6 +59,14 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         if m.GetParameters().Length <> argCount then
             fail "Parameter count mismatch"
         line,m,extractArgs r
+    /// Chooses in scope events
+    let chooseInScopeEvents (scenario:ScenarioSource) = 
+        let choose xs =
+            xs 
+            |> Seq.filter (fun m -> m |> IsMethodInScope scenario.Tags)
+            |> Seq.map (fun (_,_,e) -> e) 
+        events 
+        |> fun (ea,eb,ec,ed) -> choose ea, choose eb, choose ec, choose ed
     /// Gets description as scenario lines
     let getDescription steps =
             steps 
@@ -65,24 +79,39 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         StepDefinitions(assembly.GetTypes())
     /// Constructs instance by reflecting against specified types
     new (types:Type[]) =
+        let getScope attributes =
+            attributes
+            |> Seq.cast
+            |> Seq.fold (fun (tags,features) (x:StepScopeAttribute) -> 
+                x.Tag::tags, x.Feature::features
+            ) ([],[])
         let methods = 
             types 
-            |> Seq.collect (fun t -> t.GetMethods())
+            |> Seq.collect (fun t -> 
+                let attributes = t.GetCustomAttributes(typeof<StepScopeAttribute>,true)
+                let tags, features = getScope attributes
+                t.GetMethods()
+                |> Seq.map (fun m ->
+                    let attributes = m.GetCustomAttributes(typeof<StepScopeAttribute>,true)
+                    let tags', features' = getScope attributes
+                    tags@tags', features@features', m
+                )
+            )
         StepDefinitions(methods)
-    new (methods:MethodInfo seq) =
+    internal new (methods:(string list * string list * MethodInfo) seq) =
         /// Step methods
         let givens, whens, thens =
             methods 
-            |> Seq.map (fun m -> m, GetStepAttributes m)
+            |> Seq.map (fun ((_,_,m) as sm) -> sm, GetStepAttributes m)
             |> Seq.filter (fun (m,ca) -> ca.Length > 0)
-            |> Seq.collect (fun (m,ca) -> 
+            |> Seq.collect (fun ((_,_,m) as sm,ca) -> 
                 ca 
                 |> Array.map (fun a -> 
                     let p = 
                         match (a :?> StepAttribute).Step with
                         | null -> m.Name
                         | step -> step
-                    p,a,m
+                    p,a,sm
                 )
                 |> Seq.distinctBy (fun (p,a,m) -> p)
             )           
@@ -94,8 +123,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 | _ -> invalidOp "Unhandled StepAttribute"
             ) ([],[],[])
         
-        let filter (t:Type) (elements:MethodInfo seq) =
-            elements |> Seq.filter (fun m -> null <> Attribute.GetCustomAttribute(m,t))
+        let filter (t:Type) (elements:(string list * string list * MethodInfo) seq) =
+            elements |> Seq.filter (fun (_,_,m) -> null <> Attribute.GetCustomAttribute(m,t))
         /// Step events
         let events = methods |> filter typeof<EventAttribute>
         let beforeScenario = events |> filter typeof<BeforeScenarioAttribute>
@@ -107,7 +136,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         let valueParsers =
             methods 
             |> filter typeof<ParserAttribute>
-            |> Seq.map (fun m -> m.ReturnType, m)
+            |> Seq.map (fun (_,_,m) -> m.ReturnType, m)
             |> Dict.ofSeq
         StepDefinitions(givens,whens,thens,events,valueParsers)
     /// Generate scenarios from specified lines (source undefined)
@@ -119,6 +148,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 scenario.Steps
                 |> Seq.map (resolveLine scenario)
                 |> Seq.toArray
+            let events = chooseInScopeEvents scenario
             let action = generate events valueParsers (scenario.Name,steps)
             {Name=scenario.Name;Description=getDescription scenario.Steps;
              Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
@@ -146,6 +176,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 scenario.Steps
                 |> Seq.map (resolveLine scenario)
                 |> Seq.toArray
+            let events = chooseInScopeEvents scenario
             gen.GenScenario 
                 events
                 valueParsers
