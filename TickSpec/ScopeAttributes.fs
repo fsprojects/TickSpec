@@ -14,9 +14,13 @@ type StepScopeAttribute() =
     inherit Attribute()
     let mutable tag : string = null
     let mutable feature : string = null
+    let mutable scenario : string = null
     member scope.Tag
         with get () = tag
         and set value = tag <- value
     member scope.Feature
         with get () = feature
         and set value = feature <- value
+    member scope.Scenario
+        with get () = scenario
+        and set value = scenario <- value
