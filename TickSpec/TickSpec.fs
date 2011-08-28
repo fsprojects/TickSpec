@@ -119,7 +119,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 scenario.Steps
                 |> Seq.map (resolveLine scenario)
                 |> Seq.toArray
-            let action = generate valueParsers (scenario.Name,steps)
+            let action = generate events valueParsers (scenario.Name,steps)
             {Name=scenario.Name;Description=getDescription scenario.Steps;
              Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
         )

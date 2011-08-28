@@ -19,23 +19,31 @@ let toArray (t:Type) (xs:string[]) =
     let ar = Array.CreateInstance(t,vs.Length)
     for i = 0 to ar.Length-1 do ar.SetValue(vs.[i],i)
     ar
-   
+
+/// Gets object instance for specified method
+let getInstance (provider:IServiceProvider) (m:MethodInfo) =
+    if m.IsStatic then null
+    else provider.GetService m.DeclaringType
+
+/// Invokes specified method with specified parameters
+let invoke (provider:IServiceProvider) (m:MethodInfo) ps =     
+    let instance = getInstance provider m
+    m.Invoke(instance,ps) |> ignore
+
 /// Invokes method with match values as arguments
-let invoke 
+let invokeStep
         (parsers:IDictionary<Type,MethodInfo>)
         (provider:IServiceProvider) 
         (meth:MethodInfo,args:string[],
          bullets:string[] option,table:Table option) =
-    let getInstance (m:MethodInfo) =
-        if m.IsStatic then null
-        else provider.GetService m.DeclaringType
     let buildArgs (xs:string[]) =
         let ps = meth.GetParameters()
         args |> Array.mapi (fun i s ->
             let p = ps.[i].ParameterType
             let hasParser, parser = parsers.TryGetValue(p)
-            if hasParser then               
-                parser.Invoke(getInstance parser, [|s|])
+            if hasParser then      
+                invoke provider parser [|s|]
+                parser.Invoke(getInstance provider parser, [|s|])
             elif p.IsEnum then Enum.Parse(p,s,ignoreCase=true)
             elif p.IsArray then
                 toArray (p.GetElementType()) (split s) |> box
@@ -49,13 +57,24 @@ let invoke
         | Some xs,None -> [|box (toArray (typeof<string>) xs)|]
         | None,Some x -> [|box x|]
         | _,_ -> [||]
-    meth.Invoke(getInstance meth, Array.append args tail) |> ignore
+    invoke provider meth (Array.append args tail)
 
 /// Generate scenario execution function
-let generate parsers (scenario,lines) =
+let generate events parsers (scenario,lines) =
     fun () ->
         /// Type instance provider
         let provider = ServiceProvider()
+        let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
+        /// Invokes events
+        let invokeEvents events = 
+            events |> Seq.iter (fun (mi:MethodInfo) ->
+                invoke provider mi [||]               
+            )
+        beforeScenarioEvents |> invokeEvents
         // Iterate scenario lines
         lines |> Seq.iter (fun (line:LineSource,m,args) ->
-            (m,args,line.Bullets,line.Table) |> invoke parsers provider)
+            beforeStepEvents |> invokeEvents
+            (m,args,line.Bullets,line.Table) |> invokeStep parsers provider
+            afterStepEvents |> invokeEvents
+        )
+        afterScenarioEvents |> invokeEvents
