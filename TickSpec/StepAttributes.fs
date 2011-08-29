@@ -32,4 +32,8 @@ type ThenAttribute(step) =
 /// Method annotation for parsers of string -> 'a
 [<AttributeUsage(AttributeTargets.Method,AllowMultiple=false)>]
 type ParserAttribute () =
-    inherit Attribute()  
+    inherit Attribute()
+
+[<AttributeUsage(AttributeTargets.Method,AllowMultiple=false)>]
+type StepArgumentTransformation () =
+    inherit ParserAttribute()
