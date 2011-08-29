@@ -15,19 +15,24 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     /// Returns method's step attribute or null
     static let GetStepAttributes (m:MemberInfo) = 
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
-    static let IsMethodInScope feature (scenario:ScenarioSource) (scopedTags,scopedFeatures,scopedScenarios,m) =
-        let tagged = 
+    static let IsMethodInScope (feature:string) (scenario:ScenarioSource) (scopedTags,scopedFeatures,scopedScenarios,m) =
+        let trim p (s:string) =
+            if s.StartsWith p then (s.Substring p.Length).Trim() else s
+        let tagged =
             match scopedTags with
             | [] -> true            
             | _ -> scopedTags |> List.exists (fun tag -> scenario.Tags |> Seq.exists ((=) tag))
         let featured =
+            let feature = trim "Feature:" feature
             match scopedFeatures with
             | [] -> true
             | _ -> scopedFeatures |> List.exists ((=) feature)
         let scenarioed =
+            let name = 
+                trim "Scenario Outline:" scenario.Name |> trim "Scenario:"
             match scopedScenarios with
             | [] -> true
-            | _ -> scopedScenarios |> List.exists ((=) scenario.Name)
+            | _ -> scopedScenarios |> List.exists ((=) name)
         featured && scenarioed && tagged 
     /// Chooses matching definitions for specifed text
     let chooseDefinitions feature scenario text definitions =  
