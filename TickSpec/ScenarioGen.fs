@@ -212,8 +212,8 @@ let emitArgument
         emitValue gen providerField parsers paramType arg
         
 /// Defines step method
-let defineStepMethod        
-        doc        
+let defineStepMethod
+        doc
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
         (parsers:IDictionary<Type,MethodInfo>)
@@ -233,6 +233,18 @@ let defineStepMethod
     // For instance methods get instance value from service provider
     if not mi.IsStatic then
         emitInstance gen providerField mi.DeclaringType
+    // Handle generic methods
+    let mi =
+        if mi.ContainsGenericParameters then
+            let ps = 
+                mi.GetGenericArguments()
+                |> Array.map (fun p ->
+                    if p.IsGenericParameter then typeof<string>
+                    else p
+                )
+            mi.MakeGenericMethod(ps)
+        else
+            mi
     // Emit arguments
     let ps = mi.GetParameters()
     Seq.zip args ps
@@ -314,7 +326,7 @@ let generateScenario
     /// Scenario step methods
     let stepMethods =
         lines 
-        |> Array.map (defineStepMethod  doc scenarioBuilder providerField parsers)
+        |> Array.map (defineStepMethod doc scenarioBuilder providerField parsers)
         
     defineRunMethod scenarioBuilder providerField events stepMethods
     

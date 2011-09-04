@@ -66,8 +66,6 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         let r,m = matches.Head
         if m.ReturnType <> typeof<Void> then 
             fail "Step methods must return void/unit"
-        if m.ContainsGenericParameters then
-            fail "Step methods cannot be generic"
         let tableCount = line.Table |> Option.count
         let bulletsCount = line.Bullets |> Option.count
         let argCount = r.Groups.Count-1+tableCount+bulletsCount
