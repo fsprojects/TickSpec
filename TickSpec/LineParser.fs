@@ -43,22 +43,22 @@ let (|Scenario|_|) (s:string) =
     if s |> startsWith "Scenario" || s |> startsWith "Story" then
         Scenario s |> Some else None
 let (|IsBackground|_|) s = 
-    tryRegex s "^\s+Background(.*)" 
+    tryRegex s "^\s*Background(.*)" 
     |> Option.map (fun t -> IsBackground) 
 let (|GivenLine|_|) s = 
-    tryRegex s "^\s+Given\s+(.*)" 
+    tryRegex s "^\s*Given\s+(.*)" 
     |> Option.map (fun t -> GivenLine t)
 let (|WhenLine|_|) s = 
-    tryRegex s "^\s+When\s+(.*)" 
+    tryRegex s "^\s*When\s+(.*)" 
     |> Option.map (fun t -> WhenLine t)
 let (|ThenLine|_|) s = 
-    tryRegex s "^\s+Then\s+(.*)" 
+    tryRegex s "^\s*Then\s+(.*)" 
     |> Option.map (fun t -> ThenLine t)
 let (|AndLine|_|) s = 
-    tryRegex s "^\s+And\s+(.*)" 
+    tryRegex s "^\s*And\s+(.*)" 
     |> Option.map (fun t -> AndLine t)
 let (|ButLine|_|) s = 
-    tryRegex s "^\s+But\s+(.*)" 
+    tryRegex s "^\s*But\s+(.*)" 
     |> Option.map (fun t -> ButLine t) 
 let (|Row|_|) (s:string) =    
     if s.Trim().StartsWith("|") then
@@ -72,7 +72,7 @@ let (|Bullet|_|) (s:string) =
         s.Substring(s.IndexOf("*")+1).Trim() |> Some
     else None
 let (|SharedExamplesOf|_|) s =
-    tryRegex s @"^\s+Shared\s+Examples\s+Of\s+@(.*[^:])"
+    tryRegex s @"^\s*Shared\s+Examples\s+Of\s+@(.*[^:])"
     |> Option.map (fun t -> SharedExamplesOf t)
 let (|SharedExamples|_|) (s:string) =
     if s.Trim() |> startsWith("Shared Examples") then Some SharedExamples else None
