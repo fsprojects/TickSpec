@@ -29,6 +29,18 @@ let getInstance (provider:IServiceProvider) (m:MethodInfo) =
 let invoke (provider:IServiceProvider) (m:MethodInfo) ps =     
     let instance = getInstance provider m
     m.Invoke(instance,ps) |> ignore
+    
+let toConcreteMethod (m:MethodInfo) =
+    if m.ContainsGenericParameters then
+        let ps = 
+            m.GetGenericArguments()
+            |> Array.map (fun p ->
+                if p.IsGenericParameter then typeof<string>
+                else p
+            )
+        m.MakeGenericMethod(ps)
+    else
+        m
 
 /// Invokes method with match values as arguments
 let invokeStep
@@ -36,6 +48,7 @@ let invokeStep
         (provider:IServiceProvider) 
         (meth:MethodInfo,args:string[],
          bullets:string[] option,table:Table option) =
+    let meth = meth |> toConcreteMethod
     let buildArgs (xs:string[]) =
         let ps = meth.GetParameters()
         args |> Array.mapi (fun i s ->
