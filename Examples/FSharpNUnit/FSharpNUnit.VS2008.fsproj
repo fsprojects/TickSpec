@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{3d58e3c3-1a7c-426d-bc9f-555735ea622e}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>TicTacToe</RootNamespace>
-    <AssemblyName>TicTacToe</AssemblyName>
+    <ProjectGuid>{5dff73bd-8c5d-4ee2-b5dd-2d244ec06a61}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FSharpNUnit</RootNamespace>
+    <AssemblyName>FSharpNUnit</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <Name>TicTacToe</Name>
+    <Name>FSharpNUnit.VS2008</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,27 +28,37 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
+    <StartAction>Program</StartAction>
+    <StartProgram>C:\Program Files\NUnit 2.5.7\bin\net-2.0\nunit.exe</StartProgram>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TicTacToeXO.txt" />
+    <Compile Include="FeatureFixture.fs" />
+    <Compile Include="Fixtures.fs" />
+    <EmbeddedResource Include="Feature2.txt" />
+    <Compile Include="StockItem.fs" />
+    <Compile Include="StockStepDefinitions.fs" />
+    <EmbeddedResource Include="TicTacToe.txt" />
     <Compile Include="TicTacToeStepDefinitions.fs" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core" />
+    <Reference Include="nunit.framework">
+      <HintPath>nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <ProjectReference Include="..\..\TickSpec\TickSpec.fsproj">
-      <Name>TickSpec</Name>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\TickSpec\TickSpec.VS2008.fsproj">
+      <Name>TickSpec.VS2008</Name>
       <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" Condition="!Exists('$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll')" />
-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition="Exists('$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll')" />
+  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
 	     Other similar extension points exist, see Microsoft.Common.targets.
 	<Target Name="BeforeBuild">

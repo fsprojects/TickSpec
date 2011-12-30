@@ -44,6 +44,9 @@ and TestAssembly (provider:IUnitTestProvider,harness:UnitTestHarness,feature:Fea
 and TestClass (assembly:IAssembly,feature:Feature) =
     interface ITestClass with
         member this.Assembly = assembly
+#if SILVERLIGHT_TOOLKIT_DECEMBER_2011
+        member this.Namespace = assembly.Name
+#endif
         member this.ClassCleanupMethod = null
         member this.ClassInitializeMethod = null
         member this.GetTestMethods () =

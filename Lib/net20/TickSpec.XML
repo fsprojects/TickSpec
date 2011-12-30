@@ -58,42 +58,6 @@
 <member name="">
 
 </member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
-<member name="">
-
-</member>
 <member name="T:TickSpec.Feature">
 <summary>
  Encapsulates Gherkin feature
@@ -119,7 +83,7 @@
  Assembly of generated feature
 </summary>
 </member>
-<member name="M:TickSpec.FeatureGen.GenScenario(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.String,System.Tuple`3{TickSpec.LineSource,System.Reflection.MethodInfo,System.String[]}[],System.Tuple`2{System.String,System.String}[])">
+<member name="M:TickSpec.FeatureGen.GenScenario(System.Tuple`4{System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo}},System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.String,System.Tuple`3{TickSpec.LineSource,System.Reflection.MethodInfo,System.String[]}[],System.Tuple`2{System.String,System.String}[])">
 <summary>
  Generates scenario type from lines
 </summary>
@@ -242,10 +206,19 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
 <member name="T:TickSpec.StepAttribute">
 <summary>
  Base attribute class for step annotations
 </summary>
+</member>
+<member name="">
+
 </member>
 <member name="">
 
@@ -366,6 +339,15 @@
 <summary>
  Step specific exception
 </summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
 </member>
 <member name="">
 
@@ -620,12 +602,12 @@
 <member name="T:TickSpec.List">
 
 </member>
-<member name="M:TickSpec.ScenarioGen.generateScenario(System.Reflection.Emit.ModuleBuilder,System.Diagnostics.SymbolStore.ISymbolDocumentWriter,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.String,System.Tuple`3{TickSpec.LineSource,System.Reflection.MethodInfo,System.String[]}[],System.Tuple`2{System.String,System.String}[])">
+<member name="M:TickSpec.ScenarioGen.generateScenario(System.Reflection.Emit.ModuleBuilder,System.Diagnostics.SymbolStore.ISymbolDocumentWriter,System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.String,System.Tuple`3{TickSpec.LineSource,System.Reflection.MethodInfo,System.String[]}[],System.Tuple`2{System.String,System.String}[])">
 <summary>
  Generates Type for specified Scenario
 </summary>
 </member>
-<member name="M:TickSpec.ScenarioGen.defineRunMethod(System.Reflection.Emit.TypeBuilder,System.Collections.Generic.IEnumerable{System.Reflection.Emit.MethodBuilder})">
+<member name="M:TickSpec.ScenarioGen.defineRunMethod(System.Reflection.Emit.TypeBuilder,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.Emit.MethodBuilder})">
 <summary>
  Defines Run method
 </summary>
@@ -688,14 +670,27 @@
 <member name="T:TickSpec.ScenarioGen">
 
 </member>
-<member name="M:TickSpec.ScenarioRun.generate``2(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},``0,System.Collections.Generic.IEnumerable{System.Tuple`3{TickSpec.LineSource,``1,System.String[]}},Microsoft.FSharp.Core.Unit)">
+<member name="M:TickSpec.ScenarioRun.generate``2(System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},``0,System.Collections.Generic.IEnumerable{System.Tuple`3{TickSpec.LineSource,``1,System.String[]}},Microsoft.FSharp.Core.Unit)">
 <summary>
  Generate scenario execution function
 </summary>
 </member>
-<member name="M:TickSpec.ScenarioRun.invoke(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Reflection.MethodInfo,System.String[],Microsoft.FSharp.Core.FSharpOption{System.String[]},Microsoft.FSharp.Core.FSharpOption{TickSpec.Table})">
+<member name="M:TickSpec.ScenarioRun.invokeStep(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Reflection.MethodInfo,System.String[],Microsoft.FSharp.Core.FSharpOption{System.String[]},Microsoft.FSharp.Core.FSharpOption{TickSpec.Table})">
 <summary>
  Invokes method with match values as arguments
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.ScenarioRun.invoke(System.IServiceProvider,System.Reflection.MethodInfo,System.Object[])">
+<summary>
+ Invokes specified method with specified parameters
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.getInstance(System.IServiceProvider,System.Reflection.MethodInfo)">
+<summary>
+ Gets object instance for specified method
 </summary>
 </member>
 <member name="M:TickSpec.ScenarioRun.toArray(System.Type,System.String[])">
