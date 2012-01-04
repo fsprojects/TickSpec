@@ -64,7 +64,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         if matches.IsEmpty then fail "Missing step definition"
         if matches.Length > 1 then fail "Ambiguous step definition"
         let r,m = matches.Head
-        if m.ReturnType <> typeof<Void> then 
+        if not m.IsGenericMethod && m.ReturnType <> typeof<Void> then
             fail "Step methods must return void/unit"
         let tableCount = line.Table |> Option.count
         let bulletsCount = line.Bullets |> Option.count
@@ -198,9 +198,9 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             gen.GenScenario 
                 events
                 valueParsers
-                (scenario.Name, lines, scenario.Parameters)
+                (scenario.Name, lines, scenario.Parameters)        
         let createAction scenario =
-            let t = lazy (genType scenario)
+            let t = lazy (genType scenario)           
             TickSpec.Action(fun () ->
                 let instance = t.Force() |> Activator.CreateInstance
                 let mi = instance.GetType().GetMethod("Run")
