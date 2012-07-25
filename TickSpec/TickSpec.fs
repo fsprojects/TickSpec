@@ -172,7 +172,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         )
     member this.GenerateScenarios (reader:TextReader) =
         this.GenerateScenarios(TextReader.readAllLines reader)
-    member this.GenerateScenarios (feature:System.IO.Stream) =
+    member this.GenerateScenarios (feature:System.IO.Stream) =            
         use reader = new StreamReader(feature)
         this.GenerateScenarios(reader)
     /// Execute step definitions in specified lines (source undefined)
@@ -234,6 +234,12 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     member this.GenerateScenarios (sourceUrl:string,reader:TextReader) =
         this.GenerateScenarios(sourceUrl, TextReader.readAllLines reader)
     member this.GenerateScenarios (sourceUrl:string,feature:System.IO.Stream) =
+        if feature = null then 
+            let message = 
+                "No stream found for resource: " + sourceUrl + 
+                ". Perhaps there was a typo, or the feature file " + 
+                "wasn't compiled as an EmbeddedResource?"
+            raise (new ArgumentNullException("feature", message))    
         use reader = new StreamReader(feature)
         this.GenerateScenarios(sourceUrl, reader)
 #if SILVERLIGHT
