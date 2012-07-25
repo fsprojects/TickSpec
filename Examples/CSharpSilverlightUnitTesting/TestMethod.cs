@@ -43,11 +43,16 @@
 
         public IEnumerable<Attribute> GetDynamicAttributes()
         {
-            yield return new TagAttribute(_feature.Source);
-            yield return new TagAttribute(_feature.Name);
-            yield return new TagAttribute(_scenario.Name);
+            Func<string, string> Escape = s =>
+                s.Replace("(", "_")
+                 .Replace(")", "_")
+                 .Replace("-", "_");
+
+            yield return new TagAttribute(Escape(_feature.Source));
+            yield return new TagAttribute(Escape(_feature.Name));
+            yield return new TagAttribute(Escape(_scenario.Name));
             foreach (var tag in _scenario.Tags)
-                yield return new TagAttribute(tag);            
+                yield return new TagAttribute(Escape(tag));            
         }
 
         public bool Ignore
