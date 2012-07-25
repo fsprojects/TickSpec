@@ -64,5 +64,10 @@
         {
             get { return typeof(object); }         
         }
+
+        public string Namespace
+        {
+            get { return Type.Namespace; }
+        }
     }
 }
