@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0EC6ABD5-87B4-4251-B471-DAC2AEBB4128}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>TickSpec.Mono</RootNamespace>
+    <UsePartialTypes>false</UsePartialTypes>
+    <AssemblyName>TickSpec.Mono</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>false</Tailcalls>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <ConsolePause>false</ConsolePause>
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Extensions.fs" />
+    <Compile Include="ServiceProvider.fs" />
+    <Compile Include="FeatureSource.fs" />
+    <Compile Include="ScenarioRun.fs" />
+    <Compile Include="ScenarioGen.fs" />
+    <Compile Include="FeatureGen.fs" />
+    <Compile Include="EventAttributes.fs" />
+    <Compile Include="ScopeAttributes.fs" />
+    <Compile Include="StepAttributes.fs" />
+    <Compile Include="StepException.fs" />
+    <Compile Include="LineParser.fs" />
+    <Compile Include="BlockParser.fs" />
+    <Compile Include="FeatureParser.fs" />
+    <Compile Include="Feature.fs" />
+    <Compile Include="TickSpec.fs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\FSharp\1.0\Microsoft.FSharp.Targets" />
+</Project>
