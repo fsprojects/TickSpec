@@ -4,7 +4,8 @@ open System
 open System.Collections.Generic
 open System.Reflection
 open System.Reflection.Emit
-        
+open Microsoft.FSharp.Reflection
+
 /// Defines scenario type
 let defineScenarioType 
         (module_:ModuleBuilder) 
@@ -127,7 +128,7 @@ let emitType (gen:ILGenerator) (t:Type) =
         typeof<Type>.GetMethod("GetTypeFromHandle",
             [|typeof<RuntimeTypeHandle>|])
     gen.EmitCall(OpCodes.Call,mi,null)
-                        
+
 /// Emits conversion function
 let emitConvert (gen:ILGenerator) (t:Type) (x:string) =
     // Emit: System.Convert.ChangeType(arg,typeof<specified parameter>)
@@ -143,8 +144,36 @@ let emitConvert (gen:ILGenerator) (t:Type) (x:string) =
     gen.EmitCall(OpCodes.Call,changeType,null)
     // Emit cast to parameter type
     gen.Emit(OpCodes.Unbox_Any, t)
-    
-/// Emits value    
+
+/// Emits union case
+let emitUnionCase (gen:ILGenerator) (paramType:Type) (arg:string) =
+    let convert (unionIndex:int) =
+        let mi = 
+            typeof<FSharpType>.GetMethod("GetUnionCases", 
+                [|typeof<Type>;typeof<BindingFlags option>|])
+        emitType gen paramType
+        gen.Emit(OpCodes.Ldnull)
+        gen.EmitCall(OpCodes.Call,mi,null)
+        let mi = 
+            typeof<FSharpValue>.GetMethod("MakeUnion", 
+                [|typeof<UnionCaseInfo>;typeof<obj[]>;typeof<BindingFlags option>|])
+        gen.Emit(OpCodes.Ldc_I4,unionIndex)
+        gen.Emit(OpCodes.Ldelem, typeof<UnionCaseInfo>)
+        gen.Emit(OpCodes.Ldc_I4,0)
+        gen.Emit(OpCodes.Newarr,typeof<obj>)
+        gen.Emit(OpCodes.Ldnull)
+        gen.EmitCall(OpCodes.Call,mi,null)
+    let cases = FSharpType.GetUnionCases paramType
+    let equal a b = String.Compare(a ,b,StringComparison.InvariantCultureIgnoreCase) = 0
+    match cases |> Array.tryFindIndex (fun case -> equal arg case.Name) with
+    | Some index -> convert index
+    | None ->
+        gen.Emit(OpCodes.Ldstr, sprintf "Requested value '%s' was not found." arg)
+        let ci = typeof<System.ArgumentException>.GetConstructor([|typeof<string>|])
+        gen.Emit(OpCodes.Newobj, ci)
+        gen.Emit(OpCodes.Throw)
+
+/// Emits value
 let emitValue 
         (gen:ILGenerator) 
         (providerField:FieldBuilder)
@@ -168,7 +197,9 @@ let emitValue
                 [|typeof<Type>;typeof<string>|])
         gen.EmitCall(OpCodes.Call,mi,null)
         // Emit cast to parameter type
-        gen.Emit(OpCodes.Unbox_Any,paramType)   
+        gen.Emit(OpCodes.Unbox_Any,paramType)
+    elif FSharpType.IsUnion paramType then
+        emitUnionCase gen paramType arg
     else
         emitConvert gen paramType arg
         
@@ -329,6 +360,5 @@ let generateScenario
         |> Array.map (defineStepMethod doc scenarioBuilder providerField parsers)
         
     defineRunMethod scenarioBuilder providerField events stepMethods
-    
     /// Return scenario
     scenarioBuilder.CreateType()
