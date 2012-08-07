@@ -77,16 +77,35 @@ module AdditionSteps =
         | _ -> sprintf "Unmatched line %d" line.Number |> invalidOp                 
 
 module Runner =
-    do  // TODO: colouring?
-        let feature = parse "Addition.txt"
+    open System
+
+    let tryStep f acc (step,line) =
+        let print color =
+            let old = Console.ForegroundColor
+            Console.ForegroundColor <- color
+            printfn "%s" (line.Text.Trim())
+            Console.ForegroundColor <- old
+        try 
+            let acc = f acc (step,line)
+            print ConsoleColor.Green
+            acc
+        with e ->
+            print ConsoleColor.Red
+            printfn "%A" e
+            reraise ()
+
+    let run feature f init =
+        let feature = parse feature
         feature.Scenarios
-        |> Seq.filter (fun scenario -> scenario.Tags |> Seq.exists ((=) "ignore") |> not)       
+        |> Seq.filter (fun scenario -> scenario.Tags |> Seq.exists ((=) "ignore") |> not) 
         |> Seq.iter (fun scenario ->
-            scenario.Steps
-            |> Array.scan AdditionSteps.performStep (Calculator.Create ())            
+            scenario.Steps |> Array.scan (tryStep f) init
             |> ignore
         )
+        System.Console.ReadLine () |> ignore
         
+    do run "Addition.txt" (AdditionSteps.performStep) (Calculator.Create ())
+
 [<TestFixture>]
 type AdditionFixture () =
     [<Test>]
