@@ -5,7 +5,8 @@ open System.Collections
 open System.Collections.Generic
 open System.Text.RegularExpressions
 open System.Reflection
-   
+open Microsoft.FSharp.Reflection
+
 /// Splits CSV
 let split (s:string) =
     if String.IsNullOrEmpty(s.Trim()) then [||]
@@ -54,12 +55,16 @@ let invokeStep
         args |> Array.mapi (fun i s ->
             let p = ps.[i].ParameterType
             let hasParser, parser = parsers.TryGetValue(p)
-            if hasParser then      
+            if hasParser then
                 invoke provider parser [|s|]
                 parser.Invoke(getInstance provider parser, [|s|])
             elif p.IsEnum then Enum.Parse(p,s,ignoreCase=true)
             elif p.IsArray then
                 toArray (p.GetElementType()) (split s) |> box
+            elif FSharpType.IsUnion p then
+                let cases = FSharpType.GetUnionCases p
+                let unionCase = cases |> Seq.find (fun case -> s = case.Name)
+                FSharpValue.MakeUnion(unionCase,[||])
             else
                 let culture = System.Globalization.CultureInfo.InvariantCulture 
                 Convert.ChangeType(s,p,culture)
