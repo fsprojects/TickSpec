@@ -4,5 +4,5 @@
 type StepException (message,line:int,scenario:string) =
     inherit System.Exception(message)
     member this.LineNumber = line
-    member this.Scenario = string
+    member this.Scenario = scenario
 
