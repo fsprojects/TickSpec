@@ -145,9 +145,15 @@ let emitConvert (gen:ILGenerator) (t:Type) (x:string) =
     // Emit cast to parameter type
     gen.Emit(OpCodes.Unbox_Any, t)
 
+let emitThrow (gen:ILGenerator) (exnType:Type) (message:string) =
+    gen.Emit(OpCodes.Ldstr, message)
+    let ci = exnType.GetConstructor([|typeof<string>|])
+    gen.Emit(OpCodes.Newobj, ci)
+    gen.Emit(OpCodes.Throw)
+
 /// Emits union case
 let emitUnionCase (gen:ILGenerator) (paramType:Type) (arg:string) =
-    let convert (unionIndex:int) =
+    let emitGetCaseAt (unionIndex:int) =
         let mi = 
             typeof<FSharpType>.GetMethod("GetUnionCases", 
                 [|typeof<Type>;typeof<BindingFlags option>|])
@@ -166,12 +172,14 @@ let emitUnionCase (gen:ILGenerator) (paramType:Type) (arg:string) =
     let cases = FSharpType.GetUnionCases paramType
     let equal a b = String.Compare(a ,b,StringComparison.InvariantCultureIgnoreCase) = 0
     match cases |> Array.tryFindIndex (fun case -> equal arg case.Name) with
-    | Some index -> convert index
+    | Some index -> 
+        if cases.[index].GetFields().Length > 0 then 
+            sprintf "Requested value '%s' has no default constructor" arg
+            |> emitThrow gen typeof<System.ArgumentException>
+        else emitGetCaseAt index
     | None ->
-        gen.Emit(OpCodes.Ldstr, sprintf "Requested value '%s' was not found." arg)
-        let ci = typeof<System.ArgumentException>.GetConstructor([|typeof<string>|])
-        gen.Emit(OpCodes.Newobj, ci)
-        gen.Emit(OpCodes.Throw)
+        sprintf "Requested value '%s' was not found." arg
+        |> emitThrow gen typeof<System.ArgumentException>
 
 /// Emits value
 let emitValue 
