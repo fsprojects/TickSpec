@@ -9,9 +9,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>TickSpec</RootNamespace>
     <AssemblyName>TickSpec</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>TickSpec</Name>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -33,8 +34,8 @@
     <DocumentationFile>bin\Release\TickSpec.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core" />
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
@@ -64,8 +65,8 @@
 	</Target>
 	-->
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)\TickSpec.dll" ..\..\..\Lib\net20
-copy "$(TargetDir)\TickSpec.xml" ..\..\..\Lib\net20
-copy "$(TargetDir)\TickSpec.pdb" ..\..\..\Lib\net20</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetDir)\TickSpec.dll" ..\..\..\Lib\net40
+copy "$(TargetDir)\TickSpec.xml" ..\..\..\Lib\net40
+copy "$(TargetDir)\TickSpec.pdb" ..\..\..\Lib\net40</PostBuildEvent>
   </PropertyGroup>
 </Project>

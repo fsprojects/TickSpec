@@ -9,8 +9,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>FSharpNUnit</RootNamespace>
     <AssemblyName>FSharpNUnit</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>FSharpNUnit</Name>
+    <UsePartialTypes>false</UsePartialTypes>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -30,6 +32,7 @@
     <WarningLevel>3</WarningLevel>
     <StartAction>Program</StartAction>
     <StartProgram>C:\Program Files\NUnit 2.5.7\bin\net-2.0\nunit.exe</StartProgram>
+    <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="FeatureFixture.fs" />
@@ -42,14 +45,12 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core" />
     <Reference Include="nunit.framework">
       <HintPath>nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\TickSpec\TickSpec.fsproj">
       <Name>TickSpec</Name>
       <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>

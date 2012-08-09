@@ -9,8 +9,9 @@
     <OutputType>Library</OutputType>
     <RootNamespace>FSharpXunit</RootNamespace>
     <AssemblyName>FSharpXunit</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>FSharpXunit</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,15 +39,13 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core" />
     <Reference Include="System" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="xunit">
       <HintPath>xunit.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\TickSpec\TickSpec.fsproj">
       <Name>TickSpec</Name>
       <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
