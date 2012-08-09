@@ -65,6 +65,10 @@ let invokeStep
                 let cases = FSharpType.GetUnionCases p
                 let unionCase = cases |> Seq.find (fun case -> s = case.Name)
                 FSharpValue.MakeUnion(unionCase,[||])
+            elif p.IsGenericType && p.GetGenericTypeDefinition() = typeof<System.Nullable<_>> then
+                let t = p.GetGenericArguments().[0]
+                let culture = System.Globalization.CultureInfo.InvariantCulture
+                Convert.ChangeType(s,t,culture)
             else
                 let culture = System.Globalization.CultureInfo.InvariantCulture 
                 Convert.ChangeType(s,p,culture)
@@ -86,7 +90,7 @@ let generate events parsers (scenario,lines) =
         /// Invokes events
         let invokeEvents events = 
             events |> Seq.iter (fun (mi:MethodInfo) ->
-                invoke provider mi [||]               
+                invoke provider mi [||]
             )
         beforeScenarioEvents |> invokeEvents
         // Iterate scenario lines
