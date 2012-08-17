@@ -1,0 +1,9 @@
+_ReSharper
+\.orig
+DotSettings
+\.suo
+\.cache
+/obj/
+/bin/
+Backup
+\.diff
