@@ -92,11 +92,15 @@ let generate events parsers (scenario,lines) =
             events |> Seq.iter (fun (mi:MethodInfo) ->
                 invoke provider mi [||]
             )
-        beforeScenarioEvents |> invokeEvents
-        // Iterate scenario lines
-        lines |> Seq.iter (fun (line:LineSource,m,args) ->
-            beforeStepEvents |> invokeEvents
-            (m,args,line.Bullets,line.Table) |> invokeStep parsers provider
-            afterStepEvents |> invokeEvents
-        )
-        afterScenarioEvents |> invokeEvents
+        try
+            beforeScenarioEvents |> invokeEvents
+            // Iterate scenario lines
+            lines |> Seq.iter (fun (line:LineSource,m,args) ->
+                try
+                    beforeStepEvents |> invokeEvents
+                    (m,args,line.Bullets,line.Table) |> invokeStep parsers provider
+                finally
+                    afterStepEvents |> invokeEvents
+            )
+        finally
+            afterScenarioEvents |> invokeEvents
