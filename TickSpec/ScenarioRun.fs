@@ -27,10 +27,11 @@ let getInstance (provider:IServiceProvider) (m:MethodInfo) =
     else provider.GetService m.DeclaringType
 
 /// Invokes specified method with specified parameters
-let invoke (provider:IServiceProvider) (m:MethodInfo) ps =     
+let invoke (provider:IServiceProvider) (m:MethodInfo) ps =
     let instance = getInstance provider m
     m.Invoke(instance,ps) |> ignore
     
+/// Converts generic methods
 let toConcreteMethod (m:MethodInfo) =
     if m.ContainsGenericParameters then
         let ps = 
@@ -43,6 +44,29 @@ let toConcreteMethod (m:MethodInfo) =
     else
         m
 
+/// Converts string (s) to parameter Type (p)
+let convertString
+        (parsers:IDictionary<Type,MethodInfo>) 
+        provider (p:Type) s =
+    let hasParser, parser = parsers.TryGetValue(p)
+    if hasParser then
+        invoke provider parser [|s|]
+        parser.Invoke(getInstance provider parser, [|s|])
+    elif p.IsEnum then Enum.Parse(p,s,ignoreCase=true)
+    elif p.IsArray then
+        toArray (p.GetElementType()) (split s) |> box
+    elif FSharpType.IsUnion p then
+        let cases = FSharpType.GetUnionCases p
+        let unionCase = cases |> Seq.find (fun case -> s = case.Name)
+        FSharpValue.MakeUnion(unionCase,[||])
+    elif p.IsGenericType && p.GetGenericTypeDefinition() = typeof<System.Nullable<_>> then
+        let t = p.GetGenericArguments().[0]
+        let culture = System.Globalization.CultureInfo.InvariantCulture
+        Convert.ChangeType(s,t,culture)
+    else
+        let culture = System.Globalization.CultureInfo.InvariantCulture 
+        Convert.ChangeType(s,p,culture)
+
 /// Invokes method with match values as arguments
 let invokeStep
         (parsers:IDictionary<Type,MethodInfo>)
@@ -54,24 +78,13 @@ let invokeStep
         let ps = meth.GetParameters()
         args |> Array.mapi (fun i s ->
             let p = ps.[i].ParameterType
-            let hasParser, parser = parsers.TryGetValue(p)
-            if hasParser then
-                invoke provider parser [|s|]
-                parser.Invoke(getInstance provider parser, [|s|])
-            elif p.IsEnum then Enum.Parse(p,s,ignoreCase=true)
-            elif p.IsArray then
-                toArray (p.GetElementType()) (split s) |> box
-            elif FSharpType.IsUnion p then
-                let cases = FSharpType.GetUnionCases p
-                let unionCase = cases |> Seq.find (fun case -> s = case.Name)
-                FSharpValue.MakeUnion(unionCase,[||])
-            elif p.IsGenericType && p.GetGenericTypeDefinition() = typeof<System.Nullable<_>> then
-                let t = p.GetGenericArguments().[0]
-                let culture = System.Globalization.CultureInfo.InvariantCulture
-                Convert.ChangeType(s,t,culture)
-            else
-                let culture = System.Globalization.CultureInfo.InvariantCulture 
-                Convert.ChangeType(s,p,culture)
+            try convertString parsers provider p s
+            with ex ->
+                let name = ps.[i].Name
+                let message = 
+                    sprintf "Failed to convert argument '%s' of method '%s' from '%s' to type '%s'" 
+                        name meth.Name s p.Name
+                raise <| ArgumentException(message, name, ex)
         )
     let args = buildArgs (args)
     let tail =
