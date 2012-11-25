@@ -4,7 +4,7 @@ open System
 
 [<AttributeUsage(AttributeTargets.Class,AllowMultiple=true,Inherited=true)>]
 type BindingAttribute() =
-    inherit Attribute()    
+    inherit Attribute()
 
 [<AttributeUsage(
     AttributeTargets.Class|||AttributeTargets.Method,

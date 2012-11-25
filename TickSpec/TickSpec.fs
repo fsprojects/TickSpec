@@ -50,11 +50,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         | WhenStep text -> chooseDefinitions feature scenario text whens
         | ThenStep text -> chooseDefinitions feature scenario text thens
     /// Extract arguments from specified match
-    let extractArgs (r:Match) =        
+    let extractArgs (r:Match) =
         let args = List<string>()
         for i = 1 to r.Groups.Count-1 do
             r.Groups.[i].Value |> args.Add
-        args.ToArray()      
+        args.ToArray()
     /// Resolves line
     let resolveLine feature (scenario:ScenarioSource) (step,line) =
         let matches = matchStep feature scenario step
@@ -122,7 +122,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             |> Seq.filter (fun (m,ca) -> ca.Length > 0)
             |> Seq.collect (fun ((_,_,_,m) as sm,ca) -> 
                 ca 
-                |> Array.map (fun a -> 
+                |> Array.map (fun a ->
                     let p = 
                         match (a :?> StepAttribute).Step with
                         | null -> m.Name
@@ -130,7 +130,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                     p,a,sm
                 )
                 |> Seq.distinctBy (fun (p,a,m) -> p)
-            )           
+            )
             |> Seq.fold (fun (gs,ws,ts) (p,a,m) -> 
                 match a with
                 | :? GivenAttribute -> ((p,m)::gs,ws,ts)
@@ -172,7 +172,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         )
     member this.GenerateScenarios (reader:TextReader) =
         this.GenerateScenarios(TextReader.readAllLines reader)
-    member this.GenerateScenarios (feature:System.IO.Stream) =            
+    member this.GenerateScenarios (feature:System.IO.Stream) =
         use reader = new StreamReader(feature)
         this.GenerateScenarios(reader)
     /// Execute step definitions in specified lines (source undefined)
@@ -198,9 +198,9 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             gen.GenScenario 
                 events
                 valueParsers
-                (scenario.Name, lines, scenario.Parameters)        
+                (scenario.Name, lines, scenario.Parameters)
         let createAction scenario =
-            let t = lazy (genType scenario)           
+            let t = lazy (genType scenario)
             TickSpec.Action(fun () ->
                 let instance = t.Force() |> Activator.CreateInstance
                 let mi = instance.GetType().GetMethod("Run")

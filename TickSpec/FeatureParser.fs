@@ -44,7 +44,7 @@ let internal replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
         )
     let bullets =
         line.Bullets
-        |> Option.map (fun bullets -> bullets |> Array.map replace)                                  
+        |> Option.map (fun bullets -> bullets |> Array.map replace)
     (scenario,n,tags,{line with Table=table;Bullets=bullets},step)
 
 /// Appends shared examples to scenarios as examples
@@ -74,7 +74,7 @@ let parseFeature (lines:string[]) =
                     |> Seq.toArray
                 Seq.singleton
                     { Name=name; Tags=tags; Steps=steps; Parameters=[||] }
-            | name,tags,steps,Some(exampleTables) ->            
+            | name,tags,steps,Some(exampleTables) ->
                 /// All combinations of tables
                 let combinations = computeCombinations exampleTables
                 // Execute each combination
@@ -83,10 +83,10 @@ let parseFeature (lines:string[]) =
                     let combination = Seq.concat combination |> Seq.toArray
                     let steps =
                         Seq.append background steps
-                        |> Seq.map (replaceLine combination)      
+                        |> Seq.map (replaceLine combination)
                         |> Seq.map toStep 
                         |> Seq.toArray
-                    { Name=name; Tags=tags; Steps=steps; Parameters=combination }                                   
+                    { Name=name; Tags=tags; Steps=steps; Parameters=combination }
                 )
         )
     { Name=featureName; Scenarios=scenarios |> Seq.toArray }

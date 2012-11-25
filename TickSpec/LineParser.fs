@@ -86,13 +86,13 @@ let (|Attributes|_|) (s:string) =
     else None
 
 /// Line state given previous line state and new line text
-let parseLine = function             
-    | _, Scenario text -> BlockStart (Named(text)) |> Some   
+let parseLine = function
+    | _, Scenario text -> BlockStart (Named(text)) |> Some
     | _, IsBackground -> BlockStart Background |> Some
     | _, SharedExamplesOf tag -> BlockStart (Shared(Some(tag))) |> Some
-    | _, SharedExamples -> BlockStart (Shared(None)) |> Some   
+    | _, SharedExamples -> BlockStart (Shared(None)) |> Some
     | _, Examples -> ExamplesStart |> Some
-    | BlockStart (Named _), GivenLine text    
+    | BlockStart (Named _), GivenLine text
     | BlockStart Background, GivenLine text
     | Step(GivenStep _), GivenLine text | Item(Step(GivenStep _),_), GivenLine text
     | Step(GivenStep _), AndLine text | Item(Step(GivenStep _),_), AndLine text 
@@ -125,10 +125,10 @@ let parseLine = function
     | (Step(WhenStep _) as line), Row xs 
     | (Step(ThenStep _) as line), Row xs ->
         Item(line, TableRow xs) |> Some
-    | Item (line, TableRow ys), Row xs when ys.Length = xs.Length ->     
-        Item(line, TableRow xs) |> Some   
+    | Item (line, TableRow ys), Row xs when ys.Length = xs.Length ->
+        Item(line, TableRow xs) |> Some
     | _, Attributes values ->
-        TagLine values |> Some        
+        TagLine values |> Some
     | _, line -> None
 
 let expectingLine = function

@@ -326,6 +326,9 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
 <member name="T:TickSpec.StepException">
 <summary>
  Step specific exception
@@ -620,7 +623,17 @@
 </member>
 <member name="M:TickSpec.ScenarioGen.emitValue(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.Type,System.String)">
 <summary>
- Emits value    
+ Emits value
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitUnionCase(System.Reflection.Emit.ILGenerator,System.Type,System.String)">
+<summary>
+ Emits union case
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitThrow(System.Reflection.Emit.ILGenerator,System.Type,System.String)">
+<summary>
+ Emits throw
 </summary>
 </member>
 <member name="M:TickSpec.ScenarioGen.emitConvert(System.Reflection.Emit.ILGenerator,System.Type,System.String)">
@@ -671,8 +684,15 @@
  Invokes method with match values as arguments
 </summary>
 </member>
-<member name="">
-
+<member name="M:TickSpec.ScenarioRun.convertString(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Type,System.String)">
+<summary>
+ Converts string (s) to parameter Type (p)
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.toConcreteMethod(System.Reflection.MethodInfo)">
+<summary>
+ Converts generic methods
+</summary>
 </member>
 <member name="M:TickSpec.ScenarioRun.invoke(System.IServiceProvider,System.Reflection.MethodInfo,System.Object[])">
 <summary>

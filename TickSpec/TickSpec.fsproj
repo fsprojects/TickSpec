@@ -39,6 +39,7 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="ServiceProvider.fs" />
     <Compile Include="FeatureSource.fs" />

@@ -24,11 +24,11 @@ module internal Seq =
         
  module internal TextReader =
     /// Reads lines from TextReader
-    let readLines (reader:System.IO.TextReader) =       
-        seq {                  
+    let readLines (reader:System.IO.TextReader) =
+        seq {
             let isEOF = ref false
             while not !isEOF do
-                let line = reader.ReadLine()                
+                let line = reader.ReadLine()
                 if line <> null then yield line
                 else isEOF := true
         }

@@ -22,11 +22,11 @@ and StepType =
 and LineSource =
     {       
         Number : int
-        Text : string        
+        Text : string
         Bullets : string[] option
         Table : Table option
     }
-and Table (header:string[],rows:string[][]) =        
+and Table (header:string[],rows:string[][]) =
     new (header) = Table(header,[|[||]|])
     new () = Table([||]) 
     member this.Header = header
