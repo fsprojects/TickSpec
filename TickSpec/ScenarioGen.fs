@@ -145,6 +145,7 @@ let emitConvert (gen:ILGenerator) (t:Type) (x:string) =
     // Emit cast to parameter type
     gen.Emit(OpCodes.Unbox_Any, t)
 
+/// Emits throw
 let emitThrow (gen:ILGenerator) (exnType:Type) (message:string) =
     gen.Emit(OpCodes.Ldstr, message)
     let ci = exnType.GetConstructor([|typeof<string>|])
@@ -286,8 +287,39 @@ let defineStepMethod
             mi
     // Emit arguments
     let ps = mi.GetParameters()
-    Seq.zip args ps
-    |> Seq.iter (emitArgument gen providerField parsers)
+    let zipped = Seq.zip args ps
+    let temp = gen.DeclareLocal(typeof<Exception>).LocalIndex
+    let locals = [|for (_,p) in zipped -> gen.DeclareLocal(p.ParameterType).LocalIndex|]
+    zipped
+    |> Seq.iteri (fun i (arg,p) ->
+        // try {
+        let block = gen.BeginExceptionBlock()
+        emitArgument gen providerField parsers (arg,p)
+        gen.Emit(OpCodes.Stloc, locals.[i])
+        // }
+        gen.Emit(OpCodes.Leave_S, block)
+        // catch(Exception ex) {
+        gen.BeginCatchBlock(typeof<Exception>)
+        // throw ArgumentException(message, name, ex);
+        gen.Emit(OpCodes.Stloc, temp)
+        let message = 
+            sprintf "Failed to convert argument '%s' of target method '%s' from '%s' to type '%s'" 
+                p.Name mi.Name arg p.ParameterType.Name
+        gen.Emit(OpCodes.Ldstr, message)
+        gen.Emit(OpCodes.Ldstr, p.Name)
+        gen.Emit(OpCodes.Ldloc, temp)
+        let ci = 
+            typeof<ArgumentException>
+                .GetConstructor([|typeof<string>;typeof<string>;typeof<Exception>|])
+        gen.Emit(OpCodes.Newobj, ci)
+        gen.Emit(OpCodes.Throw)
+        // }
+        gen.EndExceptionBlock()
+    )
+    locals |> Seq.iter (fun local ->
+        gen.Emit(OpCodes.Ldloc, local)
+    )
+
     // Emit bullets argument
     line.Bullets |> Option.iter (fun x ->
         let t = (ps.[ps.Length-1].ParameterType)
