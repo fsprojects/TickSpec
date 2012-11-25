@@ -80,11 +80,15 @@ let invokeStep
             let p = ps.[i].ParameterType
             try convertString parsers provider p s
             with ex ->
+                #if SILVERLIGHT
+                reraise ()
+                #else
                 let name = ps.[i].Name
                 let message = 
                     sprintf "Failed to convert argument '%s' of target method '%s' from '%s' to type '%s'" 
                         name meth.Name s p.Name
                 raise <| ArgumentException(message, name, ex)
+                #endif
         )
     let args = buildArgs (args)
     let tail =
