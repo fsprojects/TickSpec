@@ -63,11 +63,11 @@
   <ItemGroup>
     <Reference Include="Microsoft.Silverlight.Testing, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Lib\SL5\Testing\Microsoft.Silverlight.Testing.dll</HintPath>
+      <HintPath>..\..\Nuget\Lib\SL5\Testing\Microsoft.Silverlight.Testing.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Lib\SL5\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
+      <HintPath>..\..\Nuget\Lib\SL5\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System.Windows" />
@@ -77,7 +77,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Windows.Browser" />
     <Reference Include="TickSpec.Silverlight">
-      <HintPath>..\..\Lib\SL5\TickSpec.Silverlight.dll</HintPath>
+      <HintPath>..\..\Nuget\Lib\SL5\TickSpec.Silverlight.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

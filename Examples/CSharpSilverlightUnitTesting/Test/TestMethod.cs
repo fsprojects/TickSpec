@@ -100,6 +100,10 @@
             get { return null; }
         }
 
-        public event EventHandler<StringEventArgs> WriteLine;
+        public event EventHandler<StringEventArgs> WriteLine
+        {
+            add { }
+            remove { }
+        }
     }
 }

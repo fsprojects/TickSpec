@@ -1,0 +1,751 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>TickSpec</name></assembly>
+<members>
+<member name="">
+
+</member>
+<member name="T:TickSpec.Action">
+<summary>
+ Action type
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.Feature">
+<summary>
+ Encapsulates Gherkin feature
+</summary>
+</member>
+<member name="F:TickSpec.TickSpec.FeatureGen.doc">
+<summary>
+ Feature source document
+</summary>
+</member>
+<member name="F:TickSpec.TickSpec.FeatureGen.module_">
+<summary>
+ Feature dynamic module
+</summary>
+</member>
+<member name="F:TickSpec.TickSpec.FeatureGen.assemblyBuilder">
+<summary>
+ Feature dynamic assembly
+</summary>
+</member>
+<member name="P:TickSpec.FeatureGen.Assembly">
+<summary>
+ Assembly of generated feature
+</summary>
+</member>
+<member name="M:TickSpec.FeatureGen.GenScenario(System.Tuple`4{System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo}},System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.String,System.Tuple`3{TickSpec.LineSource,System.Reflection.MethodInfo,System.String[]}[],System.Tuple`2{System.String,System.String}[])">
+<summary>
+ Generates scenario type from lines
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.GivenAttribute">
+<summary>
+ Method annotation for given step
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.ParserAttribute">
+<summary>
+ Method annotation for parsers of string -&gt; &apos;a
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.Scenario">
+<summary>
+ Executable scenario type
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="F:TickSpec.TickSpec.ServiceProvider.instances">
+<summary>
+ Type instances constructed for invoked steps
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.ServiceProvider">
+<summary>
+ Creates instance service provider
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.StepAttribute">
+<summary>
+ Base attribute class for step annotations
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.StepDefinitions.GenerateScenarios(System.String,System.String[])">
+<summary>
+ Generates scenarios in specified lines from source document
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.StepDefinitions.GenerateScenarios(System.String[])">
+<summary>
+ Generate scenarios from specified lines (source undefined)
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.StepDefinitions.GenerateFeature(System.String,System.String[])">
+<summary>
+ Generates feature in specified lines from source document
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.StepDefinitions.Execute(System.String,System.String[])">
+<summary>
+ Executes step definitions in specified lines from source document
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.StepDefinitions.Execute(System.String[])">
+<summary>
+ Execute step definitions in specified lines (source undefined)
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.StepDefinitions.#ctor(System.Type[])">
+<summary>
+ Constructs instance by reflecting against specified types
+</summary>
+</member>
+<member name="M:TickSpec.StepDefinitions.#ctor(System.Reflection.Assembly)">
+<summary>
+ Constructs instance by reflecting against specified assembly
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.StepDefinitions">
+<summary>
+ Encapsulates step definitions for execution against features
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.StepException">
+<summary>
+ Step specific exception
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.ThenAttribute">
+<summary>
+ Method annotation for then step
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.WhenAttribute">
+<summary>
+ Method annotation for when step
+</summary>
+</member>
+<member name="M:TickSpec.BlockParser.parseBlocks(System.String[])">
+<summary>
+ Parse blocks
+</summary>
+</member>
+<member name="M:TickSpec.BlockParser.buildBlocks(System.Collections.Generic.IEnumerable{System.Tuple`2{System.Int32,System.String}})">
+<summary>
+ Build blocks in specified lines
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.BlockParser">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.Dict">
+
+</member>
+<member name="M:TickSpec.FeatureParser.parseFeature(System.String[])">
+<summary>
+ Parses lines of feature
+</summary>
+</member>
+<member name="M:TickSpec.FeatureParser.appendSharedExamples``3(TickSpec.Table[],System.Collections.Generic.IEnumerable{System.Tuple`4{``0,``1,``2,Microsoft.FSharp.Core.FSharpOption{TickSpec.Table[]}}})">
+<summary>
+ Appends shared examples to scenarios as examples
+</summary>
+</member>
+<member name="M:TickSpec.FeatureParser.replaceLine``3(System.Collections.Generic.IEnumerable{System.Tuple`2{System.String,System.String}},``0,``1,``2,TickSpec.LineSource,TickSpec.StepType)">
+<summary>
+ Replace line with specified named values
+</summary>
+</member>
+<member name="M:TickSpec.FeatureParser.computeCombinations(TickSpec.Table[])">
+<summary>
+ Computes combinations of table values
+</summary>
+</member>
+<member name="T:TickSpec.FeatureParser">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.LineParser.LineType">
+<summary>
+ Line type
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.LineParser.ItemType">
+<summary>
+ Item type
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:TickSpec.LineParser.BlockType">
+<summary>
+ Block type
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.LineParser.parseLine(TickSpec.LineParser.LineType,System.String)">
+<summary>
+ Line state given previous line state and new line text
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:TickSpec.LineParser.tryRegex(System.String,System.String)">
+<summary>
+ Try single parameter regular expression
+</summary>
+</member>
+<member name="T:TickSpec.LineParser">
+
+</member>
+<member name="M:TickSpec.List.combinations``2(Microsoft.FSharp.Collections.FSharpList{``0})">
+<summary>
+ Computes all combinations
+</summary>
+</member>
+<member name="T:TickSpec.List">
+
+</member>
+<member name="M:TickSpec.ScenarioGen.generateScenario(System.Reflection.Emit.ModuleBuilder,System.Diagnostics.SymbolStore.ISymbolDocumentWriter,System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.String,System.Tuple`3{TickSpec.LineSource,System.Reflection.MethodInfo,System.String[]}[],System.Tuple`2{System.String,System.String}[])">
+<summary>
+ Generates Type for specified Scenario
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.defineRunMethod(System.Reflection.Emit.TypeBuilder,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.Emit.MethodBuilder})">
+<summary>
+ Defines Run method
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.defineStepMethod(System.Diagnostics.SymbolStore.ISymbolDocumentWriter,System.Reflection.Emit.TypeBuilder,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},TickSpec.LineSource,System.Reflection.MethodInfo,System.String[])">
+<summary>
+ Defines step method
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitArgument(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.String,System.Reflection.ParameterInfo)">
+<summary>
+ Emits argument
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitArray(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.Type,System.String[])">
+<summary>
+ Emits array
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitValue(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.Type,System.String)">
+<summary>
+ Emits value
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitUnionCase(System.Reflection.Emit.ILGenerator,System.Type,System.String)">
+<summary>
+ Emits union case
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitThrow(System.Reflection.Emit.ILGenerator,System.Type,System.String)">
+<summary>
+ Emits throw
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitConvert(System.Reflection.Emit.ILGenerator,System.Type,System.String)">
+<summary>
+ Emits conversion function
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitType(System.Reflection.Emit.ILGenerator,System.Type)">
+<summary>
+ Emits type argument
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitInstance(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Type)">
+<summary>
+ Emit instance of specified type (obtained from service provider)
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitTable(System.Reflection.Emit.ILGenerator,TickSpec.Table)">
+<summary>
+ Emits table argument
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.defineCons(System.Reflection.Emit.TypeBuilder,System.Reflection.Emit.FieldBuilder,System.Tuple`2{System.String,System.String}[])">
+<summary>
+ Defines Constructor
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.defineProviderField(System.Reflection.Emit.TypeBuilder)">
+<summary>
+ Defines _provider field
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.defineScenarioType(System.Reflection.Emit.ModuleBuilder,System.String)">
+<summary>
+ Defines scenario type
+</summary>
+</member>
+<member name="T:TickSpec.ScenarioGen">
+
+</member>
+<member name="M:TickSpec.ScenarioRun.generate``2(System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IEnumerable{System.Reflection.MethodInfo},System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},``0,System.Collections.Generic.IEnumerable{System.Tuple`3{TickSpec.LineSource,``1,System.String[]}},Microsoft.FSharp.Core.Unit)">
+<summary>
+ Generate scenario execution function
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.invokeStep(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Reflection.MethodInfo,System.String[],Microsoft.FSharp.Core.FSharpOption{System.String[]},Microsoft.FSharp.Core.FSharpOption{TickSpec.Table})">
+<summary>
+ Invokes method with match values as arguments
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.convertString(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Type,System.String)">
+<summary>
+ Converts string (s) to parameter Type (p)
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.toConcreteMethod(System.Reflection.MethodInfo)">
+<summary>
+ Converts generic methods
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.invoke(System.IServiceProvider,System.Reflection.MethodInfo,System.Object[])">
+<summary>
+ Invokes specified method with specified parameters
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.getInstance(System.IServiceProvider,System.Reflection.MethodInfo)">
+<summary>
+ Gets object instance for specified method
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.toArray(System.Type,System.String[])">
+<summary>
+ Converts string array to array of specified type
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.split(System.String)">
+<summary>
+ Splits CSV
+</summary>
+</member>
+<member name="T:TickSpec.ScenarioRun">
+
+</member>
+<member name="M:TickSpec.Seq.skipUntil``1(Microsoft.FSharp.Core.FSharpFunc`2{``0,System.Boolean},System.Collections.Generic.IEnumerable{``0})">
+<summary>
+ Skips elements in sequence until condition is met  
+</summary>
+</member>
+<member name="T:TickSpec.Seq">
+
+</member>
+<member name="M:TickSpec.TextReader.readAllLines(System.IO.TextReader)">
+<summary>
+ Read all lines to a string array
+</summary>
+</member>
+<member name="M:TickSpec.TextReader.readLines(System.IO.TextReader)">
+<summary>
+ Reads lines from TextReader
+</summary>
+</member>
+<member name="T:TickSpec.TextReader">
+
+</member>
+</members>
+</doc>

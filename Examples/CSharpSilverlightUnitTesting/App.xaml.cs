@@ -22,12 +22,11 @@
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            var harness = new UnitTestHarness();            
+            var harness = new UnitTestHarness();
             var settings = new UnitTestSettings();
             settings.TestHarness = harness;
             harness.Settings = settings;
-            harness.Initialize();          
-            
+            harness.Initialize();
 
             harness.TestRunStarting += (senderx, ex) =>
                 {
