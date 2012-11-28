@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>TickSpec</id>
+    <id>TickSpec.NUnit</id>
     <version>1.0.0.1</version>
-    <title>TickSpec</title>
+    <title>TickSpec.NUnit</title>
     <authors>Phillip Trelford</authors>
     <owners>Phillip Trelford</owners>
     <licenseUrl>http://tickspec.codeplex.com/license</licenseUrl>
@@ -11,6 +11,10 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Describe behaviour in plain text using the Gherkin business language, i.e. given, when, then. Easily execute the behaviour against matching F# tick methods (let ``tick method`` () = true) or attributed C# or F# methods.</description>
     <summary>TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.</summary>
-    <tags>BDD C# F# .Net</tags>
+    <tags>BDD C# F# .Net NUnit</tags>
+    <dependencies>
+      <dependency id="TickSpec" />
+      <dependency id="NUnit" />
+    </dependencies>
   </metadata>
 </package>
