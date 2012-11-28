@@ -10,8 +10,8 @@
 
     public class TestProvider : IUnitTestProvider
     {
-        private const UnitTestProviderCapabilities MyCapabilities =        
-            UnitTestProviderCapabilities.MethodCanIgnore |            
+        private const UnitTestProviderCapabilities MyCapabilities =
+            UnitTestProviderCapabilities.MethodCanIgnore |
             UnitTestProviderCapabilities.MethodCanDescribe;
 
         public UnitTestProviderCapabilities Capabilities
@@ -28,14 +28,14 @@
         }
 
         readonly IDictionary<Assembly, IAssembly> _assemblyLookup = 
-            new Dictionary<Assembly, IAssembly>();       
+            new Dictionary<Assembly, IAssembly>();
 
         public IAssembly GetUnitTestAssembly(
             UnitTestHarness testHarness, 
             Assembly assemblyReference)
         {
             if (_assemblyLookup.ContainsKey(assemblyReference))
-                return _assemblyLookup[assemblyReference];           
+                return _assemblyLookup[assemblyReference];
             var feature = _featureLookup[assemblyReference];
             var ass = new TestAssembly(this,testHarness,feature);
             _assemblyLookup[assemblyReference] = ass;
@@ -50,7 +50,7 @@
         public bool IsFailedAssert(Exception exception)
         {
             Type et = exception.GetType();
-            Type vsttAsserts = typeof(VS.AssertFailedException);
+            Type vsttAsserts = System.Type.GetType("Microsoft.VisualStudio.TestTools.UnitTesting.AssertFailedException");
             return (et == vsttAsserts || et.IsSubclassOf(vsttAsserts));
         }
 
