@@ -62,15 +62,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
-      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\Microsoft F#\Silverlight\Libraries\Client\v5.0\FSharp.Core.dll</HintPath>
+      <HintPath>$(ProgramFiles)\Microsoft F#\Silverlight\Libraries\Client\v5.0\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Silverlight.Testing, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Nuget\Silverlight\Lib\SL5\Testing\Microsoft.Silverlight.Testing.dll</HintPath>
+      <HintPath>..\..\Nuget\Silverlight\Lib\SL5\Microsoft.Silverlight.Testing.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Nuget\Silverlight\Lib\SL5\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
+      <HintPath>..\..\Nuget\Silverlight\Lib\SL5\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
       <Aliases>VS</Aliases>
     </Reference>
     <Reference Include="mscorlib" />
