@@ -41,10 +41,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Silverlight.Testing">
-      <HintPath>..\Nuget\Lib\SL4\Testing\Microsoft.Silverlight.Testing.dll</HintPath>
+      <HintPath>..\Nuget\Silverlight\Lib\SL4\Testing\Microsoft.Silverlight.Testing.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight">
-      <HintPath>..\Nuget\Lib\SL4\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
+      <HintPath>..\Nuget\Siverlight\Lib\SL4\Testing\Microsoft.VisualStudio.QualityTools.UnitTesting.Silverlight.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core">
@@ -69,8 +69,8 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.Common.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)TickSpec.Silverlight.UnitTesting.dll" "$(ProjectDir)..\Nuget\Lib\SL4\Testing"
-copy "$(TargetDir)TickSpec.Silverlight.UnitTesting.xml" "$(ProjectDir)..\Nuget\Lib\SL4\Testing"
+    <PostBuildEvent>copy "$(TargetDir)TickSpec.Silverlight.UnitTesting.dll" "$(ProjectDir)..\Nuget\Silverlight\Lib\SL4\Testing"
+copy "$(TargetDir)TickSpec.Silverlight.UnitTesting.XML" "$(ProjectDir)..\Nuget\Silverlight\Lib\SL4\Testing"
 </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

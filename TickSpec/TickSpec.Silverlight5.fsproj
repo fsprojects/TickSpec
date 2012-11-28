@@ -13,7 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <AllowCrossTargeting>true</AllowCrossTargeting>
     <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{f2a71f9b-5d33-465a-a702-920d77279786}</ProjectTypeGuids>
-    <Name>TickSpec.Silverlight4</Name>
+    <Name>TickSpec.Silverlight5</Name>
     <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
     <SilverlightApplication>false</SilverlightApplication>
     <ValidateXaml>true</ValidateXaml>
@@ -70,8 +70,8 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft F#\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildBinPath)\Microsoft.Build.Tasks.v4.0.dll')" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.Common.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)TickSpec.Silverlight.dll" ..\..\..\Nuget\Lib\SL5
-copy "$(TargetDir)TickSpec.Silverlight.xml" ..\..\..\Nuget\Lib\SL5</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetDir)TickSpec.Silverlight.dll" ..\..\..\Nuget\Silverlight\Lib\SL5
+copy "$(TargetDir)TickSpec.Silverlight.xml" ..\..\..\Nuget\Silverlight\Lib\SL5</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
 	     Other similar extension points exist, see Microsoft.Common.targets.

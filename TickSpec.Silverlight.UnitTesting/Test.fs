@@ -28,7 +28,11 @@ type TestProvider () =
         member this.HasCapability capability = capability &&& capabilities = capability
         member this.IsFailedAssert ex =
             let t = ex.GetType()
+#if SILVERLIGHT_TOOLKIT_DECEMBER_2011
             let t' = typeof<Microsoft.VisualStudio.TestTools.UnitTesting.AssertFailedException>
+#else
+            let t' = System.Type.GetType("Microsoft.VisualStudio.TestTools.UnitTesting.AssertFailedException")
+#endif
             t = t' || t.IsSubclassOf t'
         member this.Name = "TickSpec"
 and TestAssembly (provider:IUnitTestProvider,harness:UnitTestHarness,feature:Feature) as this =
