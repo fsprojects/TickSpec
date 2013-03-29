@@ -1,23 +1,23 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{CD7A2701-42ED-47BD-8724-1E130B5C5071}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec", "TickSpec\TickSpec.fsproj", "{97BF4912-2B4E-410B-9B63-5E07076514A9}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec", "TickSpec\TickSpec.VS2010.fsproj", "{97BF4912-2B4E-410B-9B63-5E07076514A9}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp", "Examples\FSharp\FSharp.fsproj", "{9A6D191D-73B3-48D9-A0C1-51581E8894A8}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp", "Examples\FSharp\FSharp.VS2010.fsproj", "{9A6D191D-73B3-48D9-A0C1-51581E8894A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp", "Examples\CSharp\CSharp.csproj", "{FBB69434-1AC8-46B9-8533-81F09B69B134}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp", "Examples\CSharp\CSharp.VS2010.csproj", "{FBB69434-1AC8-46B9-8533-81F09B69B134}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpXunit", "Examples\FSharpXunit\FSharpXunit.fsproj", "{13FD816B-6204-456D-BD19-BDD3EFF2E7DF}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpXunit", "Examples\FSharpXunit\FSharpXunit.VS2010.fsproj", "{13FD816B-6204-456D-BD19-BDD3EFF2E7DF}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TicTacToe", "Examples\TicTacToe\TicTacToe.fsproj", "{3D58E3C3-1A7C-426D-BC9F-555735EA622E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TicTacToe", "Examples\TicTacToe\TicTacToe.VS2010.fsproj", "{3D58E3C3-1A7C-426D-BC9F-555735EA622E}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpNUnit", "Examples\FSharpNUnit\FSharpNUnit.fsproj", "{5DFF73BD-8C5D-4EE2-B5DD-2D244EC06A61}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharpNUnit", "Examples\FSharpNUnit\FSharpNUnit.VS2010.fsproj", "{5DFF73BD-8C5D-4EE2-B5DD-2D244EC06A61}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Interactive", "Examples\Interactive\Interactive.fsproj", "{BA6F3A69-34F3-4D85-8804-DD354F8E17FA}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Interactive", "Examples\Interactive\Interactive.VS2010.fsproj", "{BA6F3A69-34F3-4D85-8804-DD354F8E17FA}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Functional", "Examples\Functional\Functional.fsproj", "{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Functional", "Examples\Functional\Functional.VS2010.fsproj", "{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

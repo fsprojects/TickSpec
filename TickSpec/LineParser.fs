@@ -67,7 +67,7 @@ let (|Row|_|) (s:string) =
         let cols = cols |> Array.map (fun s -> s.Trim())
         Row cols |> Some
     else None
-let (|Bullet|_|) (s:string) =    
+let (|Bullet|_|) (s:string) =
     if s.Trim().StartsWith("*") then 
         s.Substring(s.IndexOf("*")+1).Trim() |> Some
     else None

@@ -59,8 +59,8 @@
     <Compile Include="UnitTestSettings.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TickSpec\TickSpec.Silverlight4.fsproj">
-      <Name>TickSpec.Silverlight4</Name>
+    <ProjectReference Include="..\TickSpec\TickSpec.Silverlight4.VS2010.fsproj">
+      <Name>TickSpec.Silverlight4.VS2010</Name>
       <Project>{48545eea-059d-4b59-9ee4-243ab49dee3c}</Project>
       <Private>True</Private>
     </ProjectReference>

@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Game.SL5", "Game\Game.SL5.fsproj", "{45B6EB9F-B2AC-4BA5-9FCC-6425F74539A0}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TicTacToe.SL5", "TicTacToe\TicTacToe.SL5.fsproj", "{667A244A-7627-4A2A-B3DB-6A88A444609D}"
