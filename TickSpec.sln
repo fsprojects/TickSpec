@@ -21,6 +21,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Functional", "Examples\Func
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp.NUnit", "Examples\CSharp.NUnit\CSharp.NUnit.csproj", "{B224A186-190C-43D8-B83C-3E2F0FD7BE39}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Scenarios", "Examples\Scenarios\Scenarios.fsproj", "{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{B224A186-190C-43D8-B83C-3E2F0FD7BE39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B224A186-190C-43D8-B83C-3E2F0FD7BE39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B224A186-190C-43D8-B83C-3E2F0FD7BE39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,5 +82,6 @@ Global
 		{BA6F3A69-34F3-4D85-8804-DD354F8E17FA} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
 		{5C35465A-EA7A-45AE-9BD5-7C0AEA58470F} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
 		{B224A186-190C-43D8-B83C-3E2F0FD7BE39} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
+		{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
 	EndGlobalSection
 EndGlobal
