@@ -9,7 +9,7 @@
   	  | karate-kick     |
       | roundhouse-kick |
 
-  Scenario: Samurai are dangeous with katanas, no advanced kicks
+  Scenario: Samurai are dangerous with katanas, no advanced kicks
     When a ninja faces a samurai
     Then he should expect the following attack techniques
       | technique     | danger | 
