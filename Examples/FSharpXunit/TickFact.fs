@@ -14,6 +14,7 @@ type TickCommand(scenario:Scenario,info:IMethodInfo) =
                 scenario.Action.Invoke()
                 PassedResult(info, scenario.ToString()) :> MethodResult 
             with ex -> 
+                let ex = if ex.InnerException <> null then ex.InnerException else ex
                 FailedResult(info, ex, scenario.ToString()) :> MethodResult 
              
         member this.DisplayName = scenario.Name 
