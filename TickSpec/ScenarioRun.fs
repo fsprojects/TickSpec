@@ -57,7 +57,7 @@ let convertString
         toArray (p.GetElementType()) (split s) |> box
     elif FSharpType.IsUnion p then
         let cases = FSharpType.GetUnionCases p
-        let unionCase = cases |> Seq.find (fun case -> s = case.Name)
+        let unionCase = cases |> Seq.find (fun case -> String.Compare(s, case.Name, ignoreCase=true) = 0)
         FSharpValue.MakeUnion(unionCase,[||])
     elif p.IsGenericType && p.GetGenericTypeDefinition() = typeof<System.Nullable<_>> then
         let t = p.GetGenericArguments().[0]
@@ -67,6 +67,22 @@ let convertString
         let culture = System.Globalization.CultureInfo.InvariantCulture 
         Convert.ChangeType(s,p,culture)
 
+/// Converts a table to the specified array type
+let convertTable parsers provider (t:Type) (table:Table) =
+    let t = t.GetElementType()
+    let ps = t.GetProperties()
+    let ar = Array.CreateInstance(t,table.Rows.Length)
+    table.Rows |> Array.iteri (fun y row ->
+        let e = Activator.CreateInstance(t)
+        for x = 0 to table.Header.Length-1 do
+            let column = table.Header.[x]
+            let p = ps |> Seq.find (fun p -> String.Compare(p.Name, column, ignoreCase=true)=0)           
+            let value = convertString parsers provider p.PropertyType row.[x]
+            p.SetValue(e, value, [||])
+        ar.SetValue(e, y)
+    )
+    ar
+
 /// Invokes method with match values as arguments
 let invokeStep
         (parsers:IDictionary<Type,MethodInfo>)
@@ -74,8 +90,8 @@ let invokeStep
         (meth:MethodInfo,args:string[],
          bullets:string[] option,table:Table option) =
     let meth = meth |> toConcreteMethod
+    let ps = meth.GetParameters()
     let buildArgs (xs:string[]) =
-        let ps = meth.GetParameters()
         args |> Array.mapi (fun i s ->
             let p = ps.[i].ParameterType
             try convertString parsers provider p s
@@ -90,13 +106,18 @@ let invokeStep
                 raise <| ArgumentException(message, name, ex)
                 #endif
         )
-    let args = buildArgs (args)
+    let args = buildArgs args
     let tail =
         match bullets,table with
         | Some xs,None -> [|box (toArray (typeof<string>) xs)|]
-        | None,Some x -> [|box x|]
+        | None,Some table -> 
+            let p = ps.[ps.Length-1].ParameterType
+            if p = typeof<Table> then [|box table|]
+            elif p.IsArray then [|convertTable parsers provider p table|]
+            else failwith "Expecting table argument"
         | _,_ -> [||]
-    invoke provider meth (Array.append args tail)
+    let args = Array.append args tail
+    invoke provider meth args
 
 /// Generate scenario execution function
 let generate events parsers (scenario,lines) =
