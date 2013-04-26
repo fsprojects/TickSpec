@@ -46,6 +46,8 @@
     <Compile Include="CoffeeSteps.fs" />
     <EmbeddedResource Include="Pacman.feature" />
     <Compile Include="PacmanSteps.fs" />
+    <EmbeddedResource Include="Scrabble.feature" />
+    <Compile Include="ScrabbleSteps.fs" />
     <Compile Include="Atm.fs" />
     <EmbeddedResource Include="Atm.feature" />
     <Compile Include="AtmSteps.fs" />

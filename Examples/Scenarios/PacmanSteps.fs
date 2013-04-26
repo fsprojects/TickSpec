@@ -1,7 +1,7 @@
 ﻿[<TickSpec.StepScope(Feature="Pacman score")>]
 module PacmanSteps
 
-type CoffeeFixture () = inherit TickSpec.NUnit.FeatureFixture("Pacman.feature")
+type PacmanFixture () = inherit TickSpec.NUnit.FeatureFixture("Pacman.feature")
 
 type Property =
     | PacDot
