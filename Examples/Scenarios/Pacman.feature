@@ -1,5 +1,13 @@
 ﻿Feature: Pacman score
 
+Scenario: Pacman eats dots
+  When pacman eats a pac-dot
+  Then he scores 10
+
+Scenario: Pacman eats power pellets
+  When pacman eats a power pellet
+  Then he scores 50
+
 Scenario Outline: Pacman eats ghosts
   Given the ghosts are vulnerable
   When pacman eats <ghost> in succession
