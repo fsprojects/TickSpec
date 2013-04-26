@@ -3,7 +3,7 @@ module ScrabbleSteps
 
 type ScrabbleFixture () = inherit TickSpec.NUnit.FeatureFixture("Scrabble.feature")
 
-let points = function
+let letterPoints = function
     | 'A' | 'E' | 'I' | 'L' | 'N' | 'O' | 'R' | 'S' | 'T' | 'U' -> 1
     | 'D' | 'G' -> 2
     | 'B' | 'C' | 'M' | 'P' -> 3
@@ -13,17 +13,21 @@ let points = function
     | 'Q' | 'Z' -> 10
     | a -> invalidOp <| sprintf "Letter %c" a
 
+let wordPoints (word:string) =
+    word.ToCharArray() |> Array.sumBy letterPoints
+
 type Property =
     | Word of string
     | DLS of char
     | TWS
     | CenterStar
 
-let total properties =    
+let total properties =
     properties |> List.fold (fun (n,m) p ->
         match p with
-        | Word(word) -> (n + (word.ToCharArray() |> Array.sumBy points)), m
-        | DLS(letter) -> n + points letter, m
+        | Word(word) when word.Length = 7 -> 50 + n + wordPoints word, m
+        | Word(word) -> n + wordPoints word, m
+        | DLS(letter) -> n + letterPoints letter, m
         | TWS -> (n, m*3)
         | CenterStar -> (n, m*2)
     ) (0,1)
@@ -43,6 +47,8 @@ let [<When>] ``player (\d+) plays "([A-Z]+)" at (\d+[A-Z])`` (player:int,word:st
 let [<When>] ``player (\d+) prefixes "([A-Z]+)" with "([A-Z]+)" at (\d+[A-Z])``
     (player:int,prefix:string,word:string,location:string) =
     hold(Word(prefix+word))
+let [<When>] ``forms ([A-Z]+)`` (word:string) =
+    hold(Word(word))
 let [<When>] ``([A-Z]) is on a DLS`` (letter:char) =
     hold(DLS(letter))
 let [<When>] ``([A-Z]) is on a TWS`` (letter:char) =
