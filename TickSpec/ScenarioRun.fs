@@ -69,18 +69,34 @@ let convertString
 
 /// Converts a table to the specified array type
 let convertTable parsers provider (t:Type) (table:Table) =
-    let t = t.GetElementType()
-    let ps = t.GetProperties()
+    let t = t.GetElementType()    
     let ar = Array.CreateInstance(t,table.Rows.Length)
-    table.Rows |> Array.iteri (fun y row ->
-        let e = Activator.CreateInstance(t)
-        for x = 0 to table.Header.Length-1 do
-            let column = table.Header.[x]
-            let p = ps |> Seq.find (fun p -> String.Compare(p.Name, column, ignoreCase=true)=0)           
-            let value = convertString parsers provider p.PropertyType row.[x]
-            p.SetValue(e, value, [||])
-        ar.SetValue(e, y)
-    )
+    let cons = 
+        t.GetConstructors()
+        |> Seq.tryFind (fun c -> c.GetParameters().Length = table.Header.Length)
+    match cons with
+    | Some c ->
+        // Try to use type's constructor
+        table.Rows |> Array.iteri (fun y row ->
+            let ps = c.GetParameters()
+            let args = 
+                Array.zip ps row
+                |> Array.map (fun (p,s) -> convertString parsers provider p.ParameterType s)
+            let e = Activator.CreateInstance(t, args)
+            ar.SetValue(e, y)
+        )
+    | None -> 
+        // Try to use type's properties
+        let ps = t.GetProperties()
+        table.Rows |> Array.iteri (fun y row ->
+            let e = Activator.CreateInstance(t)
+            for x = 0 to table.Header.Length-1 do
+                let column = table.Header.[x]
+                let p = ps |> Seq.find (fun p -> String.Compare(p.Name, column, ignoreCase=true)=0)           
+                let value = convertString parsers provider p.PropertyType row.[x]
+                p.SetValue(e, value, [||])
+            ar.SetValue(e, y)
+        )
     ar
 
 /// Invokes method with match values as arguments
