@@ -62,7 +62,9 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             let m = sprintf "%s on line %d in %s\r\n\t\"%s\"" e line.Number (feature.Trim()) (line.Text.Trim())
             StepException(m,line.Number,scenario.Name) |> raise
         if matches.IsEmpty then fail "Missing step definition"
-        if matches.Length > 1 then fail "Ambiguous step definition"
+        if matches.Length > 1 then 
+            let ms = matches |> List.map (fun (m,mi) -> sprintf "%s.%s" mi.DeclaringType.Name mi.Name) 
+            fail <| sprintf "Ambiguous step definition (%s)" (String.concat "|" ms)
         let r,m = matches.Head
         if not m.IsGenericMethod && m.ReturnType <> typeof<Void> then
             fail "Step methods must return void/unit"
@@ -98,7 +100,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             |> Seq.fold (fun (tags,features,scenarios) (x:StepScopeAttribute) -> 
                 x.Tag::tags, x.Feature::features, x.Scenario::scenarios
             ) ([],[],[])
-        let methods = 
+        let methods =
             types 
             |> Seq.collect (fun t -> 
                 let attributes = t.GetCustomAttributes(typeof<StepScopeAttribute>,true)
