@@ -20,6 +20,7 @@ type internal BlockType =
 type internal ItemType =
     | BulletPoint of string
     | TableRow of string[]
+    | DocString of string
 
 /// Line type
 type internal LineType = 
@@ -71,6 +72,9 @@ let (|Bullet|_|) (s:string) =
     if s.Trim().StartsWith("*") then 
         s.Substring(s.IndexOf("*")+1).Trim() |> Some
     else None
+let (|DocMarker|_|) (s:string) =
+    if s.Trim() = "\"\"\"" then Some s
+    else None
 let (|SharedExamplesOf|_|) s =
     tryRegex s @"^\s*Shared\s+Examples\s+Of\s+@(.*[^:])"
     |> Option.map (fun t -> SharedExamplesOf t)
@@ -86,7 +90,7 @@ let (|Attributes|_|) (s:string) =
     else None
 
 /// Line state given previous line state and new line text
-let parseLine = function
+let parseLine = function 
     | _, Scenario text -> BlockStart (Named(text)) |> Some
     | _, IsBackground -> BlockStart Background |> Some
     | _, SharedExamplesOf tag -> BlockStart (Shared(Some(tag))) |> Some
@@ -114,6 +118,11 @@ let parseLine = function
     | Step(ThenStep _), AndLine text | Item(Step(ThenStep _),_), AndLine text
     | Step(ThenStep _), ButLine text | Item(Step(ThenStep _),_), ButLine text
         -> Step(ThenStep text) |> Some
+    | (Step(GivenStep _) as line), DocMarker xs 
+    | (Step(WhenStep _) as line), DocMarker xs 
+    | (Step(ThenStep _) as line), DocMarker xs
+    | Item (line, DocString(_)), xs ->
+        Item(line, DocString(xs)) |> Some
     | (Step(GivenStep _) as line), Bullet xs 
     | (Step(WhenStep _) as line), Bullet xs 
     | (Step(ThenStep _) as line), Bullet xs

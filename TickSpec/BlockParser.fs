@@ -14,18 +14,29 @@ let mapItems items =
                 items |> List.map (function
                     | TableRow _ -> None
                     | BulletPoint s -> Some s
+                    | DocString _ -> None
                 )
                 |> List.choose identity
-            Some(bullets |> List.toArray),None
+            Some(bullets |> List.toArray),None,None
         | TableRow header ->
             let rows =
                 xs |> List.map (function
                     | TableRow cols -> Some cols
                     | BulletPoint _ -> None
+                    | DocString _ -> None
                 )
                 |> List.choose identity
-            None,Some(Table(header,rows |> List.toArray))
-    | [] -> None,None
+            None,Some(Table(header,rows |> List.toArray)),None
+        | DocString _ ->
+            let lines =
+               items |> List.map (function
+                        | TableRow _ -> None
+                        | BulletPoint _ -> None
+                        | DocString s -> Some s
+                )
+                |> List.choose id
+            None,None,Some(String.concat "\r\n" lines)
+    | [] -> None,None,None
 
 /// Build blocks in specified lines
 let buildBlocks lines =
@@ -71,8 +82,8 @@ let buildBlocks lines =
         |> (fun (text, line, items) -> text, line, mapItems items)
     )
     // Map to lines
-    |> Seq.map (fun (text, (block,blockN,tags,n,line,step), (bullets,table)) ->
-        let line = {Number=n;Text=text;Bullets=bullets;Table=table}
+    |> Seq.map (fun (text, (block,blockN,tags,n,line,step), (bullets,table,doc)) ->
+        let line = {Number=n;Text=text;Bullets=bullets;Table=table;Doc=doc}
         block,blockN,tags,line,step
     )
     // Group into blocks

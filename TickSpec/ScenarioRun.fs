@@ -104,7 +104,7 @@ let invokeStep
         (parsers:IDictionary<Type,MethodInfo>)
         (provider:IServiceProvider) 
         (meth:MethodInfo,args:string[],
-         bullets:string[] option,table:Table option) =
+         bullets:string[] option,table:Table option,doc:string option) =
     let meth = meth |> toConcreteMethod
     let ps = meth.GetParameters()
     let buildArgs (xs:string[]) =
@@ -124,14 +124,15 @@ let invokeStep
         )
     let args = buildArgs args
     let tail =
-        match bullets,table with
-        | Some xs,None -> [|box (toArray (typeof<string>) xs)|]
-        | None,Some table -> 
+        match bullets,table,doc with
+        | Some xs,None,None -> [|box (toArray (typeof<string>) xs)|]
+        | None,Some table,None -> 
             let p = ps.[ps.Length-1].ParameterType
             if p = typeof<Table> then [|box table|]
             elif p.IsArray then [|convertTable parsers provider p table|]
             else failwith "Expecting table argument"
-        | _,_ -> [||]
+        | None,None,Some doc -> [|box doc|]
+        | _,_,_ -> [||]
     let args = Array.append args tail
     invoke provider meth args
 
@@ -152,7 +153,7 @@ let generate events parsers (scenario,lines) =
             lines |> Seq.iter (fun (line:LineSource,m,args) ->
                 try
                     beforeStepEvents |> invokeEvents
-                    (m,args,line.Bullets,line.Table) |> invokeStep parsers provider
+                    (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
                 finally
                     afterStepEvents |> invokeEvents
             )

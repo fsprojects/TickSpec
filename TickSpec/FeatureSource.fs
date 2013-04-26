@@ -25,6 +25,7 @@ and LineSource =
         Text : string
         Bullets : string[] option
         Table : Table option
+        Doc : string option
     }
 and Table (header:string[],rows:string[][]) =
     new (header) = Table(header,[|[||]|])

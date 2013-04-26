@@ -70,7 +70,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             fail "Step methods must return void/unit"
         let tableCount = line.Table |> Option.count
         let bulletsCount = line.Bullets |> Option.count
-        let argCount = r.Groups.Count-1+tableCount+bulletsCount
+        let docCount = line.Doc |> Option.count
+        let argCount = r.Groups.Count-1+tableCount+bulletsCount+docCount
         if m.GetParameters().Length <> argCount then
             fail "Parameter count mismatch"
         line,m,extractArgs r

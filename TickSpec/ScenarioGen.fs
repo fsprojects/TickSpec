@@ -386,6 +386,8 @@ let defineStepMethod
             gen.Emit(OpCodes.Newobj, ci)
             gen.Emit(OpCodes.Throw) 
     )
+    // Emit doc argument
+    line.Doc |> Option.iter (fun doc -> gen.Emit(OpCodes.Ldstr, doc))
     // Emit method invoke
     if mi.IsStatic then
         gen.EmitCall(OpCodes.Call, mi, null)
