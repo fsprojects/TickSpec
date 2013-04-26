@@ -59,7 +59,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     let resolveLine feature (scenario:ScenarioSource) (step,line) =
         let matches = matchStep feature scenario step
         let fail e =
-            let m = sprintf "%s on line %d" e line.Number
+            let m = sprintf "%s on line %d in %s\r\n\t\"%s\"" e line.Number (feature.Trim()) (line.Text.Trim())
             StepException(m,line.Number,scenario.Name) |> raise
         if matches.IsEmpty then fail "Missing step definition"
         if matches.Length > 1 then fail "Ambiguous step definition"
