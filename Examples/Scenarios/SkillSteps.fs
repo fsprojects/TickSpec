@@ -5,12 +5,12 @@ open NUnit.Framework
 
 type SkillFixture () = inherit TickSpec.NUnit.FeatureFixture("Skill.feature")
 
-type Technique = Katana | KarateKick | RoundhouseKick with
+type Technique = Katana | ``Karate-Kick`` | ``Roundhouse-Kick`` with
     override technique.ToString() = Union.CaseName technique
 let (|Technique|) = function
     | "katana" -> Katana
-    | "karate-kick" -> KarateKick
-    | "roundhouse-kick" -> RoundhouseKick
+    | "karate-kick" -> ``Karate-Kick``
+    | "roundhouse-kick" -> ``Roundhouse-Kick``
     | s -> invalidOp("Unknown technique: " + s)
 
 type Danger = Low | High | Extreme with
@@ -23,8 +23,8 @@ let (|Danger|) = function
 
 let skills opponent =
     match opponent with
-    | "a samurai" -> [Katana,High; KarateKick,Low] 
-    | "Chuck Norris" -> [Katana,Extreme; KarateKick,Extreme; RoundhouseKick,Extreme]
+    | "a samurai" -> [Katana,High; ``Karate-Kick``,Low] 
+    | "Chuck Norris" -> [Katana,Extreme; ``Karate-Kick``,Extreme; ``Roundhouse-Kick``,Extreme]
     | s -> invalidOp("Unknown opponent: " + s)
 
 let techniques (table:Table) =
@@ -43,6 +43,6 @@ let [<When>] ``a ninja faces (a samurai|Chuck Norris)`` (opponent) =
     let skills = skills opponent
     attack <- skills |> List.filter (fun (skill,_) -> allowed |> List.exists ((=) skill))
 
-let [<Then>] ``he should expect the following attack techniques`` (table:Table) =
-    let expected = techniques table
-    Assert.AreEqual(expected, attack)
+let [<Then>] ``he should expect the following attack techniques`` (ratings:(Technique * Danger)[]) =
+    //let ratings = techniques table
+    Assert.AreEqual(ratings, attack)
