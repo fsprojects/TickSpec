@@ -235,6 +235,39 @@ let emitArray
     )
     gen.Emit(OpCodes.Ldloc, local)
         
+/// Emits object array based on table using object's constructor
+let emitObjectArray
+        (gen:ILGenerator)
+        (providerField:FieldBuilder)
+        (parsers:IDictionary<Type,MethodInfo>)  
+        (paramType:Type) 
+        (table:Table)
+        (ci:ConstructorInfo) =
+    let t = paramType.GetElementType()
+    // Define local variables
+    let localArray = gen.DeclareLocal(paramType).LocalIndex
+    let localItem = gen.DeclareLocal(t).LocalIndex
+    // Define array
+    gen.Emit(OpCodes.Ldc_I4, table.Rows.Length)
+    gen.Emit(OpCodes.Newarr,t)
+    gen.Emit(OpCodes.Stloc, localArray)
+    // Set array values
+    table.Rows |> Seq.iteri (fun y row ->
+        // Construct item
+        for x = 0 to table.Header.Length-1 do
+            let value = row.[x]
+            let t = ci.GetParameters().[x].ParameterType
+            emitValue gen providerField parsers t value
+        gen.Emit(OpCodes.Newobj, ci)
+        gen.Emit(OpCodes.Stloc, localItem)
+        // Store item
+        gen.Emit(OpCodes.Ldloc, localArray)
+        gen.Emit(OpCodes.Ldc_I4,y)
+        gen.Emit(OpCodes.Ldloc, localItem)
+        gen.Emit(OpCodes.Stelem,t)
+    )
+    gen.Emit(OpCodes.Ldloc, localArray)
+
 /// Emits argument
 let emitArgument
         (gen:ILGenerator)
@@ -330,7 +363,29 @@ let defineStepMethod
         emitArray gen providerField parsers t x
     )
     // Emit table argument
-    line.Table |> Option.iter (emitTable gen)
+    line.Table |> Option.iter (fun table ->
+        let p = ps.[ps.Length-1]
+        let t = p.ParameterType
+        if t = typeof<Table> then emitTable gen table
+        elif t.IsArray then
+            let found =
+                t.GetElementType().GetConstructors() 
+                |> Seq.tryFind (fun c -> c.GetParameters().Length = table.Header.Length)
+            match found with
+            | Some ci -> emitObjectArray gen providerField parsers t table ci
+            | None ->                 
+                let ci = typeof<ArgumentException>.GetConstructor([|typeof<string>;typeof<string>|])
+                gen.Emit(OpCodes.Ldstr, sprintf "No matching constructor found on type: %s" (t.GetElementType().Name))
+                gen.Emit(OpCodes.Ldstr, p.Name)
+                gen.Emit(OpCodes.Newobj, ci)
+                gen.Emit(OpCodes.Throw)                
+        else
+            let ci = typeof<ArgumentException>.GetConstructor([|typeof<string>;typeof<string>|])
+            gen.Emit(OpCodes.Ldstr, "Expecting table or array argument")
+            gen.Emit(OpCodes.Ldstr, p.Name)
+            gen.Emit(OpCodes.Newobj, ci)
+            gen.Emit(OpCodes.Throw) 
+    )
     // Emit method invoke
     if mi.IsStatic then
         gen.EmitCall(OpCodes.Call, mi, null)
