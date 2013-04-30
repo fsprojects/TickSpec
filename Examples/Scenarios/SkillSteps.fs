@@ -27,12 +27,6 @@ let skills opponent =
     | "Chuck Norris" -> [Katana,Extreme; ``Karate-Kick``,Extreme; ``Roundhouse-Kick``,Extreme]
     | s -> invalidOp("Unknown opponent: " + s)
 
-let techniques (table:Table) =
-    [for row in table.Rows ->
-        match row with
-        | [|Technique technique;Danger danger|] -> technique, danger
-        | xs -> invalidOp "Unexpected row columns"]
-
 let mutable allowed = []
 let mutable attack = []
 
@@ -44,5 +38,4 @@ let [<When>] ``a ninja faces (a samurai|Chuck Norris)`` (opponent) =
     attack <- skills |> List.filter (fun (skill,_) -> allowed |> List.exists ((=) skill))
 
 let [<Then>] ``he should expect the following attack techniques`` (ratings:(Technique * Danger)[]) =
-    //let ratings = techniques table
     Assert.AreEqual(ratings, attack)

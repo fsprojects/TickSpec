@@ -52,6 +52,10 @@
     <Compile Include="Atm.fs" />
     <EmbeddedResource Include="Atm.feature" />
     <Compile Include="AtmSteps.fs" />
+    <EmbeddedResource Include="ImpliedPrice.feature" />
+    <Compile Include="ImpliedPrice.fs" />
+    <EmbeddedResource Include="ValetParking.feature" />
+    <Compile Include="ValetParkingSteps.fs" />
     <EmbeddedResource Include="Fight.feature" />
     <Compile Include="FightSteps.fs" />
     <EmbeddedResource Include="Skill.feature" />
