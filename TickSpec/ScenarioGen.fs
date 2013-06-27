@@ -118,7 +118,7 @@ let emitInstance (gen:ILGenerator) (providerField:FieldBuilder) (t:Type) =
     let getService =
         typeof<System.IServiceProvider>
             .GetMethod("GetService",[|typeof<Type>|])
-    gen.EmitCall(OpCodes.Callvirt,getService,null)
+    gen.Emit(OpCodes.Callvirt,getService)
     gen.Emit(OpCodes.Unbox_Any,t)    
                         
 /// Emits type argument
@@ -303,9 +303,6 @@ let defineStepMethod
     let gen = stepMethod.GetILGenerator()
     // Set marker in source document    
     gen.MarkSequencePoint(doc,n,1,n,line.Text.Length+1)
-    // For instance methods get instance value from service provider
-    if not mi.IsStatic then
-        emitInstance gen providerField mi.DeclaringType
     // Handle generic methods
     let mi =
         if mi.ContainsGenericParameters then
@@ -322,6 +319,9 @@ let defineStepMethod
     let ps = mi.GetParameters()
     let zipped = Seq.zip args ps
 #if SILVERLIGHT
+    // For instance methods get instance value from service provider
+    if not mi.IsStatic then
+        emitInstance gen providerField mi.DeclaringType
     zipped
     |> Seq.iter (emitArgument gen providerField parsers)
 #else
@@ -353,6 +353,9 @@ let defineStepMethod
         // }
         gen.EndExceptionBlock()
     )
+    // For instance methods get instance value from service provider
+    if not mi.IsStatic then
+        emitInstance gen providerField mi.DeclaringType
     locals |> Seq.iter (fun local ->
         gen.Emit(OpCodes.Ldloc, local)
     )
@@ -392,7 +395,7 @@ let defineStepMethod
     if mi.IsStatic then
         gen.EmitCall(OpCodes.Call, mi, null)
     else
-        gen.EmitCall(OpCodes.Callvirt, mi, null)
+        gen.Emit(OpCodes.Callvirt, mi)
     // Emit return
     gen.Emit(OpCodes.Ret)
     // Return step method
@@ -432,7 +435,7 @@ let defineRunMethod
         let exit = gen.BeginExceptionBlock()
         beforeStepEvents |> emitEvents
         gen.Emit(OpCodes.Ldarg_0)
-        gen.EmitCall(OpCodes.Callvirt,stepMethod,null)
+        gen.Emit(OpCodes.Callvirt,stepMethod)
         gen.Emit(OpCodes.Leave_S, exit)
         gen.BeginFinallyBlock()
         afterStepEvents |> emitEvents
