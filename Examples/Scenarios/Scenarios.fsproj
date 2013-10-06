@@ -62,6 +62,8 @@
     <Compile Include="SkillSteps.fs" />
     <EmbeddedResource Include="Killer.feature" />
     <Compile Include="KillerSteps.fs" />
+    <EmbeddedResource Include="ApplesAndPies.feature" />
+    <Compile Include="ApplesAndPiesSteps.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
