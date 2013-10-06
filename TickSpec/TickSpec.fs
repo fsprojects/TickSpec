@@ -37,6 +37,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     /// Chooses matching definitions for specifed text
     let chooseDefinitions feature scenario text definitions =  
         let chooseDefinition pattern =
+            // Ensure the full line matches (tolerating leading whitespace and
+            // trailing whitespace + punctuation) to stop ambigious matches on
+            // overlapping definition
+            // (start of line, optional whitespace, definition, optional whitespace/punctuation, end of line)
+            let pattern = sprintf "^\s*%s[\s\.,]*$" pattern
             let r = Regex.Match(text,pattern)
             if r.Success then Some r else None
         definitions
