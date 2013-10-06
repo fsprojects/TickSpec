@@ -4,15 +4,15 @@
   Scenario: I ♥ Apple
     When I eat an apple
     Then 1 apples have been eaten
-	And 0 apple pies have been eaten
+    And 0 apple pies have been eaten
 
   Scenario: PIES!
     When I eat an apple pie
     Then 0 apples have been eaten
-	And 1 apple pies have been eaten
+    And 1 apple pies have been eaten
 
   Scenario: Greedy!
     When I eat an apple
-	And I eat an apple pie
+    And I eat an apple pie
     Then 1 apples have been eaten
-	And 1 apple pies have been eaten
+    And 1 apple pies have been eaten
