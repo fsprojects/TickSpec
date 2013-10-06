@@ -8,6 +8,10 @@ open NUnit.Framework
 let applesEaten = ref 0
 let applePiesEaten = ref 0
 
+let [<BeforeScenario>] Setup () =
+    applesEaten := 0
+    applePiesEaten := 0
+
 let [<When>] ``I eat an apple`` () =
     incr applesEaten
 
