@@ -32,7 +32,6 @@ let [<Given>] ``I have (.*) (black|blue) garments in stock``
     | "black" -> blackItem <- {blackItem with Count=n}
     | "blue" -> blueItem <- {blueItem with Count=n}    
     | _ -> invalidOp("")
-    blackItem
 
 let [<When>] ``he returns the garment for a replacement in (black|blue),`` 
     (color:string) =

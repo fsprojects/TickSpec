@@ -20,9 +20,3 @@ type AdditionSteps () =
     [<Then>]
     member __.``the result should be (.*) on the screen`` (n:int) =        
         Assert.Equal(n, calc.Result)
-
-module Boo =
-
-    let [<Given>] ``something`` () = ()
-
-    let [<Given>] ``something else`` () = ()
