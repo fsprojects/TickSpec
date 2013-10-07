@@ -7,16 +7,16 @@
    {
       private StockItem _stockItem;
 
+      [Given(@"a customer buys a black jumper")]
+      public void GivenACustomerBuysABlackJumper()
+      {
+      }
+
       [Given(@"I have (.*) black jumper left in stock")]
       [Given(@"I have (.*) black jumpers left in stock")]
       public void GivenIHaveNBlackJumpersLeftInStock(int n)
       {
          _stockItem = new StockItem() { Count = n };  
-      }
-
-      [Given(@"a customer buys a black jumper")]
-      public void GivenACustomerBuysABlackJumper()
-      {
       }
 
       [When(@"he returns the jumper for a refund")]

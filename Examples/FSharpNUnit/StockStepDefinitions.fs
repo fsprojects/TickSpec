@@ -21,7 +21,8 @@ let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) =
 let mutable blueItem = { Count = 0 }
 let mutable blackItem = { Count = 0 }
     
-let [<Given>] ``that a customer buys a (black|blue) garment`` 
+
+let [<Given>] ``that a customer buys a (black|blue) garment``
     (color:string) = 
     () 
     
@@ -31,6 +32,7 @@ let [<Given>] ``I have (.*) (black|blue) garments in stock``
     | "black" -> blackItem <- {blackItem with Count=n}
     | "blue" -> blueItem <- {blueItem with Count=n}    
     | _ -> invalidOp("")
+    blackItem
 
 let [<When>] ``he returns the garment for a replacement in (black|blue),`` 
     (color:string) =

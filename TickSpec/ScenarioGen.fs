@@ -428,8 +428,9 @@ let defineRunMethod
                 emitInstance gen providerField mi.DeclaringType
                 gen.EmitCall(OpCodes.Callvirt, mi, null)
         )
-    let exit = gen.BeginExceptionBlock()
+
     beforeScenarioEvents |> emitEvents
+    let exit = gen.BeginExceptionBlock()
     // Execute steps
     stepMethods |> Seq.iter (fun stepMethod ->
         let exit = gen.BeginExceptionBlock()

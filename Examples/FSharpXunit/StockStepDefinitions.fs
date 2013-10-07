@@ -6,17 +6,22 @@ open Xunit
 
 let mutable stockItem = { Count = 0 }
 
-let [<Given>] ``a customer buys a black jumper`` () = ()
+
+type State () =
+    let [<Given>] ``a customer buys a black jumper`` () = ()
+          
+    [<Given>] 
+    member __.``I have (.*) black jumpers left in stock`` (n:int) =  
+        stockItem <- { stockItem with Count = n }
       
-let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) =  
-    stockItem <- { stockItem with Count = n }
+    [<When>] 
+    member __.``he returns the jumper for a refund`` () =  
+        stockItem <- { stockItem with Count = stockItem.Count + 1 }
       
-let [<When>] ``he returns the jumper for a refund`` () =  
-    stockItem <- { stockItem with Count = stockItem.Count + 1 }
-      
-let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) =     
-    let passed = (stockItem.Count = n)
-    Assert.True(passed)
+    [<Then>] 
+    member __.``I should have (.*) black jumpers in stock`` (n:int) =     
+        let passed = (stockItem.Count = n)
+        Assert.True(passed)
     
 let mutable blueItem = { Count = 0 }
 let mutable blackItem = { Count = 0 }
