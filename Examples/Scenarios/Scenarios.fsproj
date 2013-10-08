@@ -64,6 +64,8 @@
     <Compile Include="KillerSteps.fs" />
     <EmbeddedResource Include="ApplesAndPies.feature" />
     <Compile Include="ApplesAndPiesSteps.fs" />
+    <EmbeddedResource Include="BulletTime.feature" />
+    <Compile Include="BulletTimeSteps.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
