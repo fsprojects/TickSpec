@@ -6,9 +6,9 @@ open Xunit
 
 let mutable stockItem = { Count = 0 }
 
-
 type State () =
-    let [<Given>] ``a customer buys a black jumper`` () = ()
+    [<Given>] 
+    member __.``a customer buys a black jumper`` () = ()
           
     [<Given>] 
     member __.``I have (.*) black jumpers left in stock`` (n:int) =  
