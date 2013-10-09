@@ -13,14 +13,6 @@ let split (s:string) =
     else s.Split [|','|]
          |> Array.map (fun x -> x.Trim())
 
-/// Converts string array to array of specified type
-let toArray (t:Type) (xs:string[]) =
-    let culture = System.Globalization.CultureInfo.InvariantCulture
-    let vs = xs |> Array.map (fun x -> Convert.ChangeType(x,t,culture))
-    let ar = Array.CreateInstance(t,vs.Length)
-    for i = 0 to ar.Length-1 do ar.SetValue(vs.[i],i)
-    ar
-
 /// Gets object instance for specified method
 let getInstance (provider:IServiceProvider) (m:MethodInfo) =
     if m.IsStatic then null
@@ -44,8 +36,18 @@ let toConcreteMethod (m:MethodInfo) =
     else
         m
 
+/// Converts string array to array of specified type
+let rec toArray
+        (parsers:IDictionary<Type,MethodInfo>) 
+        provider
+        (t:Type) (xs:string[]) =
+    let culture = System.Globalization.CultureInfo.InvariantCulture
+    let vs = xs |> Array.map (fun x -> convertString parsers provider t x)
+    let ar = Array.CreateInstance(t,vs.Length)
+    for i = 0 to ar.Length-1 do ar.SetValue(vs.[i],i)
+    ar
 /// Converts string (s) to parameter Type (p)
-let convertString
+and convertString
         (parsers:IDictionary<Type,MethodInfo>) 
         provider (p:Type) s =
     let hasParser, parser = parsers.TryGetValue(p)
@@ -54,7 +56,13 @@ let convertString
         parser.Invoke(getInstance provider parser, [|s|])
     elif p.IsEnum then Enum.Parse(p,s,ignoreCase=true)
     elif p.IsArray then
-        toArray (p.GetElementType()) (split s) |> box
+        toArray parsers provider (p.GetElementType()) (split s) |> box
+    elif FSharpType.IsTuple p then
+        let ts = FSharpType.GetTupleElements(p)
+        let ar = toArray parsers provider typeof<string> (split s) :?> string[]
+        let ar = Array.zip ts ar
+        let xs = [|for (t,x) in ar -> convertString parsers provider t x|]
+        FSharpValue.MakeTuple(xs, p)
     elif FSharpType.IsUnion p then
         let cases = FSharpType.GetUnionCases p
         let unionCase = cases |> Seq.find (fun case -> String.Compare(s, case.Name, ignoreCase=true) = 0)
@@ -125,7 +133,10 @@ let invokeStep
     let args = buildArgs args
     let tail =
         match bullets,table,doc with
-        | Some xs,None,None -> [|box (toArray (typeof<string>) xs)|]
+        | Some xs,None,None ->
+            let p = ps.[ps.Length-1]
+            let t = p.ParameterType.GetElementType()
+            [|box (toArray parsers provider t xs)|]
         | None,Some table,None -> 
             let p = ps.[ps.Length-1].ParameterType
             if p = typeof<Table> then [|box table|]
