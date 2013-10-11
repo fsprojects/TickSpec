@@ -183,7 +183,7 @@ let emitUnionCase (gen:ILGenerator) (paramType:Type) (arg:string) =
         |> emitThrow gen typeof<System.ArgumentException>
 
 /// Emits value
-let emitValue 
+let rec emitValue 
         (gen:ILGenerator) 
         (providerField:FieldBuilder)
         (parsers:IDictionary<Type,MethodInfo>) 
@@ -207,10 +207,40 @@ let emitValue
         gen.EmitCall(OpCodes.Call,mi,null)
         // Emit cast to parameter type
         gen.Emit(OpCodes.Unbox_Any,paramType)
+    elif FSharpType.IsTuple paramType then
+        let emitValue = emitValue gen providerField parsers
+        emitTuple gen emitValue paramType arg
     elif FSharpType.IsUnion paramType then
         emitUnionCase gen paramType arg
     else
         emitConvert gen paramType arg
+/// Emits tuple
+and emitTuple (gen:ILGenerator) (emitValue) (paramType:Type) (arg:string) =
+    // Tuple elements
+    let ts = FSharpType.GetTupleElements(paramType)
+    let args =
+        if String.IsNullOrEmpty(arg.Trim()) then [||]
+        else arg.Split [|','|] |> Array.map (fun x -> x.Trim())
+    // Define local variable for temporary array
+    let localArray = gen.DeclareLocal(typeof<obj[]>).LocalIndex
+    // New array
+    gen.Emit(OpCodes.Ldc_I4, ts.Length)
+    gen.Emit(OpCodes.Newarr,typeof<obj>)
+    gen.Emit(OpCodes.Stloc, localArray)
+    // Set array values
+    Array.zip ts args
+    |> Array.iteri (fun i (t,arg) ->
+        gen.Emit(OpCodes.Ldloc, localArray)
+        gen.Emit(OpCodes.Ldc_I4,i)
+        emitValue t arg
+        gen.Emit(OpCodes.Box, t)
+        gen.Emit(OpCodes.Stelem, typeof<obj>)
+    )
+    // Make tuple
+    let mi = typeof<FSharpValue>.GetMethod("MakeTuple")
+    gen.Emit(OpCodes.Ldloc, localArray)
+    emitType gen paramType
+    gen.EmitCall(OpCodes.Call, mi, null)
         
 /// Emits array
 let emitArray 
