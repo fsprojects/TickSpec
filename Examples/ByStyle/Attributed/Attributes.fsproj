@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>b3aa7d1b-e83a-4c9b-97cf-12293af46e10</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Scenarios</RootNamespace>
+    <AssemblyName>Scenarios</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <Name>Attributes</Name>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\Debug\Scenarios.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <Tailcalls>true</Tailcalls>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>3</WarningLevel>
+    <DocumentationFile>bin\Release\Scenarios.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets" Condition=" Exists('$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.0\Framework\v4.0\Microsoft.FSharp.Targets')" />
+  <ItemGroup>
+    <Content Include="ReadMe.txt" />
+    <Compile Include="Prelude.fs" />
+    <Compile Include="FeatureFixture.fs" />
+    <Compile Include="Calculator.fs" />
+    <EmbeddedResource Include="Addition.feature" />
+    <Compile Include="AdditionSteps.fs" />
+    <EmbeddedResource Include="Coffee.feature" />
+    <Compile Include="CoffeeSteps.fs" />
+    <EmbeddedResource Include="Pacman.feature" />
+    <Compile Include="PacmanSteps.fs" />
+    <EmbeddedResource Include="Scrabble.feature" />
+    <Compile Include="Scrabble.fs" />
+    <Compile Include="ScrabbleSteps.fs" />
+    <Compile Include="Atm.fs" />
+    <EmbeddedResource Include="Atm.feature" />
+    <Compile Include="AtmSteps.fs" />
+    <EmbeddedResource Include="ImpliedPrice.feature" />
+    <Compile Include="ImpliedPrice.fs" />
+    <EmbeddedResource Include="ValetParking.feature" />
+    <Compile Include="ValetParkingSteps.fs" />
+    <EmbeddedResource Include="Fight.feature" />
+    <Compile Include="FightSteps.fs" />
+    <EmbeddedResource Include="Skill.feature" />
+    <Compile Include="SkillSteps.fs" />
+    <EmbeddedResource Include="Killer.feature" />
+    <Compile Include="KillerSteps.fs" />
+    <EmbeddedResource Include="ApplesAndPies.feature" />
+    <Compile Include="ApplesAndPiesSteps.fs" />
+    <EmbeddedResource Include="BulletTime.feature" />
+    <Compile Include="BulletTimeSteps.fs" />
+    <EmbeddedResource Include="MorningDew.feature" />
+    <Compile Include="MorningDewSteps.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj">
+      <Name>TickSpec</Name>
+      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
