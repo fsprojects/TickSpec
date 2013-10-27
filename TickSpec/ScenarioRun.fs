@@ -65,7 +65,7 @@ and convertString
         FSharpValue.MakeTuple(xs, p)
     elif FSharpType.IsUnion p then
         let cases = FSharpType.GetUnionCases p
-        let unionCase = cases |> Seq.find (fun case -> String.Compare(s, case.Name, ignoreCase=true) = 0)
+        let unionCase = cases |> Seq.find (fun case -> String.Compare(s, case.Name, StringComparison.InvariantCultureIgnoreCase) = 0)
         FSharpValue.MakeUnion(unionCase,[||])
     elif p.IsGenericType && p.GetGenericTypeDefinition() = typeof<System.Nullable<_>> then
         let t = p.GetGenericArguments().[0]
@@ -100,7 +100,7 @@ let convertTable parsers provider (t:Type) (table:Table) =
             let e = Activator.CreateInstance(t)
             for x = 0 to table.Header.Length-1 do
                 let column = table.Header.[x]
-                let p = ps |> Seq.find (fun p -> String.Compare(p.Name, column, ignoreCase=true)=0)           
+                let p = ps |> Seq.find (fun p -> String.Compare(p.Name, column, StringComparison.InvariantCultureIgnoreCase)=0)           
                 let value = convertString parsers provider p.PropertyType row.[x]
                 p.SetValue(e, value, [||])
             ar.SetValue(e, y)
