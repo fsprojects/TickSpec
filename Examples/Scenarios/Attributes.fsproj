@@ -10,7 +10,7 @@
     <RootNamespace>Scenarios</RootNamespace>
     <AssemblyName>Scenarios</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <Name>Scenarios</Name>
+    <Name>Attributes</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
