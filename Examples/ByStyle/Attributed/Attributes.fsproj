@@ -8,7 +8,7 @@
     <ProjectGuid>b3aa7d1b-e83a-4c9b-97cf-12293af46e10</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Scenarios</RootNamespace>
-    <AssemblyName>Scenarios</AssemblyName>
+    <AssemblyName>Attributes</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>Attributes</Name>
   </PropertyGroup>
@@ -58,8 +58,6 @@
     <Compile Include="ValetParkingSteps.fs" />
     <EmbeddedResource Include="Fight.feature" />
     <Compile Include="FightSteps.fs" />
-    <EmbeddedResource Include="Skill.feature" />
-    <Compile Include="SkillSteps.fs" />
     <EmbeddedResource Include="Killer.feature" />
     <Compile Include="KillerSteps.fs" />
     <EmbeddedResource Include="ApplesAndPies.feature" />
