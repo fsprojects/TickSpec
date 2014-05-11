@@ -1,5 +1,21 @@
 ﻿Feature: Scrabble score
 
+Scenario: POW
+ Given an empty scrabble board
+ When player 1 plays "POW" at 8E
+ Then he scores 8
+
+Scenario: 2-Letter Words
+ Given an empty scrabble board
+ When player 1 plays "<word>" at 8E
+ Then he scores <score>
+
+Examples:
+ | word | score |
+ |  AT  |   2   |
+ |  DO  |   3   |
+ |  BE  |   4   |
+
 Scenario: QUANT
  Given an empty scrabble board
  When player 1 plays "QUANT" at 8D 
