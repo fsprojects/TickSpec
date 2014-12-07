@@ -27,7 +27,8 @@ and LineSource =
         Table : Table option
         Doc : string option
     }
-and Table (header:string[],rows:string[][]) =
+and [<System.Diagnostics.DebuggerStepThrough>]
+    Table (header:string[],rows:string[][]) =    
     new (header) = Table(header,[|[||]|])
     new () = Table([||]) 
     member table.Header = header
