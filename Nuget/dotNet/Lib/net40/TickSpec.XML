@@ -647,6 +647,11 @@
  Emits array
 </summary>
 </member>
+<member name="M:TickSpec.ScenarioGen.emitTuple(System.Reflection.Emit.ILGenerator,Microsoft.FSharp.Core.FSharpFunc{System.Type,Microsoft.FSharp.Core.FSharpFunc{System.String,Microsoft.FSharp.Core.Unit}},System.Type,System.String)">
+<summary>
+ Emits tuple
+</summary>
+</member>
 <member name="M:TickSpec.ScenarioGen.emitValue(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.Type,System.String)">
 <summary>
  Emits value
@@ -720,6 +725,11 @@
  Converts string (s) to parameter Type (p)
 </summary>
 </member>
+<member name="M:TickSpec.ScenarioRun.toArray(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Type,System.String[])">
+<summary>
+ Converts string array to array of specified type
+</summary>
+</member>
 <member name="M:TickSpec.ScenarioRun.toConcreteMethod(System.Reflection.MethodInfo)">
 <summary>
  Converts generic methods
@@ -733,11 +743,6 @@
 <member name="M:TickSpec.ScenarioRun.getInstance(System.IServiceProvider,System.Reflection.MethodInfo)">
 <summary>
  Gets object instance for specified method
-</summary>
-</member>
-<member name="M:TickSpec.ScenarioRun.toArray(System.Type,System.String[])">
-<summary>
- Converts string array to array of specified type
 </summary>
 </member>
 <member name="M:TickSpec.ScenarioRun.split(System.String)">

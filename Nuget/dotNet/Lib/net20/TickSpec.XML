@@ -135,6 +135,9 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
 <member name="T:TickSpec.ParserAttribute">
 <summary>
  Method annotation for parsers of string -&gt; &apos;a
@@ -424,6 +427,9 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
 <member name="T:TickSpec.ThenAttribute">
 <summary>
  Method annotation for then step
@@ -517,6 +523,9 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
 <member name="T:TickSpec.LineParser.ItemType">
 <summary>
  Item type
@@ -546,6 +555,9 @@
 <summary>
  Line state given previous line state and new line text
 </summary>
+</member>
+<member name="">
+
 </member>
 <member name="">
 
@@ -625,9 +637,19 @@
  Emits argument
 </summary>
 </member>
+<member name="M:TickSpec.ScenarioGen.emitObjectArray(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.Type,TickSpec.Table,System.Reflection.ConstructorInfo)">
+<summary>
+ Emits object array based on table using object&apos;s constructor
+</summary>
+</member>
 <member name="M:TickSpec.ScenarioGen.emitArray(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.Type,System.String[])">
 <summary>
  Emits array
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioGen.emitTuple(System.Reflection.Emit.ILGenerator,Microsoft.FSharp.Core.FSharpFunc`2{System.Type,Microsoft.FSharp.Core.FSharpFunc`2{System.String,Microsoft.FSharp.Core.Unit}},System.Type,System.String)">
+<summary>
+ Emits tuple
 </summary>
 </member>
 <member name="M:TickSpec.ScenarioGen.emitValue(System.Reflection.Emit.ILGenerator,System.Reflection.Emit.FieldBuilder,System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.Type,System.String)">
@@ -688,14 +710,24 @@
  Generate scenario execution function
 </summary>
 </member>
-<member name="M:TickSpec.ScenarioRun.invokeStep(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Reflection.MethodInfo,System.String[],Microsoft.FSharp.Core.FSharpOption{System.String[]},Microsoft.FSharp.Core.FSharpOption{TickSpec.Table})">
+<member name="M:TickSpec.ScenarioRun.invokeStep(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Reflection.MethodInfo,System.String[],Microsoft.FSharp.Core.FSharpOption{System.String[]},Microsoft.FSharp.Core.FSharpOption{TickSpec.Table},Microsoft.FSharp.Core.FSharpOption{System.String})">
 <summary>
  Invokes method with match values as arguments
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.convertTable(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Type,TickSpec.Table)">
+<summary>
+ Converts a table to the specified array type
 </summary>
 </member>
 <member name="M:TickSpec.ScenarioRun.convertString(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Type,System.String)">
 <summary>
  Converts string (s) to parameter Type (p)
+</summary>
+</member>
+<member name="M:TickSpec.ScenarioRun.toArray(System.Collections.Generic.IDictionary{System.Type,System.Reflection.MethodInfo},System.IServiceProvider,System.Type,System.String[])">
+<summary>
+ Converts string array to array of specified type
 </summary>
 </member>
 <member name="M:TickSpec.ScenarioRun.toConcreteMethod(System.Reflection.MethodInfo)">
@@ -711,11 +743,6 @@
 <member name="M:TickSpec.ScenarioRun.getInstance(System.IServiceProvider,System.Reflection.MethodInfo)">
 <summary>
  Gets object instance for specified method
-</summary>
-</member>
-<member name="M:TickSpec.ScenarioRun.toArray(System.Type,System.String[])">
-<summary>
- Converts string array to array of specified type
 </summary>
 </member>
 <member name="M:TickSpec.ScenarioRun.split(System.String)">
