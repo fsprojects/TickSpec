@@ -1,6 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{0A5DB825-E4E9-4B1C-9613-6118BEA73B7C}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\..\paket.dependencies = ..\..\..\..\paket.dependencies
+	EndProjectSection
+EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Game.SL5", "Game\Game.SL5.fsproj", "{45B6EB9F-B2AC-4BA5-9FCC-6425F74539A0}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TicTacToe.SL5", "TicTacToe\TicTacToe.SL5.fsproj", "{667A244A-7627-4A2A-B3DB-6A88A444609D}"
