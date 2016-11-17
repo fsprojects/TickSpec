@@ -47,6 +47,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Xunit2", "Examples\ByFramework\xUnit\FSharp.xUnit2\FSharp.Xunit2.fsproj", "{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{1D2CA398-6F02-41B1-BAA5-E63DC15508A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D2CA398-6F02-41B1-BAA5-E63DC15508A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D2CA398-6F02-41B1-BAA5-E63DC15508A4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,5 +118,6 @@ Global
 		{BA6F3A69-34F3-4D85-8804-DD354F8E17FA} = {66BBEAD2-B2E3-4B99-960D-94C63C303E05}
 		{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10} = {66BBEAD2-B2E3-4B99-960D-94C63C303E05}
 		{1D2CA398-6F02-41B1-BAA5-E63DC15508A4} = {66BBEAD2-B2E3-4B99-960D-94C63C303E05}
+		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2} = {5629AA55-642D-4956-9D16-ABCF50A97DAB}
 	EndGlobalSection
 EndGlobal
