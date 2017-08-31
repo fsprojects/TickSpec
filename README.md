@@ -79,6 +79,6 @@ public class StockStepDefinitions
 
 # Contributing
 
-Contributions are welcome, particularly examples and documentation. If you have an issues or suggestions please report on the Issues list or Discussions. If you'd like to contribute to the code base please get in touch via e-mail (phill at trelford dot com) or on [Twitter](http://twitter.com/ptrelford).
+Contributions are welcome, particularly examples and documentation. If you have an issue or suggestion please add an Issue. If you'd like to chat about TickSpec please feel free to ping me on [Twitter](http://twitter.com/ptrelford).
 
 TickSpec builds [continuously](http://teamcity.codebetter.com/project.html?projectId=project410) with [TeamCity](http://www.jetbrains.com/teamcity/) on [CodeBetter's CI Server](http://codebetter.com/kylebaley/2010/02/11/codebetter-ci-server-update-or-how-to-plead-your-case/).
