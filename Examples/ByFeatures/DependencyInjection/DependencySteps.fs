@@ -6,14 +6,14 @@ open NUnit.Framework
 
 type DependencyFixture () = inherit TickSpec.NUnit.FeatureFixture("Dependency.feature")
 
-type public StepsWithoutImplementation() =
+type public StepsWithoutImplementation(instanceProvider: IInstanceProvider) =
     [<Given>] 
     member this.``I use the first implementation`` () =
-        ()
+        instanceProvider.RegisterTypeAs<FirstDependencyImplementation, IDependency>()
 
     [<Given>]
     member this.``I use the second implementation`` () =
-        ()
+        instanceProvider.RegisterTypeAs<SecondDependencyImplementation, IDependency>()
 
 type public StepsWithAnImplementation(dependency: IDependency) =
     [<When>]
