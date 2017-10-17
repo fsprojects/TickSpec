@@ -15,7 +15,7 @@ type public StepsWithoutImplementation() =
     member this.``I use the second implementation`` () =
         ()
 
-type public StepsWithImplementation(dependency: IDependency) =
+type public StepsWithAnImplementation(dependency: IDependency) =
     [<When>]
     member this.``I store "(.*)"`` (text:string) =
         dependency.Value <- text
@@ -23,3 +23,12 @@ type public StepsWithImplementation(dependency: IDependency) =
     [<Then>]
     member this.``I retrieve "(.*)"`` (text:string) =
         Assert.AreEqual(text, dependency.Value)
+
+type public StepsWithSecondImplementation(dependency: SecondDependencyImplementation) =
+    [<When>]
+    member this.``I store "(.*)" using the second implementation`` (text:string) =
+        (dependency :> IDependency).Value <- text
+
+    [<Then>]
+    member this.``I retrieve "(.*)" using the second implementation`` (text:string) =
+        Assert.AreEqual(text, (dependency :> IDependency).Value)
