@@ -13,7 +13,7 @@ type public StepsWithoutImplementation(instanceProvider: IInstanceProvider) =
 
     [<Given>]
     member this.``I use the second implementation`` () =
-        instanceProvider.RegisterTypeAs<SecondDependencyImplementation, IDependency>()
+        instanceProvider.RegisterInstanceAs<IDependency>(new SecondDependencyImplementation())
 
 type public StepsWithAnImplementation(dependency: IDependency) =
     [<When>]

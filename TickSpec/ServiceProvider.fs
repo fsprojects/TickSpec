@@ -21,26 +21,34 @@ type IInstanceProvider =
 
 /// Creates instance service provider
 type ServiceProvider () as self =
-    /// Type instances constructed for invoked steps
+    /// Registered type mappings
+    let typeRegistrations = Dictionary<_,_>()
+
+    /// Type instances for invoked steps
     let instances = Dictionary<_,_>()
     /// Resolves an instance
     let rec resolveInstance (t:Type) (typeStack: Type list) =
+        let resolvingType = 
+            match typeRegistrations.TryGetValue t with
+            | true, target -> target
+            | false, _ -> t
+
         let alreadyRequested =
             typeStack
-            |> List.tryFind (fun x -> x = t)
+            |> List.tryFind (fun x -> x = resolvingType)
 
         match alreadyRequested with
-        | Some _ -> raise (InvalidOperationException(sprintf "Circular dependency found when resolving type %O" t))
+        | Some _ -> raise (InvalidOperationException(sprintf "Circular dependency found when resolving type %O" resolvingType))
         | None -> ()
 
-        match t with
-        | t when t = typeof<IInstanceProvider> -> self :> obj
-        | t ->
-            match instances.TryGetValue t with
+        match resolvingType with
+        | resolvingType when resolvingType = typeof<IInstanceProvider> -> self :> obj
+        | resolvingType ->
+            match instances.TryGetValue resolvingType with
             | true, instance -> instance
             | false, _ ->
-                let instance = createInstance t typeStack
-                instances.Add(t, instance)
+                let instance = createInstance resolvingType typeStack
+                instances.Add(resolvingType, instance)
                 instance
 
     /// Creates an instance if there was none
@@ -90,7 +98,7 @@ type ServiceProvider () as self =
 
         [<DebuggerStepThrough>]
         member this.RegisterTypeAs<'TType,'TInterface> () =
-            ()
+            typeRegistrations.Add(typeof<'TInterface>, typeof<'TType>)
 
         [<DebuggerStepThrough>]
         member this.RegisterInstanceAs<'TInterface> (instance:'TInterface) =
