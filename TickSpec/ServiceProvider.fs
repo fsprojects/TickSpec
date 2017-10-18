@@ -3,6 +3,7 @@
 open System
 open System.Collections.Generic
 open System.Diagnostics
+open System.Reflection
 
 /// Provides an instance provider for tests
 type IInstanceProvider =
@@ -24,6 +25,14 @@ type ServiceProvider () as self =
     let instances = Dictionary<_,_>()
     /// Resolves an instance
     let rec resolveInstance (t:Type) (typeStack: Type list) =
+        let alreadyRequested =
+            typeStack
+            |> List.tryFind (fun x -> x = t)
+
+        match alreadyRequested with
+        | Some _ -> raise (InvalidOperationException(sprintf "Circular dependency found when resolving type %O" t))
+        | None -> ()
+
         match t with
         | t when t = typeof<IInstanceProvider> -> self :> obj
         | t ->
@@ -36,8 +45,34 @@ type ServiceProvider () as self =
 
     /// Creates an instance if there was none
     and createInstance (t:Type) (typeStack: Type list) =
-        let instance = Activator.CreateInstance t
-        instance
+        let constructors = 
+            t.GetConstructors()
+            |> List.ofArray
+
+        let (_, widestConstructors) =
+            constructors
+            |> List.map (fun x -> (x.GetParameters().Length, x))
+            |> List.fold (fun (widest, constructorList) (parameterCount, c) -> 
+                if parameterCount > widest then
+                    (parameterCount, [ c ])
+                elif parameterCount = widest then
+                    (parameterCount, c :: constructorList)
+                else
+                    (widest, constructorList)
+            ) (-1, [])
+
+        let createObject (c: ConstructorInfo) =
+            let resolveArgument (arg: ParameterInfo) =
+                resolveInstance arg.ParameterType (t::typeStack)
+
+            c.GetParameters()
+            |> Array.map resolveArgument
+            |> c.Invoke
+
+        match widestConstructors with
+        | [] -> raise (InvalidOperationException(sprintf "The type does not have any public constructor: %O" t))
+        | [ c ] -> c |> createObject
+        | _ -> raise (InvalidOperationException(sprintf "Cannot decide which constructor to use. The type has multiple constructors with the same maximum number of parameters: %O" t))
 
     /// Gets type instance for specified type
     [<DebuggerStepThrough>]
