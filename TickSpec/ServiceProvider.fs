@@ -28,28 +28,26 @@ type ServiceProvider () as self =
     let instances = Dictionary<_,_>()
     /// Resolves an instance
     let rec resolveInstance (t:Type) (typeStack: Type list) =
-        let resolvingType = 
-            match typeRegistrations.TryGetValue t with
-            | true, target -> target
-            | false, _ -> t
-
         let alreadyRequested =
             typeStack
-            |> List.tryFind (fun x -> x = resolvingType)
+            |> List.tryFind (fun x -> x = t)
 
         match alreadyRequested with
-        | Some _ -> raise (InvalidOperationException(sprintf "Circular dependency found when resolving type %O" resolvingType))
+        | Some _ -> raise (InvalidOperationException(sprintf "Circular dependency found when resolving type %O" t))
         | None -> ()
 
-        match resolvingType with
-        | resolvingType when resolvingType = typeof<IInstanceProvider> -> self :> obj
-        | resolvingType ->
-            match instances.TryGetValue resolvingType with
+        match t with
+        | t when t = typeof<IInstanceProvider> -> self :> obj
+        | t ->
+            match instances.TryGetValue t with
             | true, instance -> instance
             | false, _ ->
-                let instance = createInstance resolvingType typeStack
-                instances.Add(resolvingType, instance)
-                instance
+                match typeRegistrations.TryGetValue t with
+                | true, registeredType -> resolveInstance registeredType typeStack
+                | false, _ -> 
+                    let instance = createInstance t typeStack
+                    instances.Add(t, instance)
+                    instance
 
     /// Creates an instance if there was none
     and createInstance (t:Type) (typeStack: Type list) =
