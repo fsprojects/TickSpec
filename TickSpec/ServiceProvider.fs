@@ -102,7 +102,7 @@ type ServiceProvider () as self =
 
         [<DebuggerStepThrough>]
         member this.RegisterInstanceAs<'TInterface> (instance:'TInterface) =
-            ()
+            instances.Add(typeof<'TInterface>, instance)
     interface System.IServiceProvider with
         [<DebuggerStepThrough>]
         member this.GetService(t:Type) =
