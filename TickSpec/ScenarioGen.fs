@@ -460,6 +460,9 @@ let defineRunMethod
         )
 
     beforeScenarioEvents |> emitEvents
+    // Outer exception block ensuring that the ServiceProvider will be disposed
+    let exitOuter = gen.BeginExceptionBlock()
+    // Inner exception block ensuring that the after scenario events will be executed
     let exit = gen.BeginExceptionBlock()
     // Execute steps
     stepMethods |> Seq.iter (fun stepMethod ->
@@ -474,7 +477,15 @@ let defineRunMethod
     )
     gen.Emit(OpCodes.Leave_S, exit)
     gen.BeginFinallyBlock()
+    // Execute after scenario events
     afterScenarioEvents |> emitEvents
+    gen.EndExceptionBlock()
+    gen.Emit(OpCodes.Leave_S, exitOuter)
+    gen.BeginFinallyBlock()
+    // Dispose the ServiceProvider
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, providerField)
+    gen.Emit(OpCodes.Callvirt, typeof<IDisposable>.GetMethod("Dispose"))
     gen.EndExceptionBlock()
     // Emit return
     gen.Emit(OpCodes.Ret)

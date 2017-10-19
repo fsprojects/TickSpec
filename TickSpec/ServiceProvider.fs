@@ -19,6 +19,7 @@ type IInstanceProvider =
     /// Registers an instance for an interface
     abstract member RegisterInstanceAs<'TInterface> : 'TInterface -> unit
 
+[<Sealed>]
 /// Creates instance service provider
 type ServiceProvider () as self =
     /// Registered type mappings
@@ -26,6 +27,7 @@ type ServiceProvider () as self =
 
     /// Type instances for invoked steps
     let instances = Dictionary<_,_>()
+
     /// Resolves an instance
     let rec resolveInstance (t:Type) (typeStack: Type list) =
         let alreadyRequested =
@@ -105,3 +107,14 @@ type ServiceProvider () as self =
         [<DebuggerStepThrough>]
         member this.GetService(t:Type) =
             getInstance t
+
+    interface IDisposable with
+        member this.Dispose() =
+            instances.Values
+            |> Seq.choose (fun x ->
+                match x with
+                | :? IDisposable as disposable -> Some disposable
+                | _ -> None)
+            |> Seq.iter (fun x -> x.Dispose())
+
+            instances.Clear()
