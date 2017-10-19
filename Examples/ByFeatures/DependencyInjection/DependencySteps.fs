@@ -24,11 +24,13 @@ type public StepsWithAnImplementation(dependency: IDependency) =
     member this.``I retrieve "(.*)"`` (text:string) =
         Assert.AreEqual(text, dependency.Value)
 
-type public StepsWithSecondImplementation(dependency: SecondDependencyImplementation) =
+type public StepsWithSecondImplementation(dependencyImpl: SecondDependencyImplementation) =
+    let dependency = dependencyImpl :> IDependency
+
     [<When>]
     member this.``I store "(.*)" using the second implementation`` (text:string) =
-        (dependency :> IDependency).Value <- text
+        dependency.Value <- text
 
     [<Then>]
     member this.``I retrieve "(.*)" using the second implementation`` (text:string) =
-        Assert.AreEqual(text, (dependency :> IDependency).Value)
+        Assert.AreEqual(text, dependency.Value)
