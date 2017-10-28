@@ -20,4 +20,4 @@ type FeatureFixture (source:string) =
 
     member this.Scenarios =
         let stream = assembly.GetManifestResourceStream(source)   
-        definitions.GenerateScenarios(source, stream)
+        definitions.GenerateScenarios(stream) //ToDo: implement feature injection in emmited code and then change to (source, stream)

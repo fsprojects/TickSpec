@@ -3,7 +3,7 @@
 open TickSpec
 open NUnit.Framework
 
-let [<Given>] ``I have (.*) dollars in my wallet`` amount =
+let [<Given>] ``I have (.*) dollars in my wallet`` (amount:int) =
     amount
 
 let [<When>] ``I buy an item for (.*) dollars`` cost wallet =

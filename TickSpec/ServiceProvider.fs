@@ -19,6 +19,9 @@ type IInstanceProvider =
     /// Registers an instance for an interface
     abstract member RegisterInstanceAs<'TInterface> : 'TInterface -> unit
 
+    /// Registers an instance for an interface
+    abstract member RegisterOrReplaceInstanceAsType : Type -> Object -> unit
+
 [<Sealed>]
 /// Creates instance service provider
 type ServiceProvider () as self =
@@ -103,6 +106,10 @@ type ServiceProvider () as self =
         [<DebuggerStepThrough>]
         member this.RegisterInstanceAs<'TInterface> (instance:'TInterface) =
             instances.Add(typeof<'TInterface>, instance)
+
+        [<DebuggerStepThrough>]
+        member this.RegisterOrReplaceInstanceAsType (t:Type) (instance:Object) =
+            instances.[t] <- instance
     interface System.IServiceProvider with
         [<DebuggerStepThrough>]
         member this.GetService(t:Type) =
