@@ -32,31 +32,6 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\Functional.XML</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="Functional.fs" />
-    <Compile Include="FeatureFixture.fs" />
-    <EmbeddedResource Include="Addition.txt" />
-    <Compile Include="AdditionSteps.fs" />
-    <EmbeddedResource Include="Hangman.feature" />
-    <Compile Include="Hangman.fs" />
-    <Compile Include="HangmanSteps.fs" />
-    <EmbeddedResource Include="Scrabble.feature" />
-    <Compile Include="Scrabble.fs" />
-    <Compile Include="ScrabbleSteps.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="nunit.framework">
-      <HintPath>nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj">
-      <Name>TickSpec</Name>
-      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -73,6 +48,29 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="Functional.fs" />
+    <Compile Include="FeatureFixture.fs" />
+    <EmbeddedResource Include="Addition.txt" />
+    <Compile Include="AdditionSteps.fs" />
+    <EmbeddedResource Include="Hangman.feature" />
+    <Compile Include="Hangman.fs" />
+    <Compile Include="HangmanSteps.fs" />
+    <EmbeddedResource Include="Scrabble.feature" />
+    <Compile Include="Scrabble.fs" />
+    <Compile Include="ScrabbleSteps.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj">
+      <Name>TickSpec</Name>
+      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -80,4 +78,15 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2' Or $(TargetFrameworkVersion) == 'v4.6.3' Or $(TargetFrameworkVersion) == 'v4.7' Or $(TargetFrameworkVersion) == 'v4.7.1')">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>..\..\..\packages\NUnit\lib\net45\nunit.framework.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>
