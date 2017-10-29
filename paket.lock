@@ -7,7 +7,7 @@ NUGET
       Microsoft.NETCore.Platforms (>= 1.1)
       System.Runtime.InteropServices.RuntimeInformation (>= 4.3) - restriction: || (&& (>= net45) (< netstandard1.0) (>= portable-net451+win81+wpa81)) (&& (>= net45) (< netstandard1.3) (>= wpa81)) (&& (>= net45) (< portable-net451+win81+wpa81)) (&& (>= net45) (>= uap10.0)) (&& (>= net451) (< netstandard1.3)) (&& (>= net46) (< netstandard1.4))
     NuGet.CommandLine (4.3)
-    NUnit (3.8.1)
+    NUnit (2.6.4)
     System.Runtime.InteropServices.RuntimeInformation (4.3) - restriction: || (&& (>= net45) (< netstandard1.0) (>= portable-net451+win81+wpa81)) (&& (>= net45) (< netstandard1.3) (>= wpa81)) (&& (>= net45) (< portable-net451+win81+wpa81)) (&& (>= net45) (>= uap10.0)) (&& (>= net451) (< net452) (< netstandard1.3)) (&& (< net452) (>= net46) (< netstandard1.4))
     xunit (2.3.1)
       xunit.analyzers (>= 0.7)
