@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Functional</RootNamespace>
     <AssemblyName>Functional</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>Functional</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>

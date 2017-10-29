@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>FSharpNUnit</RootNamespace>
     <AssemblyName>FSharp.NUnit</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>FSharp.NUnit</Name>
     <UsePartialTypes>false</UsePartialTypes>
     <TargetFrameworkProfile />
