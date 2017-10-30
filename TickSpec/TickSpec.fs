@@ -230,12 +230,9 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         this.GenerateFeature(sourceUrl, TextReader.readAllLines reader)
     member this.GenerateFeature (sourceUrl:string,feature:System.IO.Stream) =
         use reader = new StreamReader(feature)
-        this.GenerateFeature(sourceUrl, reader)
-#if SILVERLIGHT
-#else   
+        this.GenerateFeature(sourceUrl, reader) 
     member this.GenerateFeature (path:string) =
         this.GenerateFeature(path,File.ReadAllLines(path))
-#endif
     /// Generates scenarios in specified lines from source document
     member this.GenerateScenarios (sourceUrl:string,lines:string[]) =
         this.GenerateFeature(sourceUrl,lines).Scenarios
@@ -250,11 +247,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             raise (new ArgumentNullException("feature", message))    
         use reader = new StreamReader(feature)
         this.GenerateScenarios(sourceUrl, reader)
-#if SILVERLIGHT
-#else 
     member this.GenerateScenarios (path:string) =
-        this.GenerateScenarios(path,File.ReadAllLines(path))
-#endif    
+        this.GenerateScenarios(path,File.ReadAllLines(path)) 
     /// Executes step definitions in specified lines from source document
     member this.Execute (sourceUrl:string,lines:string[]) =
         let scenarios = this.GenerateScenarios(sourceUrl,lines)
@@ -264,8 +258,5 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     member this.Execute (sourceUrl:string,feature:System.IO.Stream) =
         use reader = new StreamReader(feature)
         this.Execute (sourceUrl,reader)
-#if SILVERLIGHT
-#else 
     member this.Execute (path:string) =
         this.Execute(path,File.ReadAllLines(path))
-#endif
