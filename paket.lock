@@ -1,18 +1,21 @@
 REDIRECTS: ON
-FRAMEWORK: >= NET45
+RESTRICTION: || (== net20) (== net40) (== net452)
 NUGET
-  remote: http://api.nuget.org/v3/index.json
-    NuGet.CommandLine (3.4.3)
-    xunit (2.1)
-      xunit.assert (2.1)
-      xunit.core (2.1)
-    xunit.abstractions (2.0)
-    xunit.assert (2.1)
-    xunit.core (2.1)
-      xunit.extensibility.core (2.1)
-      xunit.extensibility.execution (2.1)
-    xunit.extensibility.core (2.1)
-      xunit.abstractions (2.0)
-    xunit.extensibility.execution (2.1)
-      xunit.extensibility.core (2.1)
-    xunit.runner.visualstudio (2.1.0) - version_in_path: true
+  remote: https://api.nuget.org/v3/index.json
+    FSharp.Core (3.1.2.5)
+    NuGet.CommandLine (4.3)
+    xunit (2.3.1)
+      xunit.analyzers (>= 0.7)
+      xunit.assert (2.3.1)
+      xunit.core (2.3.1)
+    xunit.abstractions (2.0.1) - restriction: || (&& (== net20) (>= netstandard1.1)) (&& (== net40) (>= netstandard1.1)) (== net452)
+    xunit.analyzers (0.7)
+    xunit.assert (2.3.1)
+    xunit.core (2.3.1)
+      xunit.extensibility.core (2.3.1)
+      xunit.extensibility.execution (2.3.1)
+    xunit.extensibility.core (2.3.1)
+      xunit.abstractions (>= 2.0.1) - restriction: || (&& (== net20) (>= netstandard1.1)) (&& (== net40) (>= netstandard1.1)) (== net452)
+    xunit.extensibility.execution (2.3.1)
+      xunit.extensibility.core (2.3.1) - restriction: || (&& (== net20) (>= netstandard1.1)) (&& (== net40) (>= netstandard1.1)) (== net452)
+    xunit.runner.visualstudio (2.3.1) - version_in_path: true
