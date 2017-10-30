@@ -1,5 +1,5 @@
 REDIRECTS: ON
-RESTRICTION: == net452
+RESTRICTION: || (== net20) (== net40) (== net452)
 NUGET
   remote: https://api.nuget.org/v3/index.json
     FSharp.Core (3.1.2.5)
@@ -8,14 +8,14 @@ NUGET
       xunit.analyzers (>= 0.7)
       xunit.assert (2.3.1)
       xunit.core (2.3.1)
-    xunit.abstractions (2.0.1)
+    xunit.abstractions (2.0.1) - restriction: || (&& (== net20) (>= netstandard1.1)) (&& (== net40) (>= netstandard1.1)) (== net452)
     xunit.analyzers (0.7)
     xunit.assert (2.3.1)
     xunit.core (2.3.1)
       xunit.extensibility.core (2.3.1)
       xunit.extensibility.execution (2.3.1)
     xunit.extensibility.core (2.3.1)
-      xunit.abstractions (>= 2.0.1)
+      xunit.abstractions (>= 2.0.1) - restriction: || (&& (== net20) (>= netstandard1.1)) (&& (== net40) (>= netstandard1.1)) (== net452)
     xunit.extensibility.execution (2.3.1)
-      xunit.extensibility.core (2.3.1)
+      xunit.extensibility.core (2.3.1) - restriction: || (&& (== net20) (>= netstandard1.1)) (&& (== net40) (>= netstandard1.1)) (== net452)
     xunit.runner.visualstudio (2.3.1) - version_in_path: true

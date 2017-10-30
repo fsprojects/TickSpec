@@ -9,11 +9,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>TickSpec</RootNamespace>
     <AssemblyName>TickSpec</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>TickSpec</Name>
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
     <TargetFrameworkProfile />
-    <TargetFSharpCoreVersion>4.4.1.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,32 +34,6 @@
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Release\TickSpec.XML</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Extensions.fs" />
-    <Compile Include="ServiceProvider.fs" />
-    <Compile Include="FeatureSource.fs" />
-    <Compile Include="ScenarioRun.fs" />
-    <Compile Include="ScenarioGen.fs" />
-    <Compile Include="FeatureGen.fs" />
-    <Compile Include="EventAttributes.fs" />
-    <Compile Include="ScopeAttributes.fs" />
-    <Compile Include="StepAttributes.fs" />
-    <Compile Include="StepException.fs" />
-    <Compile Include="LineParser.fs" />
-    <Compile Include="BlockParser.fs" />
-    <Compile Include="FeatureParser.fs" />
-    <Compile Include="Feature.fs" />
-    <Compile Include="TickSpec.fs" />
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -88,4 +62,48 @@
 copy "$(TargetDir)\TickSpec.dll" ..\..\..\Nuget\dotNet\Lib\net40
 copy "$(TargetDir)\TickSpec.xml" ..\..\..\Nuget\dotNet\Lib\net40</PostBuildEvent>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Extensions.fs" />
+    <Compile Include="ServiceProvider.fs" />
+    <Compile Include="FeatureSource.fs" />
+    <Compile Include="ScenarioRun.fs" />
+    <Compile Include="ScenarioGen.fs" />
+    <Compile Include="FeatureGen.fs" />
+    <Compile Include="EventAttributes.fs" />
+    <Compile Include="ScopeAttributes.fs" />
+    <Compile Include="StepAttributes.fs" />
+    <Compile Include="StepException.fs" />
+    <Compile Include="LineParser.fs" />
+    <Compile Include="BlockParser.fs" />
+    <Compile Include="FeatureParser.fs" />
+    <Compile Include="Feature.fs" />
+    <Compile Include="TickSpec.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v2.0'">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\packages\FSharp.Core\lib\net20\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5.2')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\packages\FSharp.Core\lib\net40\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>
