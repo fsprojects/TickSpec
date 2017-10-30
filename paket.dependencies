@@ -1,5 +1,5 @@
 redirects: on
-framework: >= net45
+framework: auto-detect
 source https://api.nuget.org/v3/index.json
 
 nuget NuGet.CommandLine
