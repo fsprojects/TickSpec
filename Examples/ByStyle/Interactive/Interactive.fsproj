@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>RubyStyle</RootNamespace>
     <AssemblyName>Interactive</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>Interactive</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -54,8 +54,6 @@
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj">
       <Name>TickSpec</Name>
       <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
