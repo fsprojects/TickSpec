@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>FSharpNUnit</RootNamespace>
     <AssemblyName>FSharp.NUnit</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <Name>FSharp.NUnit</Name>
     <UsePartialTypes>false</UsePartialTypes>
     <TargetFrameworkProfile />
@@ -34,30 +34,6 @@
     <StartProgram>C:\Program Files\NUnit 2.5.7\bin\net-2.0\nunit.exe</StartProgram>
     <DebugSymbols>false</DebugSymbols>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="FeatureFixture.fs" />
-    <Compile Include="Fixtures.fs" />
-    <EmbeddedResource Include="Feature2.txt" />
-    <Compile Include="StockItem.fs" />
-    <Compile Include="StockStepDefinitions.fs" />
-    <EmbeddedResource Include="TicTacToe.txt" />
-    <Compile Include="TicTacToeStepDefinitions.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="nunit.framework">
-      <HintPath>nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\TickSpec\TickSpec.fsproj">
-      <Name>TickSpec</Name>
-      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -74,6 +50,29 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="FeatureFixture.fs" />
+    <Compile Include="Fixtures.fs" />
+    <EmbeddedResource Include="Feature2.txt" />
+    <Compile Include="StockItem.fs" />
+    <Compile Include="StockStepDefinitions.fs" />
+    <EmbeddedResource Include="TicTacToe.txt" />
+    <Compile Include="TicTacToeStepDefinitions.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="nunit.framework">
+      <HintPath>nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\..\..\..\TickSpec\TickSpec.fsproj">
+      <Name>TickSpec</Name>
+      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
 	     Other similar extension points exist, see Microsoft.Common.targets.
 	<Target Name="BeforeBuild">
@@ -81,4 +80,24 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v2.0'">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\..\..\packages\FSharp.Core\lib\net20\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5.2')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\..\..\packages\FSharp.Core\lib\net40\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>
