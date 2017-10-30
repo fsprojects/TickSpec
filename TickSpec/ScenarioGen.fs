@@ -348,7 +348,13 @@ let defineStepMethod
     // Emit arguments
     let ps = mi.GetParameters()
     let zipped = Seq.zip args ps
-
+#if SILVERLIGHT
+    // For instance methods get instance value from service provider
+    if not mi.IsStatic then
+        emitInstance gen providerField mi.DeclaringType
+    zipped
+    |> Seq.iter (emitArgument gen providerField parsers)
+#else
     let temp = gen.DeclareLocal(typeof<Exception>).LocalIndex
     let locals = [|for (_,p) in zipped -> gen.DeclareLocal(p.ParameterType).LocalIndex|]
     zipped
@@ -383,7 +389,7 @@ let defineStepMethod
     locals |> Seq.iter (fun local ->
         gen.Emit(OpCodes.Ldloc, local)
     )
-
+#endif
     // Emit bullets argument
     line.Bullets |> Option.iter (fun x ->
         let t = (ps.[ps.Length-1].ParameterType)
