@@ -18,10 +18,3 @@ msbuild TickSpec.sln /p:Configuration=Release
 cd Nuget\dotNet
 ..\..\%NuGetTool% pack TickSpec.nuspec
 cd ..\..
-
-IF NOT "%1" == "SkipSilverlight" (
-	msbuild TickSpec.Silverlight5.sln /p:Configuration=Release
-	cd Nuget\Silverlight
-	..\..\%NuGetTool% pack TickSpec.Silverlight.nuspec
-	cd ..\..
-)
