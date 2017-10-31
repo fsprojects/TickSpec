@@ -4,6 +4,7 @@ NUGET
   remote: https://api.nuget.org/v3/index.json
     FSharp.Core (3.1.2.5)
     NuGet.CommandLine (4.3)
+    NUnit (2.6.4)
     xunit (2.3.1)
       xunit.analyzers (>= 0.7)
       xunit.assert (2.3.1)
