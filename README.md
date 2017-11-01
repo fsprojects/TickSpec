@@ -11,7 +11,8 @@ Easily execute the behaviour against matching F# tick methods, attributed C# or 
 # Installation
 
 Simply reference TickSpec via [Nuget](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
-TickSpec works in Visual Studio 2008, 2010 & 2012 and supports both .Net and Silverlight projects.
+TickSpec works in Visual Studio 2015 & 2017.
+Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
 
 Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
 
