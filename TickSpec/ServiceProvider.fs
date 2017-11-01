@@ -46,21 +46,21 @@ type ServiceProvider () as self =
             | false, _ ->
                 match typeRegistrations.TryGetValue t with
                 | true, registeredType -> resolveInstance registeredType typeStack
-                | false, _ -> 
+                | false, _ ->
                     let instance = createInstance t typeStack
                     instances.Add(t, instance)
                     instance
 
     /// Creates an instance if there was none
     and createInstance (t:Type) (typeStack: Type list) =
-        let constructors = 
+        let constructors =
             t.GetConstructors()
             |> List.ofArray
 
         let (_, widestConstructors) =
             constructors
             |> List.map (fun x -> (x.GetParameters().Length, x))
-            |> List.fold (fun (widest, constructorList) (parameterCount, c) -> 
+            |> List.fold (fun (widest, constructorList) (parameterCount, c) ->
                 if parameterCount > widest then
                     (parameterCount, [ c ])
                 elif parameterCount = widest then
@@ -103,6 +103,7 @@ type ServiceProvider () as self =
         [<DebuggerStepThrough>]
         member this.RegisterInstanceAs<'TInterface> (instance:'TInterface) =
             instances.Add(typeof<'TInterface>, instance)
+
     interface System.IServiceProvider with
         [<DebuggerStepThrough>]
         member this.GetService(t:Type) =
