@@ -7,28 +7,21 @@ open System.Reflection
 
 /// Provides an instance provider for tests
 type IInstanceProvider =
+    inherit IDisposable
+
     /// Resolves an instance of desired type
     abstract member Resolve : Type -> obj
 
-    /// Resolves an instance of desired type
-    abstract member Resolve<'T> : unit -> 'T
-
-    /// Registers an implementation for an interface
-    abstract member RegisterTypeAs<'TType,'TInterface> : unit -> unit
-
-    /// Registers an instance for an interface
-    abstract member RegisterInstanceAs<'TInterface> : 'TInterface -> unit
+    /// Registers an instance for a type (if there is already a registered instance, it will be replaced)
+    abstract member RegisterInstance : Type -> obj -> unit
 
 [<Sealed>]
 /// Creates instance service provider
 type ServiceProvider () as self =
-    /// Registered type mappings
-    let typeRegistrations = Dictionary<_,_>()
-
     /// Type instances for invoked steps
     let instances = Dictionary<_,_>()
 
-    /// Resolves an instance
+    /// Resolves an instance for a specified type (and remembering the stack of types being resolved)
     let rec resolveInstance (t:Type) (typeStack: Type list) =
         let alreadyRequested =
             typeStack
@@ -44,14 +37,11 @@ type ServiceProvider () as self =
             match instances.TryGetValue t with
             | true, instance -> instance
             | false, _ ->
-                match typeRegistrations.TryGetValue t with
-                | true, registeredType -> resolveInstance registeredType typeStack
-                | false, _ ->
-                    let instance = createInstance t typeStack
-                    instances.Add(t, instance)
-                    instance
+                let instance = createInstance t typeStack
+                instances.Add(t, instance)
+                instance
 
-    /// Creates an instance if there was none
+    /// Creates an instance if there was none for a speicified type (and remembering the stack of types being resolved)
     and createInstance (t:Type) (typeStack: Type list) =
         let constructors =
             t.GetConstructors()
@@ -83,31 +73,16 @@ type ServiceProvider () as self =
         | _ -> raise (InvalidOperationException(sprintf "Cannot decide which constructor to use. The type has multiple constructors with the same maximum number of parameters: %O" t))
 
     /// Gets type instance for specified type
-    [<DebuggerStepThrough>]
     let getInstance (t:Type) =
         resolveInstance t []
 
     interface IInstanceProvider with
         [<DebuggerStepThrough>]
-        member this.Resolve (t:Type) =
+        member this.Resolve (t: Type) =
             getInstance t
 
-        [<DebuggerStepThrough>]
-        member this.Resolve<'T> () =
-            getInstance (typeof<'T>) :?> 'T
-
-        [<DebuggerStepThrough>]
-        member this.RegisterTypeAs<'TType,'TInterface> () =
-            typeRegistrations.Add(typeof<'TInterface>, typeof<'TType>)
-
-        [<DebuggerStepThrough>]
-        member this.RegisterInstanceAs<'TInterface> (instance:'TInterface) =
-            instances.Add(typeof<'TInterface>, instance)
-
-    interface System.IServiceProvider with
-        [<DebuggerStepThrough>]
-        member this.GetService(t:Type) =
-            getInstance t
+        member this.RegisterInstance (t: Type) (instance: obj) =
+            instances.[t] <- instance
 
     interface IDisposable with
         member this.Dispose() =

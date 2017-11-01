@@ -24,9 +24,9 @@ type PersonSteps(instanceProvider: IInstanceProvider, bowl: DogBowl) =
     [<Given>]
     member this.``I have a (.*) dog`` (size) =
         match size with
-        | "large" -> instanceProvider.RegisterInstanceAs<Dog>(Dog(Large))
-        | "medium" -> instanceProvider.RegisterInstanceAs<Dog>(Dog(Medium))
-        | "small" -> instanceProvider.RegisterInstanceAs<Dog>(Dog(Small))
+        | "large" -> instanceProvider.RegisterInstance typeof<Dog> (Dog(Large))
+        | "medium" -> instanceProvider.RegisterInstance typeof<Dog> (Dog(Medium))
+        | "small" -> instanceProvider.RegisterInstance typeof<Dog> (Dog(Small))
         | _ -> Assert.Fail("Unsupported dog size")
 
     [<When>]
