@@ -144,10 +144,10 @@ let invokeStep
     invoke provider meth args
 
 /// Generate scenario execution function
-let generate events parsers (scenario,lines) =
+let generate events parsers (scenario, lines) serviceProviderFactory =
     fun () ->
         /// Type instance provider
-        use provider = new ServiceProvider()
+        use provider = serviceProviderFactory()
 
         let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
         /// Invokes events
