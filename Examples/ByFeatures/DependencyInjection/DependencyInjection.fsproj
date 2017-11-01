@@ -51,7 +51,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="FeatureFixture.fs" />
-    <Compile Include="Dependencies.fs" />
     <EmbeddedResource Include="Dependency.feature" />
     <Compile Include="DependencySteps.fs" />
     <None Include="paket.references" />

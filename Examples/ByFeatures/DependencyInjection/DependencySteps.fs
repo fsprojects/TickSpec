@@ -1,36 +1,44 @@
 ﻿module DependencySteps
 
-open Dependencies
 open TickSpec
 open NUnit.Framework
 
 type DependencyFixture () = inherit TickSpec.NUnit.FeatureFixture("Dependency.feature")
 
-type public StepsWithoutImplementation(instanceProvider: IInstanceProvider) =
-    [<Given>] 
-    member this.``I use the first implementation`` () =
-        instanceProvider.RegisterTypeAs<FirstDependencyImplementation, IDependency>()
+type DogSize =
+    | Small
+    | Medium
+    | Large
 
+type DogBowl () =
+    member val FoodAmount = 0 with get, set
+
+type Dog (size: DogSize) =
+    member this.AmountToEat =
+        match size with
+        | Small -> 100
+        | Medium -> 200
+        | Large -> 400
+
+type PersonSteps(instanceProvider: IInstanceProvider, bowl: DogBowl) =
     [<Given>]
-    member this.``I use the second implementation`` () =
-        instanceProvider.RegisterInstanceAs<IDependency>(new SecondDependencyImplementation())
-
-type public StepsWithAnImplementation(dependency: IDependency) =
-    [<When>]
-    member this.``I store "(.*)"`` (text:string) =
-        dependency.Value <- text
-
-    [<Then>]
-    member this.``I retrieve "(.*)"`` (text:string) =
-        Assert.AreEqual(text, dependency.Value)
-
-type public StepsWithSecondImplementation(dependencyImpl: SecondDependencyImplementation) =
-    let dependency = dependencyImpl :> IDependency
+    member this.``I have a (.*) dog`` (size) =
+        match size with
+        | "large" -> instanceProvider.RegisterInstanceAs<Dog>(Dog(Large))
+        | "medium" -> instanceProvider.RegisterInstanceAs<Dog>(Dog(Medium))
+        | "small" -> instanceProvider.RegisterInstanceAs<Dog>(Dog(Small))
+        | _ -> Assert.Fail("Unsupported dog size")
 
     [<When>]
-    member this.``I store "(.*)" using the second implementation`` (text:string) =
-        dependency.Value <- text
+    member this.``I fill the dog bowl with (.*)g of food`` (amount:int) =
+        bowl.FoodAmount <- amount
 
+type DogSteps(bowl: DogBowl, dog: Dog) =
+    [<When>]
+    member this.``The dog eats the food from bowl`` () =
+        bowl.FoodAmount <- bowl.FoodAmount - dog.AmountToEat
+
+type BowlSteps(bowl: DogBowl) =
     [<Then>]
-    member this.``I retrieve "(.*)" using the second implementation`` (text:string) =
-        Assert.AreEqual(text, dependency.Value)
+    member this.``The bowl contains (.*)g of food`` (amount:int) =
+        Assert.AreEqual(amount, bowl.FoodAmount)
