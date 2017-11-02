@@ -76,7 +76,7 @@ type ServiceProvider () as self =
     interface IInstanceProvider with
         member this.RegisterInstance (t: Type) (instance: obj) =
             instances.[t] <- instance
-    
+
     interface IServiceProvider with
         [<DebuggerStepThrough>]
         member this.GetService (t: Type) =
