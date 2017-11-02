@@ -50,29 +50,6 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
-  <ItemGroup>
-    <None Include="paket.references" />
-    <Compile Include="FeatureFixture.fs" />
-    <Compile Include="Fixtures.fs" />
-    <EmbeddedResource Include="Shopping.feature" />
-    <Compile Include="ShoppingSteps.fs" />
-    <EmbeddedResource Include="Dependency.feature" />
-    <Compile Include="Domain.fs" />
-    <Compile Include="PersonSteps.fs" />
-    <Compile Include="DogSteps.fs" />
-    <Compile Include="BowlSteps.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-    <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj">
-      <Name>TickSpec</Name>
-      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
@@ -111,4 +88,30 @@
       </ItemGroup>
     </When>
   </Choose>
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="FeatureFixture.fs" />
+    <Compile Include="Fixtures.fs" />
+    <EmbeddedResource Include="Shopping.feature" />
+    <Compile Include="ShoppingSteps.fs" />
+    <EmbeddedResource Include="Dependency.feature" />
+    <Compile Include="Domain.fs" />
+    <Compile Include="PersonSteps.fs" />
+    <Compile Include="DogSteps.fs" />
+    <Compile Include="BowlSteps.fs" />
+    <EmbeddedResource Include="Stock.feature" />
+    <Compile Include="StockItem.fs" />
+    <Compile Include="StockStepDefinitions.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj">
+      <Name>TickSpec</Name>
+      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
