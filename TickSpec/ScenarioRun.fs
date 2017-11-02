@@ -141,26 +141,31 @@ let invokeStep
     invoke provider meth args
 
 /// Generate scenario execution function
-let generate events parsers (scenario, lines) serviceProviderFactory =
+let generate events parsers (scenario, lines) (serviceProviderFactory: unit -> IInstanceProvider) =
     fun () ->
         /// Type instance provider
-        use provider = serviceProviderFactory()
+        let provider = serviceProviderFactory()
 
-        let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
-        /// Invokes events
-        let invokeEvents events =
-            events |> Seq.iter (fun (mi:MethodInfo) ->
-                invoke provider mi [||]
-            )
         try
-            beforeScenarioEvents |> invokeEvents
-            // Iterate scenario lines
-            lines |> Seq.iter (fun (line:LineSource,m,args) ->
-                try
-                    beforeStepEvents |> invokeEvents
-                    (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
-                finally
-                    afterStepEvents |> invokeEvents
-            )
+            let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
+            /// Invokes events
+            let invokeEvents events =
+                events |> Seq.iter (fun (mi:MethodInfo) ->
+                    invoke provider mi [||]
+                )
+            try
+                beforeScenarioEvents |> invokeEvents
+                // Iterate scenario lines
+                lines |> Seq.iter (fun (line:LineSource,m,args) ->
+                    try
+                        beforeStepEvents |> invokeEvents
+                        (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
+                    finally
+                        afterStepEvents |> invokeEvents
+                )
+            finally
+                afterScenarioEvents |> invokeEvents
         finally
-            afterScenarioEvents |> invokeEvents
+            match provider with
+            | :? IDisposable as d -> d.Dispose()
+            | _ -> ()

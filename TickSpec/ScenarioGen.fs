@@ -476,10 +476,16 @@ let defineRunMethod
     gen.EndExceptionBlock()
     gen.Emit(OpCodes.Leave_S, exitOuter)
     gen.BeginFinallyBlock()
-    // Dispose the ServiceProvider
+    // Dispose the ServiceProvider if it is IDisposable
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, providerField)
+    gen.Emit(OpCodes.Isinst, typeof<IDisposable>)
+    let labelNoDispose = gen.DefineLabel()
+    gen.Emit(OpCodes.Brfalse_S, labelNoDispose)
     gen.Emit(OpCodes.Ldarg_0)
     gen.Emit(OpCodes.Ldfld, providerField)
     gen.Emit(OpCodes.Callvirt, typeof<IDisposable>.GetMethod("Dispose"))
+    gen.MarkLabel(labelNoDispose)
     gen.EndExceptionBlock()
     // Emit return
     gen.Emit(OpCodes.Ret)

@@ -163,7 +163,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         StepDefinitions(givens,whens,thens,events,valueParsers)
 
     /// Custom instance provider factory
-    member val InstanceProviderFactory = None with get, set
+    member val InstanceProviderFactory: (unit -> IInstanceProvider) option = None with get, set
+
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
         let providerFactory =

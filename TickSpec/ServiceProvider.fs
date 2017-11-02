@@ -7,8 +7,6 @@ open System.Reflection
 
 /// Provides an instance provider for tests
 type IInstanceProvider =
-    inherit IDisposable
-
     /// Resolves an instance of desired type
     abstract member Resolve : Type -> obj
 
