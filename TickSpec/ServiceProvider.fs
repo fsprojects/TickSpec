@@ -85,10 +85,8 @@ type ServiceProvider () as self =
     interface IDisposable with
         member this.Dispose() =
             instances.Values
-            |> Seq.choose (fun x ->
-                match x with
-                | :? IDisposable as disposable -> Some disposable
-                | _ -> None)
-            |> Seq.iter (fun x -> x.Dispose())
+            |> Seq.iter (function
+                | :? IDisposable as d -> d.Dispose()
+                | _ -> ())
 
             instances.Clear()
