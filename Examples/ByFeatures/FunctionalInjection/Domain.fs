@@ -1,4 +1,4 @@
-﻿module Domain
+﻿namespace Dependency
 
 open System
 

@@ -1,7 +1,6 @@
-﻿module PersonSteps
+﻿module Dependency.PersonSteps
 
 open TickSpec
-open Domain
 
 let [<Given>] ``I have a (.*) dog`` (size) =
     match size with
