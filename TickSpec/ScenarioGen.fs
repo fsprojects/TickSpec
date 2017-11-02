@@ -444,7 +444,7 @@ let defineStepMethod
                 [|typeof<RuntimeTypeHandle>|])
         gen.EmitCall(OpCodes.Call,getType,null)
         gen.Emit(OpCodes.Ldloc, local0)
-        gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterOrReplaceInstanceAsType"))
+        gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterInstance"))
 
     // Emit return
     gen.Emit(OpCodes.Ret)

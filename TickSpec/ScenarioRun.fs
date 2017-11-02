@@ -21,8 +21,7 @@ let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
     let instance = getInstance provider m
     let ret = m.Invoke(instance,ps)
     if m.ReturnType <> typeof<System.Void> then
-        let instanceProvider = provider :?> IInstanceProvider
-        instanceProvider.RegisterOrReplaceInstanceAsType (m.ReturnType) ret
+        provider.RegisterInstance (m.ReturnType) ret
     
 /// Converts generic methods
 let toConcreteMethod (m:MethodInfo) =
