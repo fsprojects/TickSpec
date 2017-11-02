@@ -6,8 +6,8 @@ open TickSpec.BlockParser
 
 /// Computes combinations of table values
 let internal computeCombinations (tables:Table []) =
-    let values = 
-        tables 
+    let values =
+        tables
         |> Seq.map (fun table ->
             table.Rows |> Array.map (fun row ->
                 row
@@ -18,7 +18,7 @@ let internal computeCombinations (tables:Table []) =
         )
         |> Seq.toList
     values |> List.combinations
-    
+
 /// Replace line with specified named values
 let internal replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
     let replace s =
@@ -28,13 +28,13 @@ let internal replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
             |> (function Some(_,v) -> v | None -> m.Value)
         let pattern = "<([^<]*)>"
         Regex.Replace(s, pattern, lookup)
-    let step = 
+    let step =
         match step with
         | GivenStep s -> replace s |> GivenStep
         | WhenStep s -> replace s |> WhenStep
         | ThenStep s  -> replace s |> ThenStep
     let table =
-        line.Table 
+        line.Table
         |> Option.map (fun table ->
             Table(table.Header,
                 table.Rows |> Array.map (fun row ->
@@ -52,25 +52,25 @@ let internal appendSharedExamples (sharedExamples:Table[]) scenarios  =
     if Seq.length sharedExamples = 0 then
         scenarios
     else
-        scenarios |> Seq.map (function 
+        scenarios |> Seq.map (function
             | scenarioName,tags,steps,None ->
                 scenarioName,tags,steps,Some(sharedExamples)
             | scenarioName,tags,steps,Some(exampleTables) ->
                 scenarioName,tags,steps,Some(Array.append exampleTables sharedExamples)
         )
-          
+
 /// Parses lines of feature
 let parseFeature (lines:string[]) =
     let toStep (_,_,_,line,step) = step,line
-    let featureName,background,scenarios,sharedExamples = parseBlocks lines     
+    let featureName,background,scenarios,sharedExamples = parseBlocks lines
     let scenarios =
-        scenarios 
+        scenarios
         |> appendSharedExamples sharedExamples
         |> Seq.collect (function
             | name,tags,steps,None ->
-                let steps = 
+                let steps =
                     Seq.append background steps
-                    |> Seq.map toStep 
+                    |> Seq.map toStep
                     |> Seq.toArray
                 Seq.singleton
                     { Name=name; Tags=tags; Steps=steps; Parameters=[||] }
@@ -84,7 +84,7 @@ let parseFeature (lines:string[]) =
                     let steps =
                         Seq.append background steps
                         |> Seq.map (replaceLine combination)
-                        |> Seq.map toStep 
+                        |> Seq.map toStep
                         |> Seq.toArray
                     { Name=name; Tags=tags; Steps=steps; Parameters=combination }
                 )

@@ -7,13 +7,13 @@ open System.Reflection.Emit
 open Microsoft.FSharp.Reflection
 
 /// Defines scenario type
-let defineScenarioType 
-        (module_:ModuleBuilder) 
+let defineScenarioType
+        (module_:ModuleBuilder)
         (scenarioName) =
     module_.DefineType(
         scenarioName,
         TypeAttributes.Public ||| TypeAttributes.Class)
-        
+
 /// Defines _provider field
 let defineProviderField
         (scenarioBuilder:TypeBuilder) =
@@ -23,15 +23,15 @@ let defineProviderField
         FieldAttributes.Private ||| FieldAttributes.InitOnly)
 
 /// Defines Constructor
-let defineCons 
+let defineCons
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
         (parameters:(string * string)[]) =
-    let cons = 
+    let cons =
         scenarioBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Standard,
-            [||])  
+            [||])
     let gen = cons.GetILGenerator()
     // Call base constructor
     gen.Emit(OpCodes.Ldarg_0)
@@ -42,7 +42,7 @@ let defineCons
     let ctor = typeof<ServiceProvider>.GetConstructor([||])
     gen.Emit(OpCodes.Newobj,ctor)
     gen.Emit(OpCodes.Stfld,providerField)
-    
+
     // Emit example parameters
     parameters |> Seq.iter (fun (name,value) ->
         let field =
@@ -53,15 +53,15 @@ let defineCons
         gen.Emit(OpCodes.Ldarg_0)
         gen.Emit(OpCodes.Ldstr,value)
         gen.Emit(OpCodes.Stfld,field)
-    )    
+    )
     // Emit return
     gen.Emit(OpCodes.Ret)
-        
+
 /// Emits table argument
 let emitTable
         (gen:ILGenerator)
         (table:Table) =
-        
+
     let local0 = gen.DeclareLocal(typeof<string[]>).LocalIndex
     let local1 = gen.DeclareLocal(typeof<string[][]>).LocalIndex
 
@@ -101,26 +101,26 @@ let emitTable
     )
     // Instantiate table
     gen.Emit(OpCodes.Ldloc,local1)
-    let ci = 
+    let ci =
         typeof<Table>.GetConstructor(
             [|typeof<string[]>;typeof<string[][]>|])
     gen.Emit(OpCodes.Newobj,ci)
-    
+
 /// Emit instance of specified type (obtained from service provider)
 let emitInstance (gen:ILGenerator) (providerField:FieldBuilder) (t:Type) =
     gen.Emit(OpCodes.Ldarg_0)
     gen.Emit(OpCodes.Ldfld,providerField)
     gen.Emit(OpCodes.Ldtoken,t)
-    let getType = 
+    let getType =
         typeof<Type>.GetMethod("GetTypeFromHandle",
             [|typeof<RuntimeTypeHandle>|])
-    gen.EmitCall(OpCodes.Call,getType,null) 
+    gen.EmitCall(OpCodes.Call,getType,null)
     let getService =
         typeof<System.IServiceProvider>
             .GetMethod("GetService",[|typeof<Type>|])
     gen.Emit(OpCodes.Callvirt,getService)
-    gen.Emit(OpCodes.Unbox_Any,t)    
-                        
+    gen.Emit(OpCodes.Unbox_Any,t)
+
 /// Emits type argument
 let emitType (gen:ILGenerator) (t:Type) =
     gen.Emit(OpCodes.Ldtoken,t)
@@ -155,14 +155,14 @@ let emitThrow (gen:ILGenerator) (exnType:Type) (message:string) =
 /// Emits union case
 let emitUnionCase (gen:ILGenerator) (paramType:Type) (arg:string) =
     let emitGetCaseAt (unionIndex:int) =
-        let mi = 
-            typeof<FSharpType>.GetMethod("GetUnionCases", 
+        let mi =
+            typeof<FSharpType>.GetMethod("GetUnionCases",
                 [|typeof<Type>;typeof<BindingFlags option>|])
         emitType gen paramType
         gen.Emit(OpCodes.Ldnull)
         gen.EmitCall(OpCodes.Call,mi,null)
-        let mi = 
-            typeof<FSharpValue>.GetMethod("MakeUnion", 
+        let mi =
+            typeof<FSharpValue>.GetMethod("MakeUnion",
                 [|typeof<UnionCaseInfo>;typeof<obj[]>;typeof<BindingFlags option>|])
         gen.Emit(OpCodes.Ldc_I4,unionIndex)
         gen.Emit(OpCodes.Ldelem, typeof<UnionCaseInfo>)
@@ -173,8 +173,8 @@ let emitUnionCase (gen:ILGenerator) (paramType:Type) (arg:string) =
     let cases = FSharpType.GetUnionCases paramType
     let equal a b = String.Compare(a ,b,StringComparison.InvariantCultureIgnoreCase) = 0
     match cases |> Array.tryFindIndex (fun case -> equal arg case.Name) with
-    | Some index -> 
-        if cases.[index].GetFields().Length > 0 then 
+    | Some index ->
+        if cases.[index].GetFields().Length > 0 then
             sprintf "Requested value '%s' has no default constructor" arg
             |> emitThrow gen typeof<System.ArgumentException>
         else emitGetCaseAt index
@@ -183,11 +183,11 @@ let emitUnionCase (gen:ILGenerator) (paramType:Type) (arg:string) =
         |> emitThrow gen typeof<System.ArgumentException>
 
 /// Emits value
-let rec emitValue 
-        (gen:ILGenerator) 
+let rec emitValue
+        (gen:ILGenerator)
         (providerField:FieldBuilder)
-        (parsers:IDictionary<Type,MethodInfo>) 
-        (paramType:Type) 
+        (parsers:IDictionary<Type,MethodInfo>)
+        (paramType:Type)
         (arg:string) =
     let hasParser, parser = parsers.TryGetValue(paramType)
     if hasParser then
@@ -201,8 +201,8 @@ let rec emitValue
         // Emit: System.Enum.Parse(typeof<specified argument>,arg)
         emitType gen paramType
         gen.Emit(OpCodes.Ldstr,arg)
-        let mi = 
-            typeof<Enum>.GetMethod("Parse", 
+        let mi =
+            typeof<Enum>.GetMethod("Parse",
                 [|typeof<Type>;typeof<string>|])
         gen.EmitCall(OpCodes.Call,mi,null)
         // Emit cast to parameter type
@@ -241,13 +241,13 @@ and emitTuple (gen:ILGenerator) (emitValue) (paramType:Type) (arg:string) =
     gen.Emit(OpCodes.Ldloc, localArray)
     emitType gen paramType
     gen.EmitCall(OpCodes.Call, mi, null)
-        
+
 /// Emits array
-let emitArray 
+let emitArray
         (gen:ILGenerator)
         (providerField:FieldBuilder)
-        (parsers:IDictionary<Type,MethodInfo>)  
-        (paramType:Type) 
+        (parsers:IDictionary<Type,MethodInfo>)
+        (paramType:Type)
         (vs:string[]) =
     let t = paramType.GetElementType()
     // Define local variable
@@ -264,13 +264,13 @@ let emitArray
         gen.Emit(OpCodes.Stelem,t)
     )
     gen.Emit(OpCodes.Ldloc, local)
-        
+
 /// Emits object array based on table using object's constructor
 let emitObjectArray
         (gen:ILGenerator)
         (providerField:FieldBuilder)
-        (parsers:IDictionary<Type,MethodInfo>)  
-        (paramType:Type) 
+        (parsers:IDictionary<Type,MethodInfo>)
+        (paramType:Type)
         (table:Table)
         (ci:ConstructorInfo) =
     let t = paramType.GetElementType()
@@ -302,9 +302,9 @@ let emitObjectArray
 let emitArgument
         (gen:ILGenerator)
         (providerField:FieldBuilder)
-        (parsers:IDictionary<Type,MethodInfo>) 
+        (parsers:IDictionary<Type,MethodInfo>)
         (arg:string,param:ParameterInfo) =
-        
+
     let paramType = param.ParameterType
     if paramType.IsArray then
         let vs =
@@ -313,30 +313,30 @@ let emitArgument
         emitArray gen providerField parsers paramType vs
     else
         emitValue gen providerField parsers paramType arg
-        
+
 /// Defines step method
 let defineStepMethod
         doc
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
         (parsers:IDictionary<Type,MethodInfo>)
-        (line:LineSource,mi:MethodInfo,args:string[]) =    
+        (line:LineSource,mi:MethodInfo,args:string[]) =
     /// Line number
     let n = line.Number
     /// Step method builder
-    let stepMethod = 
+    let stepMethod =
         scenarioBuilder.DefineMethod(sprintf "%d: %s" n line.Text,
             MethodAttributes.Public,
             typeof<Void>,
-             [||]) 
+             [||])
     /// Step method ILGenerator
     let gen = stepMethod.GetILGenerator()
-    // Set marker in source document    
+    // Set marker in source document
     gen.MarkSequencePoint(doc,n,1,n,line.Text.Length+1)
     // Handle generic methods
     let mi =
         if mi.ContainsGenericParameters then
-            let ps = 
+            let ps =
                 mi.GetGenericArguments()
                 |> Array.map (fun p ->
                     if p.IsGenericParameter then typeof<string>
@@ -363,13 +363,13 @@ let defineStepMethod
         gen.BeginCatchBlock(typeof<Exception>)
         // throw ArgumentException(message, name, ex);
         gen.Emit(OpCodes.Stloc, temp)
-        let message = 
-            sprintf "Failed to convert argument '%s' of target method '%s' from '%s' to type '%s'" 
+        let message =
+            sprintf "Failed to convert argument '%s' of target method '%s' from '%s' to type '%s'"
                 p.Name mi.Name arg p.ParameterType.Name
         gen.Emit(OpCodes.Ldstr, message)
         gen.Emit(OpCodes.Ldstr, p.Name)
         gen.Emit(OpCodes.Ldloc, temp)
-        let ci = 
+        let ci =
             typeof<ArgumentException>
                 .GetConstructor([|typeof<string>;typeof<string>;typeof<Exception>|])
         gen.Emit(OpCodes.Newobj, ci)
@@ -396,22 +396,22 @@ let defineStepMethod
         if t = typeof<Table> then emitTable gen table
         elif t.IsArray then
             let found =
-                t.GetElementType().GetConstructors() 
+                t.GetElementType().GetConstructors()
                 |> Seq.tryFind (fun c -> c.GetParameters().Length = table.Header.Length)
             match found with
             | Some ci -> emitObjectArray gen providerField parsers t table ci
-            | None ->                 
+            | None ->
                 let ci = typeof<ArgumentException>.GetConstructor([|typeof<string>;typeof<string>|])
                 gen.Emit(OpCodes.Ldstr, sprintf "No matching constructor found on type: %s" (t.GetElementType().Name))
                 gen.Emit(OpCodes.Ldstr, p.Name)
                 gen.Emit(OpCodes.Newobj, ci)
-                gen.Emit(OpCodes.Throw)                
+                gen.Emit(OpCodes.Throw)
         else
             let ci = typeof<ArgumentException>.GetConstructor([|typeof<string>;typeof<string>|])
             gen.Emit(OpCodes.Ldstr, "Expecting table or array argument")
             gen.Emit(OpCodes.Ldstr, p.Name)
             gen.Emit(OpCodes.Newobj, ci)
-            gen.Emit(OpCodes.Throw) 
+            gen.Emit(OpCodes.Throw)
     )
     // Emit doc argument
     line.Doc |> Option.iter (fun doc -> gen.Emit(OpCodes.Ldstr, doc))
@@ -424,9 +424,9 @@ let defineStepMethod
     gen.Emit(OpCodes.Ret)
     // Return step method
     stepMethod
-    
+
 /// Defines Run method
-let defineRunMethod    
+let defineRunMethod
     (scenarioBuilder:TypeBuilder)
     (providerField:FieldBuilder)
     (beforeScenarioEvents:MethodInfo seq,
@@ -442,9 +442,9 @@ let defineRunMethod
             [||])
     /// Run method ILGenerator
     let gen = runMethod.GetILGenerator()
-    
+
     // Emit event methods
-    let emitEvents (ms:MethodInfo seq) = 
+    let emitEvents (ms:MethodInfo seq) =
         ms |> Seq.iter (fun mi ->
             if mi.IsStatic then
                 gen.EmitCall(OpCodes.Call, mi, null)
@@ -481,19 +481,19 @@ let generateScenario
         (parsers:IDictionary<Type,MethodInfo>)
         (scenarioName,lines:(LineSource * MethodInfo * string[]) [],
          parameters:(string * string)[]) =
-    
+
     let scenarioBuilder =
         defineScenarioType module_ scenarioName
 
     let providerField = defineProviderField scenarioBuilder
-    
+
     defineCons scenarioBuilder providerField parameters
-               
+
     /// Scenario step methods
     let stepMethods =
-        lines 
+        lines
         |> Array.map (defineStepMethod doc scenarioBuilder providerField parsers)
-        
+
     defineRunMethod scenarioBuilder providerField events stepMethods
     /// Return scenario
     scenarioBuilder.CreateType()
