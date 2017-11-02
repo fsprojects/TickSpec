@@ -1,15 +1,13 @@
-﻿Feature: Dependency
+﻿Feature: Feeding dog
 
-    Scenario: Store and retrieve the value
-    Given I use the <Implementation> implementation
-    When I store "<Text>"
-    Then I retrieve "<Output>"
+    Scenario: Feeding dog with enough food
+    Given I have a <Size> dog
+    When I fill the dog bowl with <Amount>g of food
+    And The dog eats the food from bowl
+    Then The bowl contains <Residue>g of food
 
     Examples:
-    | Implementation    | Text      | Output        |
-    | first             | test      | First: test   |
-    | second            | test      | Second: test  |
-
-    Scenario: Store and retrieve the value using the second implementation
-    When I store "test" using the second implementation
-    Then I retrieve "Second: test" using the second implementation
+    | Size   | Amount | Residue |
+    | small  | 200    | 100     |
+    | medium | 250    | 50      |
+    | large  | 400    | 0       |
