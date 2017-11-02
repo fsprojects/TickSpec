@@ -7,8 +7,7 @@ open System.Reflection
 
 /// Provides an instance provider for tests
 type IInstanceProvider =
-    /// Resolves an instance of desired type
-    abstract member Resolve : Type -> obj
+    inherit IServiceProvider
 
     /// Registers an instance for a type (if there is already a registered instance, it will be replaced)
     abstract member RegisterInstance : Type -> obj -> unit
@@ -75,12 +74,13 @@ type ServiceProvider () as self =
         resolveInstance t []
 
     interface IInstanceProvider with
-        [<DebuggerStepThrough>]
-        member this.Resolve (t: Type) =
-            getInstance t
-
         member this.RegisterInstance (t: Type) (instance: obj) =
             instances.[t] <- instance
+    
+    interface IServiceProvider with
+        [<DebuggerStepThrough>]
+        member this.GetService (t: Type) =
+            getInstance t
 
     interface IDisposable with
         member this.Dispose() =

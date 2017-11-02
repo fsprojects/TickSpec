@@ -117,8 +117,8 @@ let emitInstance (gen:ILGenerator) (providerField:FieldBuilder) (t:Type) =
             [|typeof<RuntimeTypeHandle>|])
     gen.EmitCall(OpCodes.Call,getType,null)
     let getService =
-        typeof<IInstanceProvider>
-            .GetMethod("Resolve",[|typeof<Type>|])
+        typeof<IServiceProvider>
+            .GetMethod("GetService",[|typeof<Type>|])
     gen.Emit(OpCodes.Callvirt,getService)
     gen.Emit(OpCodes.Unbox_Any,t)
 

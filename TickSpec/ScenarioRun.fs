@@ -14,7 +14,7 @@ let split (s:string) =
 /// Gets object instance for specified method
 let getInstance (provider:IInstanceProvider) (m:MethodInfo) =
     if m.IsStatic then null
-    else provider.Resolve m.DeclaringType
+    else provider.GetService m.DeclaringType
 
 /// Invokes specified method with specified parameters
 let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
