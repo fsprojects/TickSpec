@@ -51,8 +51,11 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="FeatureFixture.fs" />
+    <Compile Include="Domain.fs" />
     <EmbeddedResource Include="Dependency.feature" />
-    <Compile Include="DependencySteps.fs" />
+    <Compile Include="PersonSteps.fs" />
+    <Compile Include="DogSteps.fs" />
+    <Compile Include="BowlSteps.fs" />
     <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
