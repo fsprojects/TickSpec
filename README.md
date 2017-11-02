@@ -31,6 +31,7 @@ Scenario 1: Refunded items should be returned to stock
 # Step definitions (F#)
 
 ```
+type StockItem = { Count : int }
 let mutable stockItem = { Count = 0 }
 
 let [<Given>] ``a customer buys a black jumper`` () = ()
@@ -42,6 +43,24 @@ let [<When>] ``he returns the jumper for a refund`` () =
     stockItem <- { stockItem with Count = stockItem.Count + 1 }
 
 let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) =
+    let passed = (stockItem.Count = n)
+    Debug.Assert(passed)
+```
+
+# Step definitions (F# without mutable field)
+
+```
+type StockItem = { Count : int }
+
+let [<Given>] ``a customer buys a black jumper`` () = ()
+      
+let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) =  
+    { Count = n }
+      
+let [<When>] ``he returns the jumper for a refund`` (stockItem:StockItem) =  
+    { stockItem with Count = stockItem.Count + 1 }
+      
+let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) (stockItem:StockItem) =     
     let passed = (stockItem.Count = n)
     Debug.Assert(passed)
 ```
