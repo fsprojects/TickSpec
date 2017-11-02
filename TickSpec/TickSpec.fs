@@ -1,21 +1,19 @@
 ﻿namespace TickSpec
 
 open System
-open System.Collections
 open System.Collections.Generic
 open System.IO
 open System.Reflection
 open System.Text.RegularExpressions
-open TickSpec.LineParser
 open TickSpec.FeatureParser
 open TickSpec.ScenarioRun
 
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (givens,whens,thens,events,valueParsers) =
     /// Returns method's step attribute or null
-    static let GetStepAttributes (m:MemberInfo) =
+    static let getStepAttributes (m:MemberInfo) =
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
-    static let IsMethodInScope (feature:string) (scenario:ScenarioSource) (scopedTags,scopedFeatures,scopedScenarios,m) =
+    static let isMethodInScope (feature:string) (scenario:ScenarioSource) (scopedTags,scopedFeatures,scopedScenarios,m) =
         let trim p (s:string) =
             if s.StartsWith p then (s.Substring p.Length).Trim() else s
         let tagged =
@@ -45,7 +43,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             let r = Regex.Match(text,pattern)
             if r.Success then Some r else None
         definitions
-        |> List.filter (fun (_,m) -> m |> IsMethodInScope feature scenario)
+        |> List.filter (fun (_,m) -> m |> isMethodInScope feature scenario)
         |> List.choose (fun (pattern:string,(_,_,_,m):string list * string list * string list * MethodInfo) ->
             chooseDefinition pattern |> Option.map (fun r -> r,m)
         )
@@ -84,7 +82,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     let chooseInScopeEvents feature (scenario:ScenarioSource) =
         let choose xs =
             xs
-            |> Seq.filter (fun m -> m |> IsMethodInScope feature scenario)
+            |> Seq.filter (fun m -> m |> isMethodInScope feature scenario)
             |> Seq.map (fun (_,_,_,e) -> e)
         events
         |> fun (ea,eb,ec,ed) -> choose ea, choose eb, choose ec, choose ed
@@ -126,7 +124,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         /// Step methods
         let givens, whens, thens =
             methods
-            |> Seq.map (fun ((_,_,_,m) as sm) -> sm, GetStepAttributes m)
+            |> Seq.map (fun ((_,_,_,m) as sm) -> sm, getStepAttributes m)
             |> Seq.filter (fun (m,ca) -> ca.Length > 0)
             |> Seq.collect (fun ((_,_,_,m) as sm,ca) ->
                 ca

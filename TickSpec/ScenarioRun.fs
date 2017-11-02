@@ -1,9 +1,7 @@
 ﻿module internal TickSpec.ScenarioRun
 
 open System
-open System.Collections
 open System.Collections.Generic
-open System.Text.RegularExpressions
 open System.Reflection
 open Microsoft.FSharp.Reflection
 
@@ -41,7 +39,6 @@ let rec toArray
         (parsers:IDictionary<Type,MethodInfo>)
         provider
         (t:Type) (xs:string[]) =
-    let culture = System.Globalization.CultureInfo.InvariantCulture
     let vs = xs |> Array.map (fun x -> convertString parsers provider t x)
     let ar = Array.CreateInstance(t,vs.Length)
     for i = 0 to ar.Length-1 do ar.SetValue(vs.[i],i)

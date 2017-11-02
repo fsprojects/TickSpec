@@ -4,7 +4,7 @@ open TickSpec.LineParser
 
 let identity x = x
 
-let mapItems items = 
+let mapItems items =
     let items = List.rev items
     match items with
     | x::xs ->
@@ -43,31 +43,31 @@ let buildBlocks lines =
     // Scan over lines
     lines
     |> Seq.scan (fun (block,blockN,lastStep,lastN,tags,tags',_) (lineN,line) ->
-        let step = 
+        let step =
             match parseLine (lastStep,line) with
             | Some newStep -> newStep
-            | None -> 
+            | None ->
                 let e = expectingLine lastStep
                 let m = sprintf "Syntax error on line %d %s\r\n%s" lineN line e
                 StepException(m,lineN,block.ToString()) |> raise
         match step with
         | TagLine tag ->
             block, blockN, step, lineN, tag@tags, tags', None
-        | BlockStart block -> 
+        | BlockStart block ->
             block, blockN+1, step, lineN, [], tags, None
         | ExamplesStart | Step _ ->
-            block, blockN, step, lineN, tags, tags', 
-                Some(block,blockN,tags',lineN,line,step) 
+            block, blockN, step, lineN, tags, tags',
+                Some(block,blockN,tags',lineN,line,step)
         | Item _ ->
-            block, blockN, step, lastN, tags, tags', 
+            block, blockN, step, lastN, tags, tags',
                 Some(block,blockN,tags',lastN,line,step)
     ) (Background,0,BlockStart(Background),0,[],[],None)
     // Handle tables
     |> Seq.choose (fun (_,_,_,_,_,_,step) -> step)
-    |> Seq.groupBy (fun (_,_,_,lineN,_,_) -> lineN)    
+    |> Seq.groupBy (fun (_,_,_,lineN,_,_) -> lineN)
     |> Seq.map (fun (line,items) ->
         items |> Seq.fold (fun (text,row,table) (block,blockN,tags,lineN,line,step) ->
-            let text = if String.length text = 0 then line else text + "\r\n" + line            
+            let text = if String.length text = 0 then line else text + "\r\n" + line
             match step with
             | BlockStart (Shared _)
             | ExamplesStart | Step _ ->
@@ -76,7 +76,7 @@ let buildBlocks lines =
                 text, (block,blockN,tags,lineN,line,step), item::table
             | Item (_,item) ->
                 text, row, item::table
-            | BlockStart _ | TagLine _ -> 
+            | BlockStart _ | TagLine _ ->
                 invalidOp "Unexpected token"
         ) ("",(Background,0,[],0,"",BlockStart(Background)),[])
         |> (fun (text, line, items) -> text, line, mapItems items)
@@ -94,8 +94,8 @@ let buildBlocks lines =
         blocks |> Seq.mapi (fun i ((name,_,tags),lines) ->
             let names = names |> Seq.take (i+1)
             let count = names |> Seq.filter ((=) name) |> Seq.length
-            let name = 
-                if count = 1 then name 
+            let name =
+                if count = 1 then name
                 else
                     match name with
                     | Background ->
@@ -107,25 +107,25 @@ let buildBlocks lines =
         )
     )
     // Handle examples
-    |> Seq.map (fun (block,lines) -> 
+    |> Seq.map (fun (block,lines) ->
         block,
-            lines 
+            lines
             |> Seq.toArray
             |> Array.partition (function
-                | _,_,_,_,ExamplesStart -> true 
+                | _,_,_,_,ExamplesStart -> true
                 | _ -> false
             )
             |> (fun (examples,steps) ->
                 steps,
                     let tables =
-                        examples      
+                        examples
                         |> Array.choose (fun (_,_,_,line,_) -> line.Table)
                         |> Array.filter (fun table -> table.Rows.Length > 0)
                     if tables.Length > 0 then Some tables
                     else None
             )
     )
-    |> Seq.map (fun ((block,tags),(steps,examples)) -> 
+    |> Seq.map (fun ((block,tags),(steps,examples)) ->
         block,tags |> List.toArray,steps,examples
     )
 
@@ -149,7 +149,7 @@ let parseBlocks (featureLines:string[]) =
             text |> startsWith "Background" ||
             text |> startsWith "Shared"
         )
-        |> Seq.map (fun (n,line) -> 
+        |> Seq.map (fun (n,line) ->
             let i = line.IndexOf("#")
             if i = -1 then n,line
             else n,line.Substring(0,i)
@@ -162,37 +162,37 @@ let parseBlocks (featureLines:string[]) =
             |> Seq.choose (function
                 | Background,_,_,_ -> None
                 | Named _,_,_,_ -> None
-                | Shared tag,tags,lines,examples -> 
+                | Shared tag,tags,lines,examples ->
                     let tables = lines |> Seq.map (fun (_,_,_,line,_) -> line.Table) |> Seq.choose identity
                     let examples = examples |> (function Some x -> Seq.append tables x | None -> tables)
                     (tag, examples) |> Some
-            ) 
-        let tagged = 
+            )
+        let tagged =
             shared |> Seq.choose (function Some x,y -> Some(x,y) | None,y -> None)
-        let untagged = 
+        let untagged =
             shared |> Seq.choose (function Some x,y -> None | None,y -> Some y)
             |> Seq.concat |> Seq.toArray
         tagged, untagged
     let toSteps lines =
-        lines 
+        lines
         |> Seq.map (fun (block,n,tags,line,lineType) ->
             let step = match lineType with Step(step) -> step | _ -> invalidOp "Expecting step"
             (block,n,tags,line,step)
         )
     let background =
-        blocks 
-        |> Seq.choose (function 
+        blocks
+        |> Seq.choose (function
             | Background,tags,lines,examples -> Some (lines,examples)
             | Named _,_,_,_ -> None
             | Shared _,_,_,_ -> None
-        ) 
+        )
         |> Seq.collect (fun (lines,_) -> lines |> toSteps)
         |> Seq.toArray
     let scenarios =
         blocks
-        |> Seq.choose (function 
+        |> Seq.choose (function
             | Background,_,_,_ -> None
-            | Named name,tags,lines,examples -> 
+            | Named name,tags,lines,examples ->
                 let xs = tagExamples |> Seq.filter (fun (tag,_) -> tags |> Seq.exists ((=) tag)) |> Seq.collect snd |> Seq.toArray
                 let examples =
                     match examples, xs with
