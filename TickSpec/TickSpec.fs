@@ -222,7 +222,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         let createAction scenario =
             let t = lazy (genType scenario)
             TickSpec.Action(fun () ->
-                let instance = t.Force() |> Activator.CreateInstance
+                let constructor = t.Force().GetConstructor([| typeof<FSharpFunc<unit, IInstanceProvider>> |])
+                let instance = constructor.Invoke([| providerFactory |])
                 let mi = instance.GetType().GetMethod("Run")
                 mi.Invoke(instance,[||]) |> ignore
             )

@@ -31,7 +31,7 @@ let defineCons
         scenarioBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Standard,
-            [||])
+            [| typeof<FSharpFunc<unit, IInstanceProvider>> |])
     let gen = cons.GetILGenerator()
     // Call base constructor
     gen.Emit(OpCodes.Ldarg_0)
@@ -39,9 +39,10 @@ let defineCons
 
     // Emit provider field
     gen.Emit(OpCodes.Ldarg_0)
-    let ctor = typeof<ServiceProvider>.GetConstructor([||])
-    gen.Emit(OpCodes.Newobj,ctor)
-    gen.Emit(OpCodes.Stfld,providerField)
+    gen.Emit(OpCodes.Ldarg_1)
+    gen.Emit(OpCodes.Ldnull)
+    gen.Emit(OpCodes.Callvirt, typeof<FSharpFunc<unit, IInstanceProvider>>.GetMethod("Invoke"))
+    gen.Emit(OpCodes.Stfld, providerField)
 
     // Emit example parameters
     parameters |> Seq.iter (fun (name,value) ->
