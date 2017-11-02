@@ -56,6 +56,11 @@
     <Compile Include="Fixtures.fs" />
     <EmbeddedResource Include="Shopping.feature" />
     <Compile Include="ShoppingSteps.fs" />
+    <EmbeddedResource Include="Dependency.feature" />
+    <Compile Include="Domain.fs" />
+    <Compile Include="PersonSteps.fs" />
+    <Compile Include="DogSteps.fs" />
+    <Compile Include="BowlSteps.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
