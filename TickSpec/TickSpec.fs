@@ -161,6 +161,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             |> Seq.map (fun (_,_,_,m) -> m.ReturnType, m)
             |> Dict.ofSeq
         StepDefinitions(givens,whens,thens,events,valueParsers)
+    /// Can be used to customize the creation and disposing of Scenario step types (but defaults to the build type)
+    member val ServiceProvider : Lazy<IServiceProvider> = lazy (ServiceProvider() :> _) with get, set
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
         let featureSource = parseFeature lines
@@ -172,7 +174,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 |> Seq.map (resolveLine feature scenario)
                 |> Seq.toArray
             let events = chooseInScopeEvents feature scenario
-            let action = generate events valueParsers (scenario.Name,steps)
+            let action = generate this.ServiceProvider.Value events valueParsers (scenario.Name,steps)
             {Name=scenario.Name;Description=getDescription scenario.Steps;
              Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
         )
