@@ -23,25 +23,44 @@ Feature: Refunded or replaced items should be returned to stock
 
 Scenario 1: Refunded items should be returned to stock
     Given a customer buys a black jumper
-    And I have 3 black jumpers left in stock 
-    When he returns the jumper for a refund 
-    Then I should have 4 black jumpers in stock 
+    And I have 3 black jumpers left in stock
+    When he returns the jumper for a refund
+    Then I should have 4 black jumpers in stock
 ```
 
 # Step definitions (F#)
 
 ```
+type StockItem = { Count : int }
 let mutable stockItem = { Count = 0 }
+
+let [<Given>] ``a customer buys a black jumper`` () = ()
+
+let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) =
+    stockItem <- { stockItem with Count = n }
+
+let [<When>] ``he returns the jumper for a refund`` () =
+    stockItem <- { stockItem with Count = stockItem.Count + 1 }
+
+let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) =
+    let passed = (stockItem.Count = n)
+    Debug.Assert(passed)
+```
+
+# Step definitions (F# without mutable field)
+
+```
+type StockItem = { Count : int }
 
 let [<Given>] ``a customer buys a black jumper`` () = ()
       
 let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) =  
-    stockItem <- { stockItem with Count = n }
+    { Count = n }
       
-let [<When>] ``he returns the jumper for a refund`` () =  
-    stockItem <- { stockItem with Count = stockItem.Count + 1 }
+let [<When>] ``he returns the jumper for a refund`` (stockItem:StockItem) =  
+    { stockItem with Count = stockItem.Count + 1 }
       
-let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) =     
+let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) (stockItem:StockItem) =     
     let passed = (stockItem.Count = n)
     Debug.Assert(passed)
 ```
@@ -61,7 +80,7 @@ public class StockStepDefinitions
    [Given(@"I have (.*) black jumpers left in stock")]
    public void GivenIHaveNBlackJumpersLeftInStock(int n)
    {
-      _stockItem = new StockItem() { Count = n };  
+      _stockItem = new StockItem() { Count = n };
    }
 
    [When(@"he returns the jumper for a refund")]

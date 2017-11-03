@@ -10,18 +10,18 @@ module internal List =
                 h :: ts ]
 
 module internal Seq =
-    /// Skips elements in sequence until condition is met  
-    let skipUntil (p:'a -> bool) (source:seq<_>) =  
-        seq { 
-            use e = source.GetEnumerator() 
+    /// Skips elements in sequence until condition is met
+    let skipUntil (p:'a -> bool) (source:seq<_>) =
+        seq {
+            use e = source.GetEnumerator()
             let latest = ref (Unchecked.defaultof<_>)
             let ok = ref false
             while e.MoveNext() do
                 if (latest := e.Current; (!ok || p !latest)) then
                     ok := true
-                    yield !latest 
+                    yield !latest
         }
-        
+
  module internal TextReader =
     /// Reads lines from TextReader
     let readLines (reader:System.IO.TextReader) =
@@ -33,7 +33,7 @@ module internal Seq =
                 else isEOF := true
         }
     /// Read all lines to a string array
-    let readAllLines reader = reader |> readLines |> Seq.toArray    
+    let readAllLines reader = reader |> readLines |> Seq.toArray
 
 module internal Dict =
     let ofSeq (pairs:('key * 'value) seq) =

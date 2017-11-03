@@ -1,9 +1,7 @@
 ﻿module internal TickSpec.ScenarioRun
 
 open System
-open System.Collections
 open System.Collections.Generic
-open System.Text.RegularExpressions
 open System.Reflection
 open Microsoft.FSharp.Reflection
 
@@ -14,22 +12,21 @@ let split (s:string) =
          |> Array.map (fun x -> x.Trim())
 
 /// Gets object instance for specified method
-let getInstance (provider:IServiceProvider) (m:MethodInfo) =
+let getInstance (provider:IInstanceProvider) (m:MethodInfo) =
     if m.IsStatic then null
     else provider.GetService m.DeclaringType
 
 /// Invokes specified method with specified parameters
-let invoke (provider:IServiceProvider) (m:MethodInfo) ps =
+let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
     let instance = getInstance provider m
     let ret = m.Invoke(instance,ps)
     if m.ReturnType <> typeof<System.Void> then
-        let instanceProvider = provider :?> IInstanceProvider
-        instanceProvider.RegisterOrReplaceInstanceAsType (m.ReturnType) ret
+        provider.RegisterInstance (m.ReturnType) ret
     
 /// Converts generic methods
 let toConcreteMethod (m:MethodInfo) =
     if m.ContainsGenericParameters then
-        let ps = 
+        let ps =
             m.GetGenericArguments()
             |> Array.map (fun p ->
                 if p.IsGenericParameter then typeof<string>
@@ -41,17 +38,16 @@ let toConcreteMethod (m:MethodInfo) =
 
 /// Converts string array to array of specified type
 let rec toArray
-        (parsers:IDictionary<Type,MethodInfo>) 
+        (parsers:IDictionary<Type,MethodInfo>)
         provider
         (t:Type) (xs:string[]) =
-    let culture = System.Globalization.CultureInfo.InvariantCulture
     let vs = xs |> Array.map (fun x -> convertString parsers provider t x)
     let ar = Array.CreateInstance(t,vs.Length)
     for i = 0 to ar.Length-1 do ar.SetValue(vs.[i],i)
     ar
 /// Converts string (s) to parameter Type (p)
 and convertString
-        (parsers:IDictionary<Type,MethodInfo>) 
+        (parsers:IDictionary<Type,MethodInfo>)
         provider (p:Type) s =
     let hasParser, parser = parsers.TryGetValue(p)
     if hasParser then
@@ -75,14 +71,14 @@ and convertString
         let culture = System.Globalization.CultureInfo.InvariantCulture
         Convert.ChangeType(s,t,culture)
     else
-        let culture = System.Globalization.CultureInfo.InvariantCulture 
+        let culture = System.Globalization.CultureInfo.InvariantCulture
         Convert.ChangeType(s,p,culture)
 
 /// Converts a table to the specified array type
 let convertTable parsers provider (t:Type) (table:Table) =
-    let t = t.GetElementType()    
+    let t = t.GetElementType()
     let ar = Array.CreateInstance(t,table.Rows.Length)
-    let cons = 
+    let cons =
         t.GetConstructors()
         |> Seq.tryFind (fun c -> c.GetParameters().Length = table.Header.Length)
     match cons with
@@ -90,20 +86,20 @@ let convertTable parsers provider (t:Type) (table:Table) =
         // Try to use type's constructor
         table.Rows |> Array.iteri (fun y row ->
             let ps = c.GetParameters()
-            let args = 
+            let args =
                 Array.zip ps row
                 |> Array.map (fun (p,s) -> convertString parsers provider p.ParameterType s)
             let e = Activator.CreateInstance(t, args)
             ar.SetValue(e, y)
         )
-    | None -> 
+    | None ->
         // Try to use type's properties
         let ps = t.GetProperties()
         table.Rows |> Array.iteri (fun y row ->
             let e = Activator.CreateInstance(t)
             for x = 0 to table.Header.Length-1 do
                 let column = table.Header.[x]
-                let p = ps |> Seq.find (fun p -> String.Compare(p.Name, column, StringComparison.InvariantCultureIgnoreCase)=0)           
+                let p = ps |> Seq.find (fun p -> String.Compare(p.Name, column, StringComparison.InvariantCultureIgnoreCase)=0)
                 let value = convertString parsers provider p.PropertyType row.[x]
                 p.SetValue(e, value, [||])
             ar.SetValue(e, y)
@@ -113,7 +109,7 @@ let convertTable parsers provider (t:Type) (table:Table) =
 /// Invokes method with match values as arguments
 let invokeStep
         (parsers:IDictionary<Type,MethodInfo>)
-        (provider:IServiceProvider) 
+        (provider:IInstanceProvider)
         (meth:MethodInfo,args:string[],
          bullets:string[] option,table:Table option,doc:string option) =
     let meth = meth |> toConcreteMethod
@@ -124,8 +120,8 @@ let invokeStep
             try convertString parsers provider p s
             with ex ->
                 let name = ps.[i].Name
-                let message = 
-                    sprintf "Failed to convert argument '%s' of target method '%s' from '%s' to type '%s'" 
+                let message =
+                    sprintf "Failed to convert argument '%s' of target method '%s' from '%s' to type '%s'"
                         name meth.Name s p.Name
                 raise <| ArgumentException(message, name, ex)
         )
@@ -136,7 +132,7 @@ let invokeStep
             let p = ps.[ps.Length-1]
             let t = p.ParameterType.GetElementType()
             [|box (toArray parsers provider t xs)|]
-        | None,Some table,None -> 
+        | None,Some table,None ->
             let p = ps.[ps.Length-1].ParameterType
             if p = typeof<Table> then [|box table|]
             elif p.IsArray then [|convertTable parsers provider p table|]
@@ -154,26 +150,31 @@ let invokeStep
     invoke provider meth args
 
 /// Generate scenario execution function
-let generate events parsers (scenario,lines) =
+let generate events parsers (scenario, lines) (serviceProviderFactory: unit -> IInstanceProvider) =
     fun () ->
         /// Type instance provider
-        use provider = new ServiceProvider()
+        let provider = serviceProviderFactory()
 
-        let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
-        /// Invokes events
-        let invokeEvents events = 
-            events |> Seq.iter (fun (mi:MethodInfo) ->
-                invoke provider mi [||]
-            )
         try
-            beforeScenarioEvents |> invokeEvents
-            // Iterate scenario lines
-            lines |> Seq.iter (fun (line:LineSource,m,args) ->
-                try
-                    beforeStepEvents |> invokeEvents
-                    (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
-                finally
-                    afterStepEvents |> invokeEvents
-            )
+            let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
+            /// Invokes events
+            let invokeEvents events =
+                events |> Seq.iter (fun (mi:MethodInfo) ->
+                    invoke provider mi [||]
+                )
+            try
+                beforeScenarioEvents |> invokeEvents
+                // Iterate scenario lines
+                lines |> Seq.iter (fun (line:LineSource,m,args) ->
+                    try
+                        beforeStepEvents |> invokeEvents
+                        (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
+                    finally
+                        afterStepEvents |> invokeEvents
+                )
+            finally
+                afterScenarioEvents |> invokeEvents
         finally
-            afterScenarioEvents |> invokeEvents
+            match provider with
+            | :? IDisposable as d -> d.Dispose()
+            | _ -> ()
