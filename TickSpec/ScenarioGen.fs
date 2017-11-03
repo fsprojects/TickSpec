@@ -1,5 +1,5 @@
 ﻿module internal TickSpec.ScenarioGen
- 
+
 open System
 open System.Collections.Generic
 open System.Reflection

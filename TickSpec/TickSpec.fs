@@ -7,7 +7,7 @@ open System.Reflection
 open System.Text.RegularExpressions
 open TickSpec.FeatureParser
 open TickSpec.ScenarioRun
- 
+
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (givens,whens,thens,events,valueParsers) =
     /// Returns method's step attribute or null
