@@ -1,6 +1,6 @@
 ﻿Feature: Feeding dog
 
-    Scenario: Feeding dog with enough food
+    Scenario Outline: Feeding dog with enough food
     Given I have a <Size> dog
     When I fill the dog bowl with <Amount>g of food
     And The dog eats the food from bowl
