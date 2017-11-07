@@ -75,6 +75,15 @@ type ServiceProvider () as self =
 
     interface IInstanceProvider with
         member this.RegisterInstance (t: Type) (instance: obj) =
+            match instances.TryGetValue t with
+            | true, value ->
+                match value with
+                | :? IDisposable as d -> d.Dispose()
+                | _ -> ()
+
+                instances.[t] <- instance
+            | _ -> instances.Add(t, instance)
+
             instances.[t] <- instance
 
     interface IServiceProvider with
