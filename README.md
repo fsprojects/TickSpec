@@ -60,13 +60,13 @@ type StockItem = { Count : int }
 
 let [<Given>] ``a customer buys a black jumper`` () = ()
       
-let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) =  
+let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) =
     { Count = n }
       
-let [<When>] ``he returns the jumper for a refund`` (stockItem:StockItem) =  
+let [<When>] ``he returns the jumper for a refund`` (stockItem:StockItem) =
     { stockItem with Count = stockItem.Count + 1 }
       
-let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) (stockItem:StockItem) =     
+let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) (stockItem:StockItem) =
     let passed = (stockItem.Count = n)
     Debug.Assert(passed)
 ```

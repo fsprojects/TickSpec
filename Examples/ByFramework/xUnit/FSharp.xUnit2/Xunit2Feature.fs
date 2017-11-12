@@ -10,4 +10,4 @@ let scenarios resourceName = source.ScenariosFromEmbeddedResource resourceName |
 let Addition (scenario : Scenario) = scenario.Action.Invoke()
 
 [<Theory; MemberData("scenarios", "Stock.feature")>]
-let StockA (scenario : Scenario) = scenario.Action.Invoke()
+let Stock (scenario : Scenario) = scenario.Action.Invoke()

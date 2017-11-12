@@ -50,13 +50,14 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
-    <Compile Include="FeatureFixture.fs" />
+    <None Include="paket.references" />
+    <Compile Include="NunitWiring.fs" />
     <Compile Include="Domain.fs" />
-    <EmbeddedResource Include="Dependency.feature" />
-    <Compile Include="PersonSteps.fs" />
+    <EmbeddedResource Include="DogFeeding.feature" />
     <Compile Include="DogSteps.fs" />
     <Compile Include="BowlSteps.fs" />
-    <None Include="paket.references" />
+    <Compile Include="FeedingSteps.fs" />
+    <Compile Include="DependencyInjectionFeature.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

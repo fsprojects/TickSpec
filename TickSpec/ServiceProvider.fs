@@ -10,11 +10,11 @@ type IInstanceProvider =
     inherit IServiceProvider
 
     /// Registers an instance for a type (if there is already a registered instance, it will be replaced)
-    abstract member RegisterInstance : Type -> obj -> unit
+    abstract member RegisterInstance : Type * obj -> unit
 
 [<Sealed>]
 /// Creates instance service provider
-type ServiceProvider () as self =
+type InstanceProvider() as self =
     /// Type instances for invoked steps
     let instances = Dictionary<_,_>()
 
@@ -38,7 +38,7 @@ type ServiceProvider () as self =
                 instances.Add(t, instance)
                 instance
 
-    /// Creates an instance if there was none for a speicified type (and remembering the stack of types being resolved)
+    /// Creates an instance if there was none for a specified type (and remembering the stack of types being resolved)
     and createInstance (t:Type) (typeStack: Type list) =
         let constructors =
             t.GetConstructors()
@@ -74,7 +74,7 @@ type ServiceProvider () as self =
         resolveInstance t []
 
     interface IInstanceProvider with
-        member this.RegisterInstance (t: Type) (instance: obj) =
+        member this.RegisterInstance (t: Type, instance: obj) =
             match instances.TryGetValue t with
             | true, value ->
                 match value with

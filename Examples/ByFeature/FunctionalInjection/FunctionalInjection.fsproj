@@ -59,18 +59,19 @@
   -->
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="FeatureFixture.fs" />
-    <Compile Include="Fixtures.fs" />
-    <EmbeddedResource Include="Shopping.feature" />
-    <Compile Include="ShoppingSteps.fs" />
-    <EmbeddedResource Include="Dependency.feature" />
+    <Compile Include="NunitWiring.fs" />
+    <Compile Include="StockItem.fs" />
+    <EmbeddedResource Include="Stock.feature" />
+    <Compile Include="StockSteps.fs" />
     <Compile Include="Domain.fs" />
-    <Compile Include="PersonSteps.fs" />
+    <EmbeddedResource Include="DogFeeding.feature" />
     <Compile Include="DogSteps.fs" />
     <Compile Include="BowlSteps.fs" />
-    <EmbeddedResource Include="Stock.feature" />
-    <Compile Include="StockItem.fs" />
-    <Compile Include="StockStepDefinitions.fs" />
+    <Compile Include="FeedingSteps.fs" />
+    <Compile Include="Wallet.fs" />
+    <EmbeddedResource Include="Shopping.feature" />
+    <Compile Include="ShoppingSteps.fs" />
+    <Compile Include="FunctionalInjectionFeature.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

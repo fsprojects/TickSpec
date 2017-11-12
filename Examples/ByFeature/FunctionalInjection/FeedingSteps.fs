@@ -1,4 +1,4 @@
-﻿module Dependency.PersonSteps
+﻿module Dependency.FeedingSteps
 
 open TickSpec
 

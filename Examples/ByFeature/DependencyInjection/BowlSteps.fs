@@ -1,9 +1,9 @@
 ﻿namespace Dependency
 
-open TickSpec
 open NUnit.Framework
+open TickSpec
 
 type BowlSteps(bowl: DogBowl) =
     [<Then>]
-    member this.``The bowl contains (.*)g of food`` (amount:int) =
+    member __.``The bowl contains (.*)g of food`` (amount:int) =
         Assert.AreEqual(amount, bowl.FoodAmount)
