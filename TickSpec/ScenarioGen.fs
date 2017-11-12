@@ -19,7 +19,7 @@ let defineProviderField
         (scenarioBuilder:TypeBuilder) =
     scenarioBuilder.DefineField(
         "_provider",
-        typeof<IServiceProvider>,
+        typeof<IInstanceProvider>,
         FieldAttributes.Private ||| FieldAttributes.InitOnly)
 
 /// Defines Constructor
@@ -31,7 +31,7 @@ let defineCons
         scenarioBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Standard,
-            [||])
+            [| typeof<FSharpFunc<unit, IInstanceProvider>> |])
     let gen = cons.GetILGenerator()
     // Call base constructor
     gen.Emit(OpCodes.Ldarg_0)
@@ -39,9 +39,10 @@ let defineCons
 
     // Emit provider field
     gen.Emit(OpCodes.Ldarg_0)
-    let ctor = typeof<ServiceProvider>.GetConstructor([||])
-    gen.Emit(OpCodes.Newobj,ctor)
-    gen.Emit(OpCodes.Stfld,providerField)
+    gen.Emit(OpCodes.Ldarg_1)
+    gen.Emit(OpCodes.Ldnull)
+    gen.Emit(OpCodes.Callvirt, typeof<FSharpFunc<unit, IInstanceProvider>>.GetMethod("Invoke"))
+    gen.Emit(OpCodes.Stfld, providerField)
 
     // Emit example parameters
     parameters |> Seq.iter (fun (name,value) ->
@@ -116,7 +117,7 @@ let emitInstance (gen:ILGenerator) (providerField:FieldBuilder) (t:Type) =
             [|typeof<RuntimeTypeHandle>|])
     gen.EmitCall(OpCodes.Call,getType,null)
     let getService =
-        typeof<System.IServiceProvider>
+        typeof<IServiceProvider>
             .GetMethod("GetService",[|typeof<Type>|])
     gen.Emit(OpCodes.Callvirt,getService)
     gen.Emit(OpCodes.Unbox_Any,t)
@@ -415,11 +416,36 @@ let defineStepMethod
     )
     // Emit doc argument
     line.Doc |> Option.iter (fun doc -> gen.Emit(OpCodes.Ldstr, doc))
+    // Emit remaining arguments using dependency injection
+    let a =
+        let tableCount = line.Table |> Option.count
+        let bulletsCount = line.Bullets |> Option.count
+        let docCount = line.Doc |> Option.count
+        args.Length + tableCount + bulletsCount + docCount
+    Array.sub ps a (ps.Length - a)
+    |> Array.iter (fun (p:ParameterInfo) ->
+        emitInstance gen providerField p.ParameterType)
+
     // Emit method invoke
     if mi.IsStatic then
         gen.EmitCall(OpCodes.Call, mi, null)
     else
         gen.Emit(OpCodes.Callvirt, mi)
+
+    if mi.ReturnType <> typeof<System.Void> then
+        gen.Emit(OpCodes.Box,mi.ReturnType)
+        let local0 = gen.DeclareLocal(typeof<Object>).LocalIndex
+        gen.Emit(OpCodes.Stloc, local0)
+        gen.Emit(OpCodes.Ldarg_0)
+        gen.Emit(OpCodes.Ldfld, providerField)
+        gen.Emit(OpCodes.Ldtoken,mi.ReturnType)
+        let getType =
+            typeof<Type>.GetMethod("GetTypeFromHandle",
+                [|typeof<RuntimeTypeHandle>|])
+        gen.EmitCall(OpCodes.Call,getType,null)
+        gen.Emit(OpCodes.Ldloc, local0)
+        gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterInstance"))
+
     // Emit return
     gen.Emit(OpCodes.Ret)
     // Return step method
@@ -454,6 +480,9 @@ let defineRunMethod
         )
 
     beforeScenarioEvents |> emitEvents
+    // Outer exception block ensuring that the ServiceProvider will be disposed
+    let exitOuter = gen.BeginExceptionBlock()
+    // Inner exception block ensuring that the after scenario events will be executed
     let exit = gen.BeginExceptionBlock()
     // Execute steps
     stepMethods |> Seq.iter (fun stepMethod ->
@@ -468,7 +497,21 @@ let defineRunMethod
     )
     gen.Emit(OpCodes.Leave_S, exit)
     gen.BeginFinallyBlock()
+    // Execute after scenario events
     afterScenarioEvents |> emitEvents
+    gen.EndExceptionBlock()
+    gen.Emit(OpCodes.Leave_S, exitOuter)
+    gen.BeginFinallyBlock()
+    // Dispose the ServiceProvider if it is IDisposable
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, providerField)
+    gen.Emit(OpCodes.Isinst, typeof<IDisposable>)
+    let labelNoDispose = gen.DefineLabel()
+    gen.Emit(OpCodes.Brfalse_S, labelNoDispose)
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, providerField)
+    gen.Emit(OpCodes.Callvirt, typeof<IDisposable>.GetMethod("Dispose"))
+    gen.MarkLabel(labelNoDispose)
     gen.EndExceptionBlock()
     // Emit return
     gen.Emit(OpCodes.Ret)
