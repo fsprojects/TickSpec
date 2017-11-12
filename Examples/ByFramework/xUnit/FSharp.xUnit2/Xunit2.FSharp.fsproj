@@ -8,11 +8,13 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{1207f9c8-3b84-4939-b6e2-db96d06b73e2}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>FSharpXunit</RootNamespace>
-    <AssemblyName>FSharpXunit2</AssemblyName>
+    <RootNamespace>
+    </RootNamespace>
+    <AssemblyName>Xunit2.FSharp</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <Name>FSharpXunit</Name>
+    <Name>Xunit2.FSharp</Name>
     <TargetFrameworkProfile />
+    <UseStandardResourceNames>False</UseStandardResourceNames>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -54,25 +56,27 @@
       </PropertyGroup>
     </When>
   </Choose>
-  <Import Project="..\..\..\..\packages\xunit.runner.visualstudio.2.3.1\build\$(__paket__xunit_runner_visualstudio_props).props" Condition="Exists('..\..\..\..\packages\xunit.runner.visualstudio.2.3.1\build\$(__paket__xunit_runner_visualstudio_props).props')" Label="Paket" />
-  <ItemGroup>
-    <None Include="paket.references" />
-    <Compile Include="TickScenarios.fs" />
-    <Compile Include="StockDomain.fs" />
-    <EmbeddedResource Include="Stock.feature" />
-    <Compile Include="StockSteps.fs" />
-    <Compile Include="CalculatorDomain.fs" />
-    <EmbeddedResource Include="Addition.feature" />
-    <Compile Include="CalculatorSteps.fs" />
-    <Compile Include="Features.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\TickSpec\TickSpec.fsproj">
-      <Name>TickSpec</Name>
-      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
+  <Import Project="..\..\..\..\packages\xunit.runner.visualstudio\build\$(__paket__xunit_runner_visualstudio_props).props" Condition="Exists('..\..\..\..\packages\xunit.runner.visualstudio\build\$(__paket__xunit_runner_visualstudio_props).props')" Label="Paket" />
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v2.0'">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\..\..\packages\FSharp.Core\lib\net20\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5.2')">
+      <ItemGroup>
+        <Reference Include="FSharp.Core">
+          <HintPath>..\..\..\..\packages\FSharp.Core\lib\net40\FSharp.Core.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5.2'">
       <ItemGroup>
@@ -118,4 +122,23 @@
     </When>
   </Choose>
   <Import Project="..\..\..\..\packages\xunit.core\build\xunit.core.targets" Condition="Exists('..\..\..\..\packages\xunit.core\build\xunit.core.targets')" Label="Paket" />
+  <ItemGroup>
+    <Content Include="App.config" />
+    <None Include="paket.references" />
+    <Compile Include="XunitWiring.fs" />
+    <Compile Include="Retail.fs" />
+    <EmbeddedResource Include="Stock.feature" />
+    <Compile Include="StockSteps.fs" />
+    <Compile Include="CalculatorDomain.fs" />
+    <EmbeddedResource Include="Addition.feature" />
+    <Compile Include="AdditionSteps.fs" />
+    <Compile Include="Xunit2Feature.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\TickSpec\TickSpec.fsproj">
+      <Name>TickSpec</Name>
+      <Project>{97bf4912-2b4e-410b-9b63-5e07076514a9}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

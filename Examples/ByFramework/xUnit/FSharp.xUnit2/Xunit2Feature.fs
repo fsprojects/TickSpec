@@ -1,4 +1,4 @@
-﻿module Features
+﻿module ByFramework.XUnit2.Feature
 
 open TickSpec
 open Xunit
@@ -10,4 +10,4 @@ let scenarios resourceName = source.ScenariosFromEmbeddedResource resourceName |
 let Addition (scenario : Scenario) = scenario.Action.Invoke()
 
 [<Theory; MemberData("scenarios", "Stock.feature")>]
-let Stock(scenario : Scenario) = scenario.Action.Invoke()
+let StockA (scenario : Scenario) = scenario.Action.Invoke()
