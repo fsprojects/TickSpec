@@ -416,11 +416,36 @@ let defineStepMethod
     )
     // Emit doc argument
     line.Doc |> Option.iter (fun doc -> gen.Emit(OpCodes.Ldstr, doc))
+    // Emit remaining arguments using dependency injection
+    let a =
+        let tableCount = line.Table |> Option.count
+        let bulletsCount = line.Bullets |> Option.count
+        let docCount = line.Doc |> Option.count
+        args.Length + tableCount + bulletsCount + docCount
+    Array.sub ps a (ps.Length - a)
+    |> Array.iter (fun (p:ParameterInfo) ->
+        emitInstance gen providerField p.ParameterType)
+
     // Emit method invoke
     if mi.IsStatic then
         gen.EmitCall(OpCodes.Call, mi, null)
     else
         gen.Emit(OpCodes.Callvirt, mi)
+
+    if mi.ReturnType <> typeof<System.Void> then
+        gen.Emit(OpCodes.Box,mi.ReturnType)
+        let local0 = gen.DeclareLocal(typeof<Object>).LocalIndex
+        gen.Emit(OpCodes.Stloc, local0)
+        gen.Emit(OpCodes.Ldarg_0)
+        gen.Emit(OpCodes.Ldfld, providerField)
+        gen.Emit(OpCodes.Ldtoken,mi.ReturnType)
+        let getType =
+            typeof<Type>.GetMethod("GetTypeFromHandle",
+                [|typeof<RuntimeTypeHandle>|])
+        gen.EmitCall(OpCodes.Call,getType,null)
+        gen.Emit(OpCodes.Ldloc, local0)
+        gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterInstance"))
+
     // Emit return
     gen.Emit(OpCodes.Ret)
     // Return step method

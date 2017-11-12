@@ -69,13 +69,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             let ms = matches |> List.map (fun (m,mi) -> sprintf "%s.%s" mi.DeclaringType.Name mi.Name)
             fail <| sprintf "Ambiguous step definition (%s)" (String.concat "|" ms)
         let r,m = matches.Head
-        if not m.IsGenericMethod && m.ReturnType <> typeof<Void> then
-            fail "Step methods must return void/unit"
         let tableCount = line.Table |> Option.count
         let bulletsCount = line.Bullets |> Option.count
         let docCount = line.Doc |> Option.count
         let argCount = r.Groups.Count-1+tableCount+bulletsCount+docCount
-        if m.GetParameters().Length <> argCount then
+        if m.GetParameters().Length < argCount then
             fail "Parameter count mismatch"
         line,m,extractArgs r
     /// Chooses in scope events

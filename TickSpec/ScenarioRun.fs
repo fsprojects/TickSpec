@@ -19,8 +19,10 @@ let getInstance (provider:IInstanceProvider) (m:MethodInfo) =
 /// Invokes specified method with specified parameters
 let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
     let instance = getInstance provider m
-    m.Invoke(instance,ps) |> ignore
-
+    let ret = m.Invoke(instance,ps)
+    if m.ReturnType <> typeof<System.Void> then
+        provider.RegisterInstance (m.ReturnType) ret
+    
 /// Converts generic methods
 let toConcreteMethod (m:MethodInfo) =
     if m.ContainsGenericParameters then
@@ -137,7 +139,14 @@ let invokeStep
             else failwith "Expecting table argument"
         | None,None,Some doc -> [|box doc|]
         | _,_,_ -> [||]
-    let args = Array.append args tail
+    let args = 
+        let stArgs = Array.append args tail
+        let injectionArgs = 
+            let pars = meth.GetParameters()
+            let a = stArgs.Length
+            Array.sub pars a (pars.Length - a)
+            |> Array.map (fun (p:ParameterInfo) -> provider.GetService(p.ParameterType))
+        Array.append stArgs injectionArgs
     invoke provider meth args
 
 /// Generate scenario execution function
