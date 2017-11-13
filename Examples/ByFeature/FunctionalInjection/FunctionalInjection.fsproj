@@ -71,6 +71,9 @@
     <Compile Include="Wallet.fs" />
     <EmbeddedResource Include="Shopping.feature" />
     <Compile Include="ShoppingSteps.fs" />
+    <Compile Include="Room.fs" />
+    <Compile Include="Computer.fs" />
+    <EmbeddedResource Include="ComputerHeating.feature" />
     <Compile Include="FunctionalInjectionFeature.fs" />
   </ItemGroup>
   <ItemGroup>

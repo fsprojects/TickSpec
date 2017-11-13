@@ -6,20 +6,19 @@
 
 A lightweight Behaviour Driven Development (BDD) framework.
 
-Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then.
+1. Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then.
 
-Easily execute the behaviour against matching F# tick methods, attributed C# or F# methods.
+2. Easily execute the behaviour against matching F# 'ticked' methods, or attribute-tagged C# or F# methods.
 
-    let ``tick method`` () = true
+3. Run via your normal test runners, set breakpoints in the scenarios and go. Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
 
 # Installation
 
 Simply reference TickSpec via [Nuget](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
-TickSpec works in Visual Studio 2015 & 2017.
-To run NUnit based examples, please ensure that toy have installed the `NUnit 2 Test Adapter` tool via **Tools|Extensions And Updates**.
-Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
 
-Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
+The TickSpec solution file works in Visual Studio 2015 & 2017, but thebinary should work cleanly on any NET 4.0 or later environment. To run NUnit-based examples, please ensure that you have installed the `NUnit 2 Test Adapter` tool via **Tools|Extensions And Updates**, xUnit.NET examples should work after running `./build.bat`.
+
+Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
 
 # Feature specification (Plain text)
 

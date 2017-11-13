@@ -21,8 +21,14 @@ let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
     let instance = getInstance provider m
     let ret = m.Invoke(instance,ps)
     if m.ReturnType <> typeof<System.Void> then
-        provider.RegisterInstance(m.ReturnType, ret)
-
+        if FSharpType.IsTuple m.ReturnType then
+            let types = FSharpType.GetTupleElements m.ReturnType
+            let values = FSharpValue.GetTupleFields instance
+            Seq.map2 (fun t v -> t,v) types values
+            |> Seq.iter (fun (t,v) -> provider.RegisterInstance(t, v))
+        else
+            provider.RegisterInstance(m.ReturnType, ret)
+    
 /// Converts generic methods
 let toConcreteMethod (m:MethodInfo) =
     if m.ContainsGenericParameters then

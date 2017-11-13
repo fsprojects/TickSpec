@@ -436,15 +436,32 @@ let defineStepMethod
         gen.Emit(OpCodes.Box,mi.ReturnType)
         let local0 = gen.DeclareLocal(typeof<Object>).LocalIndex
         gen.Emit(OpCodes.Stloc, local0)
-        gen.Emit(OpCodes.Ldarg_0)
-        gen.Emit(OpCodes.Ldfld, providerField)
-        gen.Emit(OpCodes.Ldtoken,mi.ReturnType)
-        let getType =
-            typeof<Type>.GetMethod("GetTypeFromHandle",
-                [|typeof<RuntimeTypeHandle>|])
-        gen.EmitCall(OpCodes.Call,getType,null)
-        gen.Emit(OpCodes.Ldloc, local0)
-        gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterInstance"))
+
+        let emitRegisterInstanceCall (t:Type) (l:int) =
+            gen.Emit(OpCodes.Ldarg_0)
+            gen.Emit(OpCodes.Ldfld, providerField)
+            gen.Emit(OpCodes.Ldtoken,t)
+            let getType =
+                typeof<Type>.GetMethod("GetTypeFromHandle",
+                    [|typeof<RuntimeTypeHandle>|])
+            gen.EmitCall(OpCodes.Call,getType,null)
+            gen.Emit(OpCodes.Ldloc, l)
+            gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterInstance"))
+
+        if FSharpType.IsTuple mi.ReturnType then
+            let types = FSharpType.GetTupleElements mi.ReturnType
+            for i = 0 to (types.Length - 1) do
+                let t = types.[i]
+                let local1 = gen.DeclareLocal(typeof<Object>).LocalIndex
+
+                gen.Emit(OpCodes.Ldloc, local0)
+                gen.Emit(OpCodes.Ldc_I4, i)
+                gen.EmitCall(OpCodes.Call, typeof<Microsoft.FSharp.Reflection.FSharpValue>.GetMethod("GetTupleField"), null)
+                gen.Emit(OpCodes.Stloc, local1)
+
+                emitRegisterInstanceCall t local1
+        else
+            emitRegisterInstanceCall (mi.ReturnType) local0
 
     // Emit return
     gen.Emit(OpCodes.Ret)

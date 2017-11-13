@@ -138,9 +138,6 @@ Global
 		{F361EA62-40BB-4DE6-9101-744C936A65CC} = {EB1F6262-0913-4464-A034-4F4D01268E83}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {0FAAF41B-EB77-44FA-9D0C-274B119C747D}
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B381617-F1EE-4BFC-8EAE-CAB4DBB4B9A2}
 	EndGlobalSection
 EndGlobal
