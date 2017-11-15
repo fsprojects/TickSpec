@@ -1,3 +1,7 @@
+[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/github/fsprojects/tickspec?branch=master&svg=true)](https://ci.appveyor.com/project/sergey-tihon/tickspec/branch/master)
+[![NuGet Status](https://img.shields.io/nuget/v/TickSpec.svg?style=flat)](https://www.nuget.org/packages/TickSpec/)
+[![Join the chat at https://gitter.im/fsprojects/TickSpec](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fsprojects/TickSpec?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # Project Description
 
 A lightweight Behaviour Driven Development (BDD) framework.
@@ -84,5 +88,3 @@ public class StockStepDefinitions
 # Contributing
 
 Contributions are welcome, particularly examples and documentation. If you have an issue or suggestion please add an Issue. If you'd like to chat about TickSpec please feel free to ping me on [Twitter](http://twitter.com/ptrelford) or go to [the gitter channel](https://gitter.im/fsprojects/TickSpec).
-
-TickSpec builds [continuously](http://teamcity.codebetter.com/project.html?projectId=project410) with [TeamCity](http://www.jetbrains.com/teamcity/) on [CodeBetter's CI Server](http://codebetter.com/kylebaley/2010/02/11/codebetter-ci-server-update-or-how-to-plead-your-case/).
