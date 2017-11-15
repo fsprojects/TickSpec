@@ -21,7 +21,7 @@ if errorlevel 1 (
   exit /b %errorlevel%
 )
 
-if %1.==. (
+if "%~1"=="" (
     set version="1.0.1.1"
 ) else (
     set version="%1"
