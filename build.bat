@@ -30,6 +30,6 @@ if "%~1"=="" (
 .paket\paket.exe pack packed_nugets --version %version% --symbols
 
 pushd %~dp0packed_nugets
-%NuGetTool% pack ..\Nuget\NUnit\TickSpec.NUnit.nuspec -Version %version%
-%NuGetTool% pack ..\Nuget\xUnit\TickSpec.xUnit.nuspec -Version %version%
+rem %NuGetTool% pack ..\Nuget\NUnit\TickSpec.NUnit.nuspec -Version %version%
+rem %NuGetTool% pack ..\Nuget\xUnit\TickSpec.xUnit.nuspec -Version %version%
 popd
