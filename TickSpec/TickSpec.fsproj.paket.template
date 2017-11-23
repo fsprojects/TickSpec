@@ -1,0 +1,12 @@
+type project
+id TickSpec
+version 1.0.1.1
+title TickSpec
+authors Phillip Trelford
+owners Phillip Trelford
+licenseUrl https://github.com/fsprojects/TickSpec/blob/master/LICENSE.md
+projectUrl https://github.com/fsprojects/TickSpec
+requireLicenseAcceptance false
+description Describe behaviour in plain text using the Gherkin business language, i.e. given, when, then. Easily execute the behaviour against matching F# tick methods (let ``tick method`` () = true) or attributed C# or F# methods.
+summary TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
+tags BDD C# F# .Net

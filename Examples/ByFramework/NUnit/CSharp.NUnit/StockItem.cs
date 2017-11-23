@@ -1,4 +1,4 @@
-﻿namespace TickSpec.Examples.CSharp
+﻿namespace Retail
 {
    public class StockItem
    {

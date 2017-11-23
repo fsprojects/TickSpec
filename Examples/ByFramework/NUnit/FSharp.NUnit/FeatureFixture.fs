@@ -1,22 +1,22 @@
-﻿module NUnit.TickSpec
+﻿module TickSpec.NUnit
 
 open NUnit.Framework
 open System.Reflection
 open TickSpec
 
-let ass = Assembly.GetExecutingAssembly() 
-let definitions = new StepDefinitions(ass)       
+let ass = Assembly.GetExecutingAssembly()
+let definitions = new StepDefinitions(ass)
 
 /// Inherit from FeatureFixture to define a feature fixture
 [<AbstractClass>]
 [<TestFixture>]
-type FeatureFixture (source:string) =
+type FeatureFixture(source:string) =
     [<Test>]
-    [<TestCaseSource("Scenarios")>]
-    member this.TestScenario (scenario:Scenario) =
+    [<TestCaseSource("Source")>]
+    member __.Scenarios(scenario:Scenario) =
         if scenario.Tags |> Seq.exists ((=) "ignore") then
             raise (new IgnoreException("Ignored: " + scenario.Name))
         scenario.Action.Invoke()
-    member this.Scenarios =       
-        let s = ass.GetManifestResourceStream(source)   
+    member __.Source =
+        let s = ass.GetManifestResourceStream(source)
         definitions.GenerateScenarios(source,s)

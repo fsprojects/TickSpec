@@ -1,4 +1,4 @@
-﻿namespace global
+﻿namespace Computation
 
 open TickSpec
 open Xunit

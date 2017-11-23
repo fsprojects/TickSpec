@@ -1,3 +1,7 @@
+[![AppVeyor Build status](https://ci.appveyor.com/api/projects/status/github/fsprojects/tickspec?branch=master&svg=true)](https://ci.appveyor.com/project/sergey-tihon/tickspec/branch/master)
+[![NuGet Status](https://img.shields.io/nuget/v/TickSpec.svg?style=flat)](https://www.nuget.org/packages/TickSpec/)
+[![Join the chat at https://gitter.im/fsprojects/TickSpec](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/fsprojects/TickSpec?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 # Project Description
 
 A lightweight Behaviour Driven Development (BDD) framework.
@@ -12,6 +16,7 @@ Easily execute the behaviour against matching F# tick methods, attributed C# or 
 
 Simply reference TickSpec via [Nuget](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
 TickSpec works in Visual Studio 2015 & 2017.
+To run NUnit based examples, please ensure that toy have installed the `NUnit 2 Test Adapter` tool via **Tools|Extensions And Updates**.
 Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
 
 Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
@@ -31,6 +36,8 @@ Scenario 1: Refunded items should be returned to stock
 # Step definitions (F#)
 
 ```
+type StockItem = { Count : int }
+
 let mutable stockItem = { Count = 0 }
 
 let [<Given>] ``a customer buys a black jumper`` () = ()
@@ -80,6 +87,4 @@ public class StockStepDefinitions
 
 # Contributing
 
-Contributions are welcome, particularly examples and documentation. If you have an issue or suggestion please add an Issue. If you'd like to chat about TickSpec please feel free to ping me on [Twitter](http://twitter.com/ptrelford).
-
-TickSpec builds [continuously](http://teamcity.codebetter.com/project.html?projectId=project410) with [TeamCity](http://www.jetbrains.com/teamcity/) on [CodeBetter's CI Server](http://codebetter.com/kylebaley/2010/02/11/codebetter-ci-server-update-or-how-to-plead-your-case/).
+Contributions are welcome, particularly examples and documentation. If you have an issue or suggestion please add an Issue. If you'd like to chat about TickSpec please feel free to ping me on [Twitter](http://twitter.com/ptrelford) or go to [the gitter channel](https://gitter.im/fsprojects/TickSpec).

@@ -1,4 +1,4 @@
-﻿namespace global
+﻿namespace Computation
 
 type Calculator() =
     let mutable values : int list = []
