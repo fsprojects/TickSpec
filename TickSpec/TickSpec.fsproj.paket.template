@@ -10,3 +10,6 @@ requireLicenseAcceptance false
 description Describe behaviour in plain text using the Gherkin business language, i.e. given, when, then. Easily execute the behaviour against matching F# tick methods (let ``tick method`` () = true) or attributed C# or F# methods.
 summary TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
 tags BDD C# F# .Net
+
+dependencies
+    FSharp.Core >= 3.1.2.5
