@@ -12,6 +12,53 @@ type IInstanceProvider =
     /// Registers an instance for a type (if there is already a registered instance, it will be replaced)
     abstract member RegisterInstance : Type * obj -> unit
 
+/// <summary>
+/// Creates wrapper for <see cref="IServiceProvider" /> so it can be used in TickSpec scenarios.
+/// </summary>
+/// <param name="innerProvider">The provider to be wrapped</param>
+type ServiceProviderWrapper(innerProvider: IServiceProvider) as self =
+    /// Type instances for invoked steps
+    let instances = Dictionary<_,_>()
+
+    let getInstance (t:Type) =
+        match t with
+        | t when t = typeof<IInstanceProvider> -> self :> obj
+        | t ->
+            match instances.TryGetValue t with
+            | true, instance -> instance
+            | false, _ -> innerProvider.GetService(t)
+
+    interface IServiceProvider with
+        [<DebuggerStepThrough>]
+        member this.GetService (t: Type) =
+            getInstance t
+
+    interface IInstanceProvider with
+        member this.RegisterInstance (t: Type, instance: obj) =
+            match instances.TryGetValue t with
+            | true, value ->
+                match value with
+                | :? IDisposable as d -> d.Dispose()
+                | _ -> ()
+
+                instances.[t] <- instance
+            | _ -> instances.Add(t, instance)
+
+            instances.[t] <- instance
+
+    interface IDisposable with
+        member this.Dispose() =
+            instances.Values
+            |> Seq.iter (function
+                | :? IDisposable as d -> d.Dispose()
+                | _ -> ())
+
+            instances.Clear()
+
+            match innerProvider with
+            | :? IDisposable as d -> d.Dispose()
+            | _ -> ()
+
 [<Sealed>]
 /// Creates instance service provider
 type InstanceProvider() as self =

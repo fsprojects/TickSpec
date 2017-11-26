@@ -160,9 +160,13 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             |> Dict.ofSeq
         StepDefinitions(givens,whens,thens,events,valueParsers)
 
-    member val InstanceProviderFactory : unit -> IInstanceProvider
+    member val private InstanceProviderFactory : unit -> IInstanceProvider
         = fun () -> new InstanceProvider() :> _
         with get, set
+
+    member this.ServiceProviderFactory
+        with set providerFactory =
+            this.InstanceProviderFactory <- fun () -> new ServiceProviderWrapper(providerFactory()) :> IInstanceProvider
 
     /// Generate scenarios from specified lines (source undefined)
     member this.GenerateScenarios (lines:string []) =
