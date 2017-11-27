@@ -13,48 +13,30 @@ type IInstanceProvider =
     abstract member RegisterInstance : Type * obj -> unit
 
 /// <summary>
-/// Creates wrapper for <see cref="IServiceProvider" /> so it can be used in TickSpec scenarios.
+/// Decorates the supplied <see cref="IServiceProvider" /> to fulfil TickSpec's InstanceProvider contract.
 /// </summary>
-/// <param name="innerProvider">The provider to be wrapped</param>
-type ServiceProviderWrapper(innerProvider: IServiceProvider) as self =
+/// <param name="innerProvider">The provider that will GetInstances of Step Definition classes.</param>
+type ExternalServiceProviderInstanceProvider(innerProvider: IServiceProvider) as self =
     /// Type instances for invoked steps
     let instances = Dictionary<_,_>()
-
     let getInstance (t:Type) =
-        match t with
-        | t when t = typeof<IInstanceProvider> -> self :> obj
-        | t ->
-            match instances.TryGetValue t with
-            | true, instance -> instance
-            | false, _ -> innerProvider.GetService(t)
+        match instances.TryGetValue t with
+        | true, instance -> instance
+        | false, _ -> innerProvider.GetService(t)
 
     interface IServiceProvider with
         [<DebuggerStepThrough>]
-        member this.GetService (t: Type) =
-            getInstance t
+        member __.GetService (t: Type) =
+            if t = typeof<IInstanceProvider> then self :> obj
+            else getInstance t
 
     interface IInstanceProvider with
-        member this.RegisterInstance (t: Type, instance: obj) =
-            match instances.TryGetValue t with
-            | true, value ->
-                match value with
-                | :? IDisposable as d -> d.Dispose()
-                | _ -> ()
-
-                instances.[t] <- instance
-            | _ -> instances.Add(t, instance)
-
+        member __.RegisterInstance (t: Type, instance: obj) =
             instances.[t] <- instance
 
     interface IDisposable with
-        member this.Dispose() =
-            instances.Values
-            |> Seq.iter (function
-                | :? IDisposable as d -> d.Dispose()
-                | _ -> ())
-
+        member __.Dispose() =
             instances.Clear()
-
             match innerProvider with
             | :? IDisposable as d -> d.Dispose()
             | _ -> ()

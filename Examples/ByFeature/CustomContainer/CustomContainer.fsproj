@@ -54,7 +54,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="XunitWiring.fs" />
+    <Compile Include="XunitAutofacWiring.fs" />
     <Compile Include="Domain.fs" />
     <EmbeddedResource Include="Shelter.feature" />
     <Compile Include="ShelterSteps.fs" />

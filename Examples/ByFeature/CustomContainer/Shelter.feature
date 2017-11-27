@@ -7,3 +7,8 @@ Scenario: Counting animals
 	When I bring 5 dogs
 	And I bring 6 cats
 	Then 19 sheltering slots remain
+
+Scenario: Counting cats
+	Given a cattery with 20 spaces
+	And a kennel with 0 spaces
+	Then 20 sheltering slots remain

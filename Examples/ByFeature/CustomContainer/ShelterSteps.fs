@@ -6,6 +6,7 @@ open Swensen.Unquote
 open System
 
 /// Two simple examples of factory methods Autofac can generate
+/// See Autofac delegate factories: http://autofaccn.readthedocs.io/en/latest/advanced/delegate-factories.html
 type BootstrappingSteps(createCattery : CatteryFactory, createKennel : Func<int,Kennel>) =
     [<Given>]
     member __.``a cattery with (\d+) spaces`` count =

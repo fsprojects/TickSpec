@@ -1,26 +1,22 @@
 ﻿module ByFeature.CustomContainer.Feature
 
 open Autofac
-open System
-open System.Collections.Generic
 open TickSpec
 open Xunit
 
-/// Creates a IServiceProvider to be used for a single Scenario run
-let createInstanceProvider : unit -> IServiceProvider =
-    let concreteTypesSource = Features.ResolveAnything.AnyConcreteTypeNotAlreadyRegisteredSource()
-    let builder = new ContainerBuilder()
-    builder.RegisterSource concreteTypesSource
-    let container = builder.Build()
+// Autofac customizations specific to this test Suite
+type DomainModule() =
+    inherit Module()
+    override __.Load builder =
+        // Special case this to ensure it only gets created/Disposed once
+        builder.RegisterType<Domain.DogRun>().SingleInstance() |> ignore
 
-    fun () ->
-        let scope = container.BeginLifetimeScope();
-        { new obj()
-            interface IServiceProvider with member __.GetService(serviceType) = scope.Resolve(serviceType)
-            interface IDisposable with member __.Dispose() = scope.Dispose() }
-
-let source = AssemblyStepDefinitionsSource(System.Reflection.Assembly.GetExecutingAssembly(), createInstanceProvider)
-let scenarios resourceName = source.ScenariosFromEmbeddedResource resourceName |> MemberData.ofScenarios
-
-[<Theory; MemberData("scenarios", "Shelter.feature")>]
-let Shelter(scenario : Scenario) = scenario.Action.Invoke()
+type Shelter(container : AutofacFixture) =
+    static let source = AssemblyStepDefinitionsSource(System.Reflection.Assembly.GetExecutingAssembly())
+    do source.ServiceProviderFactory <- container.CreateScopedServiceProvider
+    // When actually running the tests, wire in the link to the container so creation of the Step Definition and Domain types gets hooked correctly
+    static let scenarios resourceName = source.ScenariosFromEmbeddedResource resourceName |> MemberData.ofScenarios
+    [<Theory; MemberData("scenarios", "Shelter.feature")>]
+    let run(scenario : Scenario) = scenario.Action.Invoke()
+    // Indicate our interest in having xUnit manage the ContainerFixture for us (notably Disposing at the end of a test run)
+    interface IClassFixture<AutofacFixture>
