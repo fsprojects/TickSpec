@@ -4,21 +4,25 @@
 
 # Project Description
 
-A lightweight Behaviour Driven Development (BDD) framework.
+A lightweight Behaviour Driven Development (BDD) framework for .NET that'll fit how you want to test.
 
 1. Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then.
 
 2. Easily execute the behaviour against matching F# 'ticked' methods, or attribute-tagged C# or F# methods.
 
-3. Run via your normal test runners, set breakpoints in the scenarios and go. Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
+3. Run via your normal test runners (xUnit, NUnit or standalone), set breakpoints in the scenarios and go.
+
+Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
 
 # Installation
 
-Simply reference TickSpec via [Nuget](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
+Simply reference TickSpec via [NuGet or Paket](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
 
-The TickSpec solution file works in Visual Studio 2015 & 2017, but thebinary should work cleanly on any NET 4.0 or later environment. To run NUnit-based examples, please ensure that you have installed the `NUnit 2 Test Adapter` tool via **Tools|Extensions And Updates**, xUnit.NET examples should work after running `./build.bat`.
-
-Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
+- The binary should work cleanly on any NET 4.0 or later environment.
+- To run NUnit-based examples, please ensure that you have installed the `NUnit 2 Test Adapter` tool via **Tools|Extensions And Updates**
+- xUnit.NET examples should work after running `./build.bat`.
+- The TickSpec solution file works with Visual Studio 2015 & 2017. 
+- Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
 
 # Feature specification (Plain text)
 
@@ -106,21 +110,23 @@ public class StockStepDefinitions
 
 ## Resolving referenced types (beta)
 
-As it can be seen in the sample [Step definitions (F# without mutable field)](#step-definitions-f-without-mutable-field), the TickSpec framework allows to resolve additional parameters which are not part of the step itself. There are two ways how these parameters are resolved:
-* **Preregistered instance:** It is possible to prepare an instance in one of the previous steps. That can be easily achieved by returning the instance from a step. Whenever a step has a return value, then the value is stored under it's type (the step signature is used for the type resolving). There can be only one value for every type. When a parameter is being resolved, it firstly looks into this store of values whether there is not a predefined value.
+As shown in [Step definitions (F# without mutable field)](#step-definitions-f-without-mutable-field), TickSpec also allows one to request additional parameters along with the captures from the regex holes in the step name as per typical Gherkin based frameworks. Such additional parameters can be fulfilled via the following mechanisms:
+* **Instances returned from Step Method return values:** This involves generating and stashing an _instance_ in one of the preceding steps in the scenario. Typically this is achieved by returning the instance from the Step Method. Whenever a step has a return value, the the value is saved under it's type (the return type of the Step Method controls what the type is). There can be only one value per type stashed per scenario run. When a parameter is being resolved, TickSpec first attempts to resolve from this type-to-instance caching Dictionary.
 
-* **Resolving dependencies:** In case that a type was not already registered in a previous step, then TickSpec finds the widest constructor of such type and tries to create such instance. For that, it is needed to resolve all arguments of the constructor. That is achieved recursively using the same mechanism. The constructed instance is cached, so next time it will return the same instance.
+* **Resolving dependencies:** If an instance cannot be located in the type-to-instance cache based on a preceding step having stashed the value, TickSpec will attempt to use the 'widest' constructor (the one with the most arguments) of the required type to instantiate it. Any input arguments to the constructor are all resolved recursively using the same mechanism. Any constructed instances are also cached in the type-to-instance cache, so next time it will return the same instance.
 
-The instances lifetime is per-scenario. So, for every scenario it starts with no created instances and at the end of the scenario it clears all of the instance stores. Moreover, if any instance is IDisposable then the Dispose method is called.
+The lifetime of instances is per-scenario:- Each scenario run starts an empty type-to-instance cache, and at the end of the scenario the cache gets cleared. Moreover, if any instance is `IDisposable`, `Dispose` will be called.
 
-The sample usage is in the example projects DependencyInjection and FunctionalInjection.
+See the example projects `DependencyInjection` and `FunctionalInjection` for typical and advanced examples of using this mechanism.
 
 ## Custom type resolver (beta)
 
-In some cases it may be useful to provide a custom type resolver. That can be achieved by setting the ServiceProviderFactory property of StepDefinitions class. This factory is called on start of every scenario to provide an instance of IServiceProvider implementation. The IServiceProvider implementation is then used for resolving referenced types when an instance was not preregistered (see previous section [Resolving referenced types](#resolving-referenced-types-beta)). If the returned IServiceProvider implementation implements also IDisposable then Dispose is called at the end of the scenario run.
+While the typical recommended usage of TickSpec is to keep the step definitions simple and drive a system from the outside in the simplest fashion possible, in some advanced cases it may be useful to provide a custom type resolver. This can be achieved by `set`ting the `StepDefinitions.ServiceProviderFactory` property. This factory method is used once per scenario run to establish an independent resolution context per scenario run. The `IServiceProvider` instance is used to replace the built in instance construction mechanism (see _Resolving dependencies_ in the previous section: [Resolving referenced types](#resolving-referenced-types-beta)). If the `IServiceProvider` implementation yielded by the factory also implements `IDisposable`, `Dispose` is called on the Service Provider context at the end of the scenario run.
 
-The sample usage is in the example project CustomContainer - it demonstrate wiring of AutoFac including the lifetime scopes per scenario.
+See the `CustomContainer` example project for usage examples - the example demonstrates wiring of Autofac including usage of lifetime scopes per scenario and usage of the [xUnit 2+ Shared Fixtures](https://xunit.github.io/docs/shared-context.html) to correctly manage the sharing/ifetime of the container where one runs xUnit Test Classes in parallel as part of a large test suite.
 
 # Contributing
 
-Contributions are welcome, particularly examples and documentation. If you have an issue or suggestion please add an Issue. If you'd like to chat about TickSpec please feel free to ping me on [Twitter](http://twitter.com/ptrelford) or go to [the gitter channel](https://gitter.im/fsprojects/TickSpec).
+Contributions are welcome, particularly examples and documentation. If you'd like to chat about TickSpec, please use the [the gitter channel](https://gitter.im/fsprojects/TickSpec).
+
+For issues or suggestions please raise an Issue. If you are looking to extend or change the core implementation, it's best to drop a quick note and/or a placeholder PR in order to make sure there is broad agreement on the scope of the change / nature of the feature in question before investing significant time on it; we want to keep TickSpec _powerful, but minimal_.
