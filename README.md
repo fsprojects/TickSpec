@@ -102,6 +102,25 @@ public class StockStepDefinitions
 }
 ```
 
+# Advanced features
+
+## Resolving referenced types (beta)
+
+As it can be seen in the sample [Step definitions (F# without mutable field)](#step-definitions-f-without-mutable-field), the TickSpec framework allows to resolve additional parameters which are not part of the step itself. There are two ways how these parameters are resolved:
+* **Preregistered instance:** It is possible to prepare an instance in one of the previous steps. That can be easily achieved by returning the instance from a step. Whenever a step has a return value, then the value is stored under it's type (the step signature is used for the type resolving). There can be only one value for every type. When a parameter is being resolved, it firstly looks into this store of values whether there is not a predefined value.
+
+* **Resolving dependencies:** In case that a type was not already registered in a previous step, then TickSpec finds the widest constructor of such type and tries to create such instance. For that, it is needed to resolve all arguments of the constructor. That is achieved recursively using the same mechanism. The constructed instance is cached, so next time it will return the same instance.
+
+The instances lifetime is per-scenario. So, for every scenario it starts with no created instances and at the end of the scenario it clears all of the instance stores. Moreover, if any instance is IDisposable then the Dispose method is called.
+
+The sample usage is in the example projects DependencyInjection and FunctionalInjection.
+
+## Custom type resolver (beta)
+
+In some cases it may be useful to provide a custom type resolver. That can be achieved by setting the ServiceProviderFactory property of StepDefinitions class. This factory is called on start of every scenario to provide an instance of IServiceProvider implementation. The IServiceProvider implementation is then used for resolving referenced types when an instance was not preregistered (see previous section [Resolving referenced types](#resolving-referenced-types-beta)). If the returned IServiceProvider implementation implements also IDisposable then Dispose is called at the end of the scenario run.
+
+The sample usage is in the example project CustomContainer - it demonstrate wiring of AutoFac including the lifetime scopes per scenario.
+
 # Contributing
 
 Contributions are welcome, particularly examples and documentation. If you have an issue or suggestion please add an Issue. If you'd like to chat about TickSpec please feel free to ping me on [Twitter](http://twitter.com/ptrelford) or go to [the gitter channel](https://gitter.im/fsprojects/TickSpec).
