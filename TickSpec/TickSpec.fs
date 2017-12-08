@@ -10,6 +10,7 @@ open TickSpec.ScenarioRun
 
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (givens,whens,thens,events,valueParsers) =
+    let mutable instanceProviderFactory = fun () -> new InstanceProvider() :> IInstanceProvider
     /// Returns method's step attribute or null
     static let getStepAttributes (m:MemberInfo) =
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
@@ -33,7 +34,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             | _ -> scopedScenarios |> List.exists ((=) name)
         featured && scenarioed && tagged
     /// Chooses matching definitions for specifed text
-    let chooseDefinitions feature scenario text definitions =
+    static let chooseDefinitions feature scenario text definitions =
         let chooseDefinition pattern =
             // Ensure the full line matches (tolerating leading whitespace and
             // trailing whitespace + punctuation) to stop ambigious matches on
@@ -47,17 +48,22 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         |> List.choose (fun (pattern:string,(_,_,_,m):string list * string list * string list * MethodInfo) ->
             chooseDefinition pattern |> Option.map (fun r -> r,m)
         )
-    /// Chooses defininitons for specified step and text
-    let matchStep feature scenario = function
-        | GivenStep text -> chooseDefinitions feature scenario text givens
-        | WhenStep text -> chooseDefinitions feature scenario text whens
-        | ThenStep text -> chooseDefinitions feature scenario text thens
     /// Extract arguments from specified match
-    let extractArgs (r:Match) =
+    static let extractArgs (r:Match) =
         let args = List<string>()
         for i = 1 to r.Groups.Count-1 do
             r.Groups.[i].Value |> args.Add
         args.ToArray()
+    /// Gets description as scenario lines
+    static let getDescription steps =
+            steps
+            |> Seq.map (fun (_,line) -> line.Text)
+            |> String.concat "\r\n"
+    /// Chooses definitions for specified step and text
+    let matchStep feature scenario = function
+        | GivenStep text -> chooseDefinitions feature scenario text givens
+        | WhenStep text -> chooseDefinitions feature scenario text whens
+        | ThenStep text -> chooseDefinitions feature scenario text thens
     /// Resolves line
     let resolveLine feature (scenario:ScenarioSource) (step,line) =
         let matches = matchStep feature scenario step
@@ -69,13 +75,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             let ms = matches |> List.map (fun (m,mi) -> sprintf "%s.%s" mi.DeclaringType.Name mi.Name)
             fail <| sprintf "Ambiguous step definition (%s)" (String.concat "|" ms)
         let r,m = matches.Head
-        if not m.IsGenericMethod && m.ReturnType <> typeof<Void> then
-            fail "Step methods must return void/unit"
         let tableCount = line.Table |> Option.count
         let bulletsCount = line.Bullets |> Option.count
         let docCount = line.Doc |> Option.count
         let argCount = r.Groups.Count-1+tableCount+bulletsCount+docCount
-        if m.GetParameters().Length <> argCount then
+        if m.GetParameters().Length < argCount then
             fail "Parameter count mismatch"
         line,m,extractArgs r
     /// Chooses in scope events
@@ -86,11 +90,6 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             |> Seq.map (fun (_,_,_,e) -> e)
         events
         |> fun (ea,eb,ec,ed) -> choose ea, choose eb, choose ec, choose ed
-    /// Gets description as scenario lines
-    let getDescription steps =
-            steps
-            |> Seq.map (fun (_,line) -> line.Text)
-            |> String.concat "\r\n"
     new () =
         StepDefinitions(Assembly.GetCallingAssembly())
     /// Constructs instance by reflecting against specified assembly
@@ -161,8 +160,19 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             |> Seq.map (fun (_,_,_,m) -> m.ReturnType, m)
             |> Dict.ofSeq
         StepDefinitions(givens,whens,thens,events,valueParsers)
+
+    /// Provides a mechanism to customize the creation of
+    /// - StepDefinition classes
+    /// - Items that need their lifetimes managed at the Scenario run level (TickSpec will Dispose the ServiceProvider at the end of a Test Run)
+    // - Items that should be shared at Test Run level (e.g. Database fixtures might need to establish/tear down once per test run using xUnit mechanisms in order to avoid polluting the Steps to achieve that)
+    member __.ServiceProviderFactory
+        with set providerFactory =
+            let mkScenarioContainer () : IInstanceProvider =
+                new ExternalServiceProviderInstanceProvider(providerFactory()) :> _
+            instanceProviderFactory <- mkScenarioContainer
+
     /// Generate scenarios from specified lines (source undefined)
-    member this.GenerateScenarios (lines:string []) =
+    member __.GenerateScenarios (lines:string []) =
         let featureSource = parseFeature lines
         let feature = featureSource.Name
         featureSource.Scenarios
@@ -172,7 +182,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 |> Seq.map (resolveLine feature scenario)
                 |> Seq.toArray
             let events = chooseInScopeEvents feature scenario
-            let action = generate events valueParsers (scenario.Name,steps)
+            let action = generate events valueParsers (scenario.Name, steps) instanceProviderFactory
             {Name=scenario.Name;Description=getDescription scenario.Steps;
              Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
         )
@@ -191,7 +201,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         use reader = new StreamReader(feature)
         this.Execute (reader)
     /// Generates feature in specified lines from source document
-    member this.GenerateFeature (sourceUrl:string,lines:string[]) =
+    member __.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureSource = parseFeature lines
         let feature = featureSource.Name
         let gen = FeatureGen(featureSource.Name,sourceUrl)
@@ -208,7 +218,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         let createAction scenario =
             let t = lazy (genType scenario)
             TickSpec.Action(fun () ->
-                let instance = t.Force() |> Activator.CreateInstance
+                let ctor = t.Force().GetConstructor([| typeof<FSharpFunc<unit, IInstanceProvider>> |])
+                let instance = ctor.Invoke([| instanceProviderFactory |])
                 let mi = instance.GetType().GetMethod("Run")
                 mi.Invoke(instance,[||]) |> ignore
             )

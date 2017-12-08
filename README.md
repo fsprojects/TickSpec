@@ -4,22 +4,25 @@
 
 # Project Description
 
-A lightweight Behaviour Driven Development (BDD) framework.
+A lightweight Behaviour Driven Development (BDD) framework for .NET that'll fit how you want to test.
 
-Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then.
+1. Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then.
 
-Easily execute the behaviour against matching F# tick methods, attributed C# or F# methods.
+2. Easily execute the behaviour against matching F# 'ticked' methods, or attribute-tagged C# or F# methods.
 
-    let ``tick method`` () = true
+3. Run via your normal test runners (xUnit, NUnit or standalone), set breakpoints in the scenarios and go.
+
+Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
 
 # Installation
 
-Simply reference TickSpec via [Nuget](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
-TickSpec works in Visual Studio 2015 & 2017.
-To run NUnit based examples, please ensure that toy have installed the `NUnit 2 Test Adapter` tool via **Tools|Extensions And Updates**.
-Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
+Simply reference TickSpec via [NuGet or Paket](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
 
-Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
+- The binary should work cleanly on any NET 4.0 or later environment.
+- To run NUnit-based examples, please ensure that you have installed the `NUnit 2 Test Adapter` tool via **Tools|Extensions And Updates**
+- xUnit.NET examples should work after running `./build.bat`.
+- The TickSpec solution file works with Visual Studio 2015 & 2017. 
+- Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
 
 # Feature specification (Plain text)
 
@@ -49,6 +52,24 @@ let [<When>] ``he returns the jumper for a refund`` () =
     stockItem <- { stockItem with Count = stockItem.Count + 1 }
 
 let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) =
+    let passed = (stockItem.Count = n)
+    Debug.Assert(passed)
+```
+
+# Step definitions (F# without mutable field)
+
+```
+type StockItem = { Count : int }
+
+let [<Given>] ``a customer buys a black jumper`` () = ()
+      
+let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) =
+    { Count = n }
+      
+let [<When>] ``he returns the jumper for a refund`` (stockItem:StockItem) =
+    { stockItem with Count = stockItem.Count + 1 }
+      
+let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) (stockItem:StockItem) =
     let passed = (stockItem.Count = n)
     Debug.Assert(passed)
 ```
@@ -85,6 +106,27 @@ public class StockStepDefinitions
 }
 ```
 
+# Advanced features
+
+## Resolving referenced types (beta)
+
+As shown in [Step definitions (F# without mutable field)](#step-definitions-f-without-mutable-field), TickSpec also allows one to request additional parameters along with the captures from the regex holes in the step name as per typical Gherkin based frameworks. Such additional parameters can be fulfilled via the following mechanisms:
+* **Instances returned from Step Method return values:** This involves generating and stashing an _instance_ in one of the preceding steps in the scenario. Typically this is achieved by returning the instance from the Step Method. Whenever a step has a return value, the the value is saved under it's type (the return type of the Step Method controls what the type is). There can be only one value per type stashed per scenario run. When a parameter is being resolved, TickSpec first attempts to resolve from this type-to-instance caching Dictionary.
+
+* **Resolving dependencies:** If an instance cannot be located in the type-to-instance cache based on a preceding step having stashed the value, TickSpec will attempt to use the 'widest' constructor (the one with the most arguments) of the required type to instantiate it. Any input arguments to the constructor are all resolved recursively using the same mechanism. Any constructed instances are also cached in the type-to-instance cache, so next time it will return the same instance.
+
+The lifetime of instances is per-scenario:- Each scenario run starts an empty type-to-instance cache, and at the end of the scenario the cache gets cleared. Moreover, if any instance is `IDisposable`, `Dispose` will be called.
+
+See the example projects `DependencyInjection` and `FunctionalInjection` for typical and advanced examples of using this mechanism.
+
+## Custom type resolver (beta)
+
+While the typical recommended usage of TickSpec is to keep the step definitions simple and drive a system from the outside in the simplest fashion possible, in some advanced cases it may be useful to provide a custom type resolver. This can be achieved by `set`ting the `StepDefinitions.ServiceProviderFactory` property. This factory method is used once per scenario run to establish an independent resolution context per scenario run. The `IServiceProvider` instance is used to replace the built in instance construction mechanism (see _Resolving dependencies_ in the previous section: [Resolving referenced types](#resolving-referenced-types-beta)). If the `IServiceProvider` implementation yielded by the factory also implements `IDisposable`, `Dispose` is called on the Service Provider context at the end of the scenario run.
+
+See the `CustomContainer` example project for usage examples - the example demonstrates wiring of Autofac including usage of lifetime scopes per scenario and usage of the [xUnit 2+ Shared Fixtures](https://xunit.github.io/docs/shared-context.html) to correctly manage the sharing/ifetime of the container where one runs xUnit Test Classes in parallel as part of a large test suite.
+
 # Contributing
 
-Contributions are welcome, particularly examples and documentation. If you have an issue or suggestion please add an Issue. If you'd like to chat about TickSpec please feel free to ping me on [Twitter](http://twitter.com/ptrelford) or go to [the gitter channel](https://gitter.im/fsprojects/TickSpec).
+Contributions are welcome, particularly examples and documentation. If you'd like to chat about TickSpec, please use the [the gitter channel](https://gitter.im/fsprojects/TickSpec).
+
+For issues or suggestions please raise an Issue. If you are looking to extend or change the core implementation, it's best to drop a quick note and/or a placeholder PR in order to make sure there is broad agreement on the scope of the change / nature of the feature in question before investing significant time on it; we want to keep TickSpec _powerful, but minimal_.

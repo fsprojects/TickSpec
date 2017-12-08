@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2008
+VisualStudioVersion = 15.0.27110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{651190A2-5671-4672-9F28-DCEC4CCA5D66}"
 	ProjectSection(SolutionItems) = preProject
@@ -48,6 +48,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Xunit2.FSharp", "Examples\ByFramework\xUnit\FSharp.xUnit2\Xunit2.FSharp.fsproj", "{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ByFeature", "ByFeature", "{EB1F6262-0913-4464-A034-4F4D01268E83}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DependencyInjection", "Examples\ByFeature\DependencyInjection\DependencyInjection.fsproj", "{67AD3F89-5B90-45AE-82F1-FE41347A833A}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FunctionalInjection", "Examples\ByFeature\FunctionalInjection\FunctionalInjection.fsproj", "{F361EA62-40BB-4DE6-9101-744C936A65CC}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CustomContainer", "Examples\ByFeature\CustomContainer\CustomContainer.fsproj", "{DDC6E491-2FF5-4B38-AFC2-503AE4588A6B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -99,6 +107,18 @@ Global
 		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67AD3F89-5B90-45AE-82F1-FE41347A833A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67AD3F89-5B90-45AE-82F1-FE41347A833A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67AD3F89-5B90-45AE-82F1-FE41347A833A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67AD3F89-5B90-45AE-82F1-FE41347A833A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F361EA62-40BB-4DE6-9101-744C936A65CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F361EA62-40BB-4DE6-9101-744C936A65CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F361EA62-40BB-4DE6-9101-744C936A65CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F361EA62-40BB-4DE6-9101-744C936A65CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDC6E491-2FF5-4B38-AFC2-503AE4588A6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDC6E491-2FF5-4B38-AFC2-503AE4588A6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDC6E491-2FF5-4B38-AFC2-503AE4588A6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDC6E491-2FF5-4B38-AFC2-503AE4588A6B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,8 +139,12 @@ Global
 		{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10} = {66BBEAD2-B2E3-4B99-960D-94C63C303E05}
 		{1D2CA398-6F02-41B1-BAA5-E63DC15508A4} = {66BBEAD2-B2E3-4B99-960D-94C63C303E05}
 		{1207F9C8-3B84-4939-B6E2-DB96D06B73E2} = {5629AA55-642D-4956-9D16-ABCF50A97DAB}
+		{EB1F6262-0913-4464-A034-4F4D01268E83} = {CD7A2701-42ED-47BD-8724-1E130B5C5071}
+		{67AD3F89-5B90-45AE-82F1-FE41347A833A} = {EB1F6262-0913-4464-A034-4F4D01268E83}
+		{F361EA62-40BB-4DE6-9101-744C936A65CC} = {EB1F6262-0913-4464-A034-4F4D01268E83}
+		{DDC6E491-2FF5-4B38-AFC2-503AE4588A6B} = {EB1F6262-0913-4464-A034-4F4D01268E83}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {0FAAF41B-EB77-44FA-9D0C-274B119C747D}
+		SolutionGuid = {8B381617-F1EE-4BFC-8EAE-CAB4DBB4B9A2}
 	EndGlobalSection
 EndGlobal
