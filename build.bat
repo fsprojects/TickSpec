@@ -12,8 +12,6 @@ if errorlevel 1 (
   exit /b %errorlevel%
 )
 
-SET NuGetTool=%~dp0packages\NuGet.CommandLine\tools\NuGet.exe
-
 msbuild TickSpec.sln /p:Configuration=Release /m
 
 if errorlevel 1 (
@@ -22,7 +20,7 @@ if errorlevel 1 (
 )
 
 if "%~1"=="" (
-    set version="1.0.1.1"
+    set version="1.1.0.0"
 ) else (
     set version="%1"
 )
