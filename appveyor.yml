@@ -2,7 +2,7 @@ image: Visual Studio 2017
 build_script:
   - cmd: build.bat %APPVEYOR_BUILD_VERSION%
 test: on
-version: 1.0.1.{build}
+version: 1.1.0.{build}
 artifacts:
   - path: TickSpec\bin\Release
     name: release

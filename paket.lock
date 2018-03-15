@@ -4,9 +4,8 @@ NUGET
   remote: https://api.nuget.org/v3/index.json
     Autofac (4.6.2)
     FSharp.Core (3.1.2.5)
-    NuGet.CommandLine (4.4.1)
     NUnit (2.6.4)
-    unquote (4.0)
+    Unquote (4.0)
     xunit (2.3.1)
       xunit.analyzers (>= 0.7)
       xunit.assert (2.3.1)
