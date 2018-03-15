@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27110.0
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{651190A2-5671-4672-9F28-DCEC4CCA5D66}"
 	ProjectSection(SolutionItems) = preProject
@@ -46,7 +46,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
 		build.bat = build.bat
+		build.fsx = build.fsx
 		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Xunit2.FSharp", "Examples\ByFramework\xUnit\FSharp.xUnit2\Xunit2.FSharp.fsproj", "{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}"

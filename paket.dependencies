@@ -13,3 +13,11 @@ nuget Unquote
 
 # Example container to illustrate integration
 nuget Autofac
+
+group build
+framework: auto-detect
+source https://nuget.org/api/v2
+nuget FAKE
+nuget Paket.Core
+nuget NUnit.Console
+nuget xunit.runner.console

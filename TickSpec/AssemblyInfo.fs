@@ -1,4 +1,4 @@
-﻿namespace TickSpec
+namespace TickSpec
 
 open System.Reflection
 open System.Runtime.InteropServices
