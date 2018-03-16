@@ -1,6 +1,6 @@
-#r "packages/build/fake/tools/FakeLib.dll"
+#r "packages/build/FAKE/tools/FakeLib.dll"
 #r "packages/build/Chessie/lib/net40/Chessie.dll"
-#r "packages/build/paket.core/lib/net45/Paket.Core.dll"
+#r "packages/build/Paket.Core/lib/net45/Paket.Core.dll"
 #r "System.Xml.Linq"
 
 open Fake
