@@ -8,7 +8,6 @@ open Fake.AssemblyInfoFile
 open Fake.Testing
 
 module Paket = 
-    open Paket.Domain
     let findReferencesFor packageName = 
         __SOURCE_DIRECTORY__ </> "paket.dependencies" 
         |> Paket.Dependencies 
@@ -27,7 +26,6 @@ module Xml =
 
 module MsBuildProject = 
     open System
-    open Xml
     let tryAssembly project = 
         let xdoc = Xml.load project 
         let xmlns = xdoc |> Xml.xns
@@ -41,8 +39,26 @@ module Analysis =
         Paket.findReferencesFor packageName
         |> Seq.collect (MsBuildProject.tryAssembly >> Option.toList)
 
+module Test = 
+    module NUnit = 
+        let assemblies () = Analysis.findAssembliesReferencing "nunit" 
+        let run assemblies = 
+            assemblies
+            |> NUnit3 (fun p -> 
+                { p with 
+                    ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/NUnit.ConsoleRunner/tools/nunit3-console.exe" })
+    module XUnit = 
+        let assemblies () = Analysis.findAssembliesReferencing "xunit"  
+
+        let run assemblies = 
+            assemblies
+            |> XUnit2.xUnit2 (fun p -> 
+                { p with 
+                    ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/xunit.runner.console/tools/net452/xunit.console.exe"
+                    ForceAppVeyor = AppVeyor.BuildNumber |> Option.isSome })
+
 open AppVeyor
-open Fake.Testing.NUnit3
+open Test
 
 module ReleaseNotes = 
     let TickSpec = ReleaseNotesHelper.LoadReleaseNotes (__SOURCE_DIRECTORY__ </> "RELEASE_NOTES.md")
@@ -77,17 +93,9 @@ Target "AssemblyInfo" <| fun _ ->
 
 Target "Build" <| fun _ -> build Build.setParams Sln
 
-Target "Test" <| fun _ ->
-    Analysis.findAssembliesReferencing "nunit"
-    |> NUnit3 (fun p -> 
-        { p with 
-            ToolPath = Build.rootDir </> "packages/build/NUnit.ConsoleRunner/tools/nunit3-console.exe" })
-    
-    Analysis.findAssembliesReferencing "xunit"
-    |> XUnit2.xUnit2 (fun p -> 
-        { p with 
-            ToolPath = Build.rootDir </> "packages/build/xunit.runner.console/tools/net452/xunit.console.exe"
-            ForceAppVeyor = AppVeyor.BuildNumber |> Option.isSome })
+NUnit.assemblies >> NUnit.run 
+>> XUnit.assemblies >> XUnit.run
+|> Target "Test"
 
 Target "Nuget" <| fun _ -> 
     Paket.Pack (fun p ->

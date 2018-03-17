@@ -15,9 +15,11 @@ nuget Unquote
 nuget Autofac
 
 group build
-framework: auto-detect
-source https://nuget.org/api/v2
-nuget FAKE
-nuget Paket.Core
-nuget NUnit.Console
-nuget xunit.runner.console
+    framework: auto-detect
+    source https://nuget.org/api/v2
+    nuget FAKE
+    nuget Paket.Core
+    nuget NUnit.ConsoleRunner
+    nuget NUnit.Extension.NUnitV2Driver
+    nuget NUnit.Extension.NUnitV2ResultWriter
+    nuget xunit.runner.console
