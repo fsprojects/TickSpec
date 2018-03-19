@@ -149,7 +149,8 @@ publish/
 # NuGet Packages
 *.nupkg
 # The packages folder can be ignored because of Package Restore
-**/packages/*
+packages/
+
 # except build/, which is used as an MSBuild target.
 !**/packages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
@@ -236,7 +237,6 @@ GeneratedArtifacts/
 ModelManifest.xml
 
 # Paket dependency manager
-.paket/paket.exe
 .paket/Paket.Restore.targets
 paket-files/
 
@@ -245,3 +245,6 @@ paket-files/
 
 # NuGet packages will be published and not stored in repo
 Nuget/**/Lib
+
+# build working directory
+bin/
