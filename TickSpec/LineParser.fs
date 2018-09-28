@@ -1,6 +1,7 @@
 ﻿module internal TickSpec.LineParser
 
 open System.Text.RegularExpressions
+open System.Globalization
 
 /// Block type
 type internal BlockType =
@@ -23,8 +24,6 @@ type internal ItemType =
 
 /// Line type
 type internal LineType =
-    | FileStart
-    | FeatureName of string
     | BlockStart of BlockType
     | ExamplesStart
     | Step of StepType

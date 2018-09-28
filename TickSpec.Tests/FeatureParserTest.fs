@@ -3,7 +3,7 @@
 open NUnit.Framework
 open TickSpec
 open System
-open TickSpec.LineParser
+open TickSpec.NewLineParser
 
 let private verifyParsing (fileContent: string) (expected: FeatureSource) =
     let featureSource = fileContent.Split([|"\n"|], StringSplitOptions.None) |> FeatureParser.parseFeature
@@ -20,7 +20,7 @@ let private verifyLineParsing (fileContent: string) (expected: LineType list) =
         )
         |> Seq.filter (fun line -> line.Trim().Length > 0)
         |> Seq.scan (fun (_, lastLine) line ->
-            let parsed = TickSpec.LineParser.parseLine (lastLine, line)
+            let parsed = parseLine (lastLine, line)
             match parsed with
             | Some line -> (lastLine, line)
             | None ->
@@ -68,25 +68,25 @@ let TagsAndExamples_ParseLines () =
         FileStart
         TagLine [ "http" ]
         FeatureName "HTTP server"
-        BlockStart Background
+        Background
         Step (GivenStep "User connects to <server>")
         TagLine [ "basics"; "index" ]
-        BlockStart (Named "Tags and Examples Sc.")
+        Scenario "Tags and Examples Sc."
         Step (WhenStep "Client requests <page>")
         Step (ThenStep "Server responds with page <page>")
         TagLine [ "smoke"; "all" ]
-        ExamplesStart
-        Item (ExamplesStart, TableRow [| "server" |])
-        Item (ExamplesStart, TableRow [| "smoke" |])
-        ExamplesStart
-        Item (ExamplesStart, TableRow [| "page" |])
-        Item (ExamplesStart, TableRow [| "index.html" |])
-        Item (ExamplesStart, TableRow [| "default.html" |])
+        Examples
+        Item (Examples, TableRow [ "server" ])
+        Item (Examples, TableRow [ "smoke" ])
+        Examples
+        Item (Examples, TableRow [ "page" ])
+        Item (Examples, TableRow [ "index.html" ])
+        Item (Examples, TableRow [ "default.html" ])
         TagLine [ "all" ]
-        BlockStart (Shared None)
-        Item (BlockStart (Shared None), TableRow [| "server" |])
-        Item (BlockStart (Shared None), TableRow [| "testing" |])
-        Item (BlockStart (Shared None), TableRow [| "production" |])
+        SharedExamples
+        Item (SharedExamples, TableRow [ "server" ])
+        Item (SharedExamples, TableRow [ "testing" ])
+        Item (SharedExamples, TableRow [ "production" ])
     ]
 
 [<Test>]
