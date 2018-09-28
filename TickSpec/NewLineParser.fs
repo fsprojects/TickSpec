@@ -127,7 +127,7 @@ let parseLine = function
     | Step(_), GivenLine text
     | Step(GivenStep _), AndLine text
     | Step(GivenStep _), ButLine text
-    | Item(_, TableRow _), GivenLine text
+    | Item(Step(_), TableRow _), GivenLine text
     | Item(_, BulletPoint _), GivenLine text
     | Item(_, MultiLineStringEnd), GivenLine text
         -> Step(GivenStep text) |> Some
@@ -136,7 +136,7 @@ let parseLine = function
     | Step(_), WhenLine text
     | Step(WhenStep _), AndLine text
     | Step(WhenStep _), ButLine text
-    | Item(_, TableRow _), WhenLine text
+    | Item(Step(_), TableRow _), WhenLine text
     | Item(_, BulletPoint _), WhenLine text
     | Item(_, MultiLineStringEnd), WhenLine text
         -> Step(WhenStep text) |> Some
@@ -145,7 +145,7 @@ let parseLine = function
     | Step(_), ThenLine text
     | Step(ThenStep _), AndLine text
     | Step(ThenStep _), ButLine text
-    | Item(_, TableRow _), ThenLine text
+    | Item(Step(_), TableRow _), ThenLine text
     | Item(_, BulletPoint _), ThenLine text
     | Item(_, MultiLineStringEnd), ThenLine text
         -> Step(ThenStep text) |> Some
@@ -166,7 +166,8 @@ let parseLine = function
     | Item(l, MultiLineString _), line
         -> Item(l, MultiLineString line) |> Some
     | Step(_), ExamplesLine
-    | Item(_, TableRow _), ExamplesLine
+    | Item(Examples, TableRow _), ExamplesLine
+    | Item(Step(_), TableRow _), ExamplesLine
     | Item(_, BulletPoint _), ExamplesLine
     | Item(_, MultiLineStringEnd), ExamplesLine
     | TagLine _, ExamplesLine
@@ -188,5 +189,4 @@ let expectingLine = function
     | Item(Step(_), TableRow _) -> "Expecting another table row, next step, examples or end of scenario"
     | Item(SharedExamples, _) -> "Expecting a table row"
     | Item(Examples, _) -> "Expecting a table row, another examples or end of scenario"
-    | TagLine _ -> "Expected feature, scenario, examples or shared examples"
     | _ -> "Unexpected line"
