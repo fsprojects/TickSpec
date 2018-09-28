@@ -2,6 +2,7 @@ namespace TickSpec
 
 open System.Reflection
 open System.Runtime.InteropServices
+open System.Runtime.CompilerServices
 
 [<assembly: AssemblyTitle("TickSpec")>]
 [<assembly: AssemblyDescription(".Net BDD Framework")>]
@@ -10,6 +11,7 @@ open System.Runtime.InteropServices
 [<assembly: AssemblyTrademark("")>]
 
 [<assembly: ComVisible(false)>]
+[<assembly: InternalsVisibleTo("TickSpec.Tests")>]
 
 [<assembly: Guid("ce5d72fa-c61d-40dd-bbda-dbb170d4412a")>]
 
