@@ -43,7 +43,7 @@ let TagsAndExamples () =
         Name = "HTTP server"
         Scenarios = [|
             {
-                Name = "Tags and Examples Sc."
+                Name = "Tags and Examples Sc. (0)"
                 Tags = [|"http";"basics";"index";"smoke";"all"|]
                 Steps = [|
                     (GivenStep "User connects to smoke", {
@@ -71,7 +71,7 @@ let TagsAndExamples () =
                 Parameters = [|("server","smoke");("page","index.html")|]
             }
             {
-                Name = "Tags and Examples Sc."
+                Name = "Tags and Examples Sc. (1)"
                 Tags = [|"http";"basics";"index";"smoke";"all"|]
                 Steps = [|
                     (GivenStep "User connects to smoke", {
@@ -99,7 +99,7 @@ let TagsAndExamples () =
                 Parameters = [|("server","smoke");("page","default.html")|]
             }
             {
-                Name = "Tags and Examples Sc."
+                Name = "Tags and Examples Sc. (2)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to testing", {
@@ -127,7 +127,7 @@ let TagsAndExamples () =
                 Parameters = [|("server","testing");("page","index.html")|]
             }
             {
-                Name = "Tags and Examples Sc."
+                Name = "Tags and Examples Sc. (3)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to testing", {
@@ -155,7 +155,7 @@ let TagsAndExamples () =
                 Parameters = [|("server","testing");("page","default.html")|]
             }
             {
-                Name = "Tags and Examples Sc."
+                Name = "Tags and Examples Sc. (4)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to production", {
@@ -183,7 +183,7 @@ let TagsAndExamples () =
                 Parameters = [|("server","production");("page","index.html")|]
             }
             {
-                Name = "Tags and Examples Sc."
+                Name = "Tags and Examples Sc. (5)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to production", {
