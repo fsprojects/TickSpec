@@ -53,8 +53,31 @@ let private parseExamples lines =
 let private parseSharedExamples lines =
     [], lines
 
+let private parseItem lines =
+    None, lines
+
 let private parseSteps lines =
-    [], lines
+    let parseStep lines =
+        match lines with
+        | (ln,line,Step(s)) :: xs ->
+            let item, newLines = parseItem xs
+            Some {
+                Step = s
+                LineNumber = ln
+                LineString = line
+                Item = item
+            }, newLines
+        | _ -> None, lines
+
+    let rec parseStepsInternal steps lines =
+        let parsedStep, lines = parseStep lines
+        match parsedStep with
+        | Some step -> parseStepsInternal (step :: steps) lines
+        | None -> steps, lines
+
+    let steps, lines = parseStepsInternal [] lines
+    if steps = [] then Exception("At least one step is expected") |> raise
+    steps |> List.rev, lines
 
 let private parseBackground lines =
     match lines with
