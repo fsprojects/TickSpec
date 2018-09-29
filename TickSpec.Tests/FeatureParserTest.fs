@@ -4,6 +4,7 @@ open NUnit.Framework
 open TickSpec
 open System
 open TickSpec.NewLineParser
+open TickSpec.NewBlockParser
 
 let private verifyParsing (fileContent: string) (expected: FeatureSource) =
     let featureSource = fileContent.Split([|"\n"|], StringSplitOptions.None) |> FeatureParser.parseFeature
@@ -29,6 +30,11 @@ let private verifyLineParsing (fileContent: string) (expected: LineType list) =
         |> Seq.map (fun (_, line) -> line)
 
     Assert.AreEqual(expected, lineParsed)
+
+let private verifyBlockParsing (fileContent: string) (expected: FeatureBlock) =
+    let lines = fileContent.Split([|"\n"|], StringSplitOptions.None)
+    let parsed = parseBlocks lines
+    Assert.AreEqual(expected, parsed)
 
 let tagsAndExamplesFeatureFile =
     "
@@ -88,6 +94,72 @@ let TagsAndExamples_ParseLines () =
         Item (SharedExamples, TableRow [ "testing" ])
         Item (SharedExamples, TableRow [ "production" ])
     ]
+
+[<Test>]
+let TagsAndExamples_ParseBlocks () =
+    tagsAndExamplesFeatureFile
+    |> verifyBlockParsing <|
+    {
+        Name = "HTTP server"
+        Tags = [ "http" ]
+        Description = None
+        Background = [
+            {
+                Step = GivenStep "User connects to <server>"
+                LineNumber = 6
+                LineString = "        Given User connects to <server>"
+                Item = None
+            }
+        ]
+        Scenarios = [
+            {
+                Name = "Tags and Examples Sc."
+                Tags = [ "basics"; "index" ]
+                Steps = [
+                    {
+                        Step = WhenStep "Client requests <page>"
+                        LineNumber = 10
+                        LineString = "            When Client requests <page>"
+                        Item = None
+                    }
+                    {
+                        Step = ThenStep "Server responds with page <page>"
+                        LineNumber = 11
+                        LineString = "            Then Server responds with page <page>"
+                        Item = None
+                    }
+                ]
+                Examples = [
+                    {
+                        Tags = [ "smoke"; "all" ]
+                        Table =
+                            {
+                                Header = [ "server "]
+                                Rows = [ [ "test" ] ]
+                            }
+                    }
+                    {
+                        Tags = []
+                        Table =
+                            {
+                                Header = [ "page "]
+                                Rows = [ [ "index.html" ]; [ "default.html" ] ]
+                            }
+                    }
+                ]
+            }
+        ]
+        SharedExamples = [
+            {
+                Tags = [ "all" ]
+                Table =
+                    {
+                        Header = [ "server "]
+                        Rows = [ [ "testing" ]; [ "production" ] ]
+                    }
+            }
+        ]
+    }
 
 [<Test>]
 let TagsAndExamples_FeatureSource () =
