@@ -200,11 +200,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     member this.Execute (feature:System.IO.Stream) =
         use reader = new StreamReader(feature)
         this.Execute (reader)
-#if NET45
     /// Generates feature in specified lines from source document
     member __.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureSource = parseFeature lines
         let feature = featureSource.Name
+#if NET45
         let gen = FeatureGen(featureSource.Name,sourceUrl)
         let genType scenario =
             let lines =
@@ -231,9 +231,14 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 { Name=scenario.Name;Description=getDescription scenario.Steps;
                   Action=action;Parameters=scenario.Parameters;Tags=scenario.Tags}
             )
+        let assembly = gen.Assembly
+#else
+        let scenarios = __.GenerateScenarios lines
+        let assembly = null
+#endif
         { Name = featureSource.Name;
           Source = sourceUrl;
-          Assembly = gen.Assembly;
+          Assembly = assembly;
           Scenarios = scenarios |> Seq.toArray
         }
     member this.GenerateFeature (sourceUrl:string,reader:TextReader) =
@@ -243,14 +248,9 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         this.GenerateFeature(sourceUrl, reader)
     member this.GenerateFeature (path:string) =
         this.GenerateFeature(path,File.ReadAllLines(path))
-#endif
     /// Generates scenarios in specified lines from source document
     member this.GenerateScenarios (sourceUrl:string,lines:string[]) =
-#if NET45
         this.GenerateFeature(sourceUrl,lines).Scenarios
-#else
-        this.GenerateScenarios lines
-#endif
     member this.GenerateScenarios (sourceUrl:string,reader:TextReader) =
         this.GenerateScenarios(sourceUrl, TextReader.readAllLines reader)
     member this.GenerateScenarios (sourceUrl:string,feature:System.IO.Stream) =
