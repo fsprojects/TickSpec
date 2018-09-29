@@ -7,7 +7,7 @@ type Calculator = { Values : int list } with
     static member Create() = { Values = [] }
 
 #if INTERACTIVE
-#r @"..\..\..\Nuget\dotNet\Lib\net40\TickSpec.dll"
+#r @"..\..\..\Nuget\dotNet\Lib\net45\TickSpec.dll"
 #load "Functional.fs"
 module Assert =
     let AreEqual (expected,actual) = 

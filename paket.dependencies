@@ -2,8 +2,7 @@ redirects: on
 framework: auto-detect
 source https://api.nuget.org/v3/index.json
 
-# For now, we support F# 3.1 and up; .NET Core support may impact that
-nuget FSharp.Core ~> 3.1.2.0
+nuget FSharp.Core
 
 # Test/assertion frameworks
 nuget NUnit ~> 2.0 # pinned to 2.x to match README instruction wrt v2 Test Adapter for now
