@@ -5,7 +5,9 @@ source https://api.nuget.org/v3/index.json
 nuget FSharp.Core
 
 # Test/assertion frameworks
-nuget NUnit ~> 2.0 # pinned to 2.x to match README instruction wrt v2 Test Adapter for now
+nuget NUnit
+nuget NUnit3TestAdapter
+nuget Microsoft.NET.Test.Sdk
 nuget xunit ~> 2 # there are v1 examples but most integrations use v2
 nuget xunit.runner.visualstudio ~> 2 version_in_path: false
 nuget Unquote
@@ -15,7 +17,8 @@ nuget Autofac
 
 group build
     framework: auto-detect
-    source https://nuget.org/api/v2
+    source https://api.nuget.org/v3/index.json
+
     nuget FAKE
     nuget Paket.Core
     nuget NUnit.ConsoleRunner

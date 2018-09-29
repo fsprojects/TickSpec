@@ -1,17 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;net45</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />
     <Compile Include="NunitWiring.fs" />
     <Compile Include="Domain.fs" />
-    <None Include="DogFeeding.feature" />
+    <EmbeddedResource Include="DogFeeding.feature" />
     <Compile Include="DogSteps.fs" />
     <Compile Include="BowlSteps.fs" />
     <Compile Include="FeedingSteps.fs" />
-    <Compile Include="DependencyInjectionFeature.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj">
