@@ -102,7 +102,6 @@ let TagsAndExamples_ParseBlocks () =
     {
         Name = "HTTP server"
         Tags = [ "http" ]
-        Description = None
         Background = [
             {
                 Step = GivenStep "User connects to <server>"
