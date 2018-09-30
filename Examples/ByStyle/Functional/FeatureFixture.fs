@@ -29,21 +29,26 @@ module Parser =
         let lines = reader |> TextReader.ReadAllLines
         FeatureParser.parseFeature(lines)
 
-[<TestFixture;AbstractClass>]
-type FeatureFixture<'TState> 
-        (featureFile, 
-         performStep:'TState->StepType->'TState,
-         initState:unit->'TState) =
-    [<Test>]
-    [<TestCaseSource("Scenarios")>]
-    member this.TestScenario (scenario:ScenarioSource) =
+[<AbstractClass>]
+type FeatureFixture<'TState> () =
+    static member PerformTest (scenario:ScenarioSource) (performStep:'TState->StepType->'TState) (initState:unit->'TState) =
         scenario.Steps
         |> Array.map fst
         |> Array.fold performStep (initState())
         |> ignore
-    member this.Scenarios =
+    static member MakeScenarios featureFile =
         let feature = parse featureFile
+        let createTestCaseData (feature:FeatureSource) (scenario:ScenarioSource) =
+                let enhanceScenarioName parameters scenarioName =
+                    let replaceParameterInScenarioName (scenarioName:string) parameter =
+                        scenarioName.Replace("<" + fst parameter + ">", snd parameter)
+                    parameters
+                    |> Seq.fold replaceParameterInScenarioName scenarioName
+                (new TestCaseData(scenario))
+                    .SetName(enhanceScenarioName scenario.Parameters scenario.Name)
+                    .SetProperty("Feature", feature.Name.Substring(9))
+                |> Seq.foldBack (fun (tag:string) data -> data.SetProperty("Tag", tag)) scenario.Tags
         feature.Scenarios
         |> Seq.filter (fun scenario ->
-            scenario.Tags |> Seq.exists ((=) "ignore") |> not
-        )
+            scenario.Tags |> Seq.exists ((=) "ignore") |> not)
+        |> Seq.map (createTestCaseData feature)

@@ -1,7 +1,5 @@
 ﻿module CoffeeSteps
 
-type CoffeeFixture () = inherit TickSpec.NUnit.FeatureFixture("Coffee.feature")
-
 type Property =
     | CoffeesLeft of int
     | Deposit of int

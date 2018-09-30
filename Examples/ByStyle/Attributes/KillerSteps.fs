@@ -1,7 +1,5 @@
 ﻿module KillerSteps
 
-type KillerFixture () = inherit TickSpec.NUnit.FeatureFixture("Killer.feature")
-
 open TickSpec
 open NUnit.Framework
   

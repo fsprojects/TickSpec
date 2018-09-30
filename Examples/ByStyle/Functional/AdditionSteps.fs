@@ -36,6 +36,15 @@ let featureFile =  __SOURCE_DIRECTORY__ + "\Addition.txt"
 run featureFile performStep Calculator.Create
 #else
 open TickSpec.NUnit
+open TickSpec
+
+[<TestFixture>]
 type AdditionFeature () =
-    inherit FeatureFixture<Calculator>("Addition.txt", performStep, Calculator.Create)
+    inherit FeatureFixture<Calculator>()
+    [<Test>]
+    [<TestCaseSource("Scenarios")>]
+    member __.TestScenario (scenario:ScenarioSource) =
+        FeatureFixture<Calculator>.PerformTest scenario performStep Calculator.Create
+    static member Scenarios =
+        FeatureFixture<Calculator>.MakeScenarios "Functional.Addition.txt"
 #endif
