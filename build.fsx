@@ -5,7 +5,9 @@
 
 open Fake
 open Fake.AssemblyInfoFile
-open Fake.Testing
+open Fake.DotNet
+open Fake.DotNet.Testing
+open System.Linq
 
 module Paket = 
     let findReferencesFor packageName = 
@@ -29,10 +31,12 @@ module MsBuildProject =
     let tryAssembly project = 
         let xdoc = Xml.load project 
         let xmlns = xdoc |> Xml.xns
-        xdoc |> Xml.descendants (xmlns |> Xml.xn2 "AssemblyName") |> Seq.map Xml.value |> Seq.tryHead
-        |> Option.bind (fun assemblyName -> 
-            !! (directory project </> "bin" </> sprintf "**/%s.dll" assemblyName)
-            |> Seq.tryHead)
+        let assemblyName = 
+            xdoc |> Xml.descendants (xmlns |> Xml.xn2 "AssemblyName") |> Seq.map Xml.value |> Seq.tryHead
+            |> Option.defaultValue (project.Replace(".fsproj","").Split( [| '\\'; '/' |]).Last())
+
+        !! (directory project </> "bin" </> sprintf "**/%s.dll" assemblyName)
+        |> Seq.tryHead
 
 module Analysis = 
     let findAssembliesReferencing packageName = 
@@ -41,21 +45,19 @@ module Analysis =
 
 module Test = 
     module NUnit = 
-        let assemblies () = Analysis.findAssembliesReferencing "nunit" 
+        let assemblies () = Analysis.findAssembliesReferencing "NUnit" 
         let run assemblies = 
             assemblies
-            |> NUnit3 (fun p -> 
-                { p with 
-                    ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/NUnit.ConsoleRunner/tools/nunit3-console.exe" })
+            |> DotNet.Testing.NUnit3.run (fun p -> { p with 
+                ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/NUnit.ConsoleRunner/tools/nunit3-console.exe" })
     module XUnit = 
         let assemblies () = Analysis.findAssembliesReferencing "xunit"  
 
         let run assemblies = 
             assemblies
-            |> XUnit2.xUnit2 (fun p -> 
-                { p with 
-                    ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/xunit.runner.console/tools/net452/xunit.console.exe"
-                    ForceAppVeyor = AppVeyor.BuildNumber |> Option.isSome })
+            |> DotNet.Testing.XUnit2.run (fun p -> { p with 
+                ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/xunit.runner.console/tools/net452/xunit.console.exe"
+                ForceAppVeyor = AppVeyor.BuildNumber |> Option.isSome })
 
 open AppVeyor
 open Test
@@ -66,9 +68,9 @@ module ReleaseNotes =
 module Build = 
     let rootDir = __SOURCE_DIRECTORY__
     let nuget = rootDir </> "packed_nugets"
-    let setParams defaults =
+    let setParams (defaults :Fake.MSBuildHelper.MSBuildParams) =
         { defaults with
-            Verbosity = Some MSBuildVerbosity.Normal
+            Verbosity = Some Fake.MSBuildHelper.MSBuildVerbosity.Normal
             Targets = ["Rebuild"]
             Properties =
                 [ "AllowedReferenceRelatedFileExtensions", ".pdb"

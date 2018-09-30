@@ -21,7 +21,7 @@ group build
 
     nuget FAKE
     nuget Paket.Core
-    nuget NUnit.ConsoleRunner
-    nuget NUnit.Extension.NUnitV2Driver
-    nuget NUnit.Extension.NUnitV2ResultWriter
-    nuget xunit.runner.console
+	nuget Fake.DotNet.Testing.XUnit2
+	nuget Fake.DotNet.Testing.NUnit
+	nuget NUnit.ConsoleRunner
+	nuget xunit.runner.console
