@@ -4,6 +4,12 @@
     <TargetFrameworks>netcoreapp2.1;net45</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Stock.feature" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Stock.feature" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\TickSpec\TickSpec.fsproj">
       <Name>TickSpec</Name>
       <Project>{dc4a4a1d-ccc5-42e7-8ee6-4f015e8a2e3e}</Project>
