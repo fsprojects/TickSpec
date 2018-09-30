@@ -2,6 +2,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <Title>TickSpec</Title>
+    <Description>
+      Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then. Easily execute the behaviour against matching F# 'ticked' methods (let ``tick method`` () = true) or attributed C# or F# methods.
+      summary TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
+    </Description>
+    <Authors>Phillip Trelford</Authors>
+    <PackageProjectUrl>https://github.com/fsprojects/TickSpec</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/fsprojects/TickSpec/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>BDD C# F# .Net</PackageTags>
+    <PackageVersion>1.2.0</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />

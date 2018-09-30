@@ -100,14 +100,11 @@ NUnit.assemblies >> NUnit.run
 |> Target "Test"
 
 Target "Nuget" <| fun _ -> 
-    Paket.Pack (fun p ->
+    DotNet.pack (fun p ->
         { p with
-            BuildPlatform = "AnyCPU"
-            MinimumFromLockFile = true
-            Symbols = true
-            OutputPath = Build.nuget 
-            ReleaseNotes = String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
-            Version = ReleaseNotes.TickSpec.NugetVersion } )
+            Configuration = DotNet.Release
+            OutputPath = Some Build.nuget} )
+        "TickSpec\TickSpec.fsproj"
 
 Target "Publish" <| fun _ ->
     
