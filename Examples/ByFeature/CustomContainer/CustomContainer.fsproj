@@ -7,7 +7,7 @@
     <None Include="paket.references" />
     <Compile Include="XunitAutofacWiring.fs" />
     <Compile Include="Domain.fs" />
-    <None Include="Shelter.feature" />
+    <EmbeddedResource Include="Shelter.feature" />
     <Compile Include="ShelterSteps.fs" />
     <Compile Include="CustomContainerFeature.fs" />
   </ItemGroup>
