@@ -1,5 +1,5 @@
 redirects: on
-framework: auto-detect
+framework: net45, netstandard2.0, netcoreapp2.1
 source https://api.nuget.org/v3/index.json
 
 nuget FSharp.Core
@@ -15,13 +15,23 @@ nuget Unquote
 # Example container to illustrate integration
 nuget Autofac
 
-group build
-    framework: auto-detect
-    source https://api.nuget.org/v3/index.json
+clitool dotnet-fake
 
-    nuget FAKE
-    nuget Paket.Core
-	nuget Fake.DotNet.Testing.XUnit2
-	nuget Fake.DotNet.Testing.NUnit
+group FakeBuild
+    framework: netstandard2.0
+    source https://api.nuget.org/v3/index.json
+	storage: none
+
 	nuget NUnit.ConsoleRunner
 	nuget xunit.runner.console
+	nuget Fake.Core.Target
+	nuget Fake.IO.FileSystem
+	nuget Fake.DotNet.Cli
+	nuget Fake.Tools.Git
+	nuget Fake.DotNet.MSBuild
+	nuget Fake.Core.ReleaseNotes 
+	nuget Fake.DotNet.AssemblyInfoFile
+	nuget Fake.DotNet.Paket
+	nuget Fake.DotNet.Testing.XUnit2
+	nuget Fake.DotNet.Testing.NUnit
+	nuget Fake.Api.GitHub
