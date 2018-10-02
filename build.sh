@@ -9,7 +9,7 @@ then
   fi
 
   dotnet restore build.proj
-  dotnet fake build %*
+  dotnet fake build $@
 else
   # use mono
   mono .paket/paket.exe restore
@@ -19,5 +19,5 @@ else
   fi
 
   dotnet restore build.proj
-  dotnet fake build %*
+  dotnet fake build $@
 fi
