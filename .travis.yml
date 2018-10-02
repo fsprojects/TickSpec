@@ -7,7 +7,7 @@ mono:
   - latest
 
 dotnet:
-  - 2.1
+  - 2.1.300
 
 sudo: false  # use the new container-based Travis infrastructure
 
