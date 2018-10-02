@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "xUnit", "xUnit", "{5629AA55
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommandLine", "CommandLine", "{1D8B673E-E57C-4B16-979B-22FB8EF5ED36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharp", "Examples\ByFramework\CommandLine\CSharp\CSharp.csproj", "{FBB69434-1AC8-46B9-8533-81F09B69B134}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharp", "Examples\ByFramework\CommandLine\CSharp\CSharp.csproj", "{FBB69434-1AC8-46B9-8533-81F09B69B134}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp", "Examples\ByFramework\CommandLine\FSharp\FSharp.fsproj", "{9A6D191D-73B3-48D9-A0C1-51581E8894A8}"
 EndProject
@@ -45,6 +45,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-
 		build.bat = build.bat
 		build.fsx = build.fsx
 		build.proj = build.proj
+		build.sh = build.sh
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
