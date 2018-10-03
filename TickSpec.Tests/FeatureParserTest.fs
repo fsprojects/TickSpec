@@ -3,8 +3,8 @@
 open NUnit.Framework
 open TickSpec
 open System
-open TickSpec.NewLineParser
-open TickSpec.NewBlockParser
+open TickSpec.LineParser
+open TickSpec.BlockParser
 
 let private verifyParsing (fileContent: string) (expected: FeatureSource) =
     let featureSource = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None) |> FeatureParser.parseFeature

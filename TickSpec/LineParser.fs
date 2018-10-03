@@ -1,4 +1,4 @@
-﻿module internal TickSpec.NewLineParser
+﻿module internal TickSpec.LineParser
 
 open System.Text.RegularExpressions
 

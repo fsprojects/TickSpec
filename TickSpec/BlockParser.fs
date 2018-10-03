@@ -1,6 +1,6 @@
-﻿module internal TickSpec.NewBlockParser
+﻿module internal TickSpec.BlockParser
 
-open TickSpec.NewLineParser
+open TickSpec.LineParser
 open System
 open System.Runtime.Remoting.Messaging
 
