@@ -2,7 +2,6 @@
 
 open TickSpec.LineParser
 open System
-open System.Runtime.Remoting.Messaging
 
 type internal FeatureBlock =
     {

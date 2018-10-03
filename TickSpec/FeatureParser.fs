@@ -1,7 +1,6 @@
 ﻿module TickSpec.FeatureParser
 
 open System.Text.RegularExpressions
-open TickSpec.LineParser
 open TickSpec.BlockParser
 
 /// Computes combinations of table values
@@ -61,32 +60,31 @@ let internal appendSharedExamples (sharedExamples:Table[]) scenarios  =
 
 /// Parses lines of feature
 let parseFeature (lines:string[]) =
-    let toStep (_,_,_,line,step) = step,line
-    let featureName,background,scenarios,sharedExamples = parseBlocks lines
+    let computeCombinations examples = [(["Tag"], [("Lorem", "Ipsum")])]
+    let updateStep combination step = { Step = GivenStep "Lorem"; LineNumber = 1; LineString = "Lorem"; Item = None }
+    let convertToFeatureStep step = (GivenStep "Lorem", { Number = 1; Text="Lorem"; Bullets = None; Table = None; Doc = None})
+
+    let parsedFeatureBlocks = parseBlocks lines
+    let sharedExamples = parsedFeatureBlocks.SharedExamples
+    let background = parsedFeatureBlocks.Background
+
     let scenarios =
-        scenarios
-        |> appendSharedExamples sharedExamples
-        |> Seq.collect (function
-            | name,tags,steps,None ->
+        parsedFeatureBlocks.Scenarios
+        |> Seq.collect (fun scenario ->
+            let examples = scenario.Examples @ sharedExamples
+
+            let exampleCombinations = computeCombinations examples
+            exampleCombinations
+            |> Seq.mapi (fun i (tags, combination) ->
+                let name = sprintf "%s (%d)" scenario.Name i
                 let steps =
-                    Seq.append background steps
-                    |> Seq.map toStep
+                    background @ scenario.Steps
+                    |> Seq.map (updateStep combination)
+                    |> Seq.map convertToFeatureStep
                     |> Seq.toArray
-                Seq.singleton
-                    { Name=name; Tags=tags; Steps=steps; Parameters=[||] }
-            | name,tags,steps,Some(exampleTables) ->
-                /// All combinations of tables
-                let combinations = computeCombinations exampleTables
-                // Execute each combination
-                combinations |> Seq.mapi (fun i combination ->
-                    let name = sprintf "%s(%d)" name i
-                    let combination = Seq.concat combination |> Seq.toArray
-                    let steps =
-                        Seq.append background steps
-                        |> Seq.map (replaceLine combination)
-                        |> Seq.map toStep
-                        |> Seq.toArray
-                    { Name=name; Tags=tags; Steps=steps; Parameters=combination }
-                )
+
+                { Name=name; Tags=tags |> List.toArray; Steps=steps; Parameters=combination |> List.toArray }
+            )
         )
-    { Name=featureName; Scenarios=scenarios |> Seq.toArray }
+
+    { Name = parsedFeatureBlocks.Name; Scenarios = scenarios |> Seq.toArray }
