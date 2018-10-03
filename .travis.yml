@@ -23,4 +23,4 @@ install:
 
 script:
   - chmod u+x ./build.sh
-  - ./build.sh All
+  - ./build.sh -t All
