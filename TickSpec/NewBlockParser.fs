@@ -2,6 +2,7 @@
 
 open TickSpec.NewLineParser
 open System
+open System.Runtime.Remoting.Messaging
 
 type internal FeatureBlock =
     {
@@ -47,14 +48,57 @@ let private parseTags lines =
         | _ -> tags, lines
     parseTagsInternal [] lines
 
+let parseTable origLines =
+    let rec readTableRows rows lines =
+        match lines with
+        | (_, _, Item(_, TableRow cells)) :: xs ->
+            readTableRows (rows @ [ cells ]) xs
+        | _ -> rows, lines
+
+    let allRows, lines = readTableRows [] origLines
+    match allRows with
+    | header :: rows -> { Header = header; Rows = rows }, lines
+    | _ -> Exception("Table expected") |> raise
+
 let private parseExamples lines =
-    [], lines
+    let rec parseExamplesInternal examples origLines =
+        let tags, lines = parseTags origLines
+
+        match lines with
+        | (_, _, Examples) :: xs ->
+            let table, lines = parseTable xs
+            parseExamplesInternal (examples @ [ { Tags = tags; Table = table }]) lines
+        | _ -> examples, origLines
+
+    parseExamplesInternal [] lines
 
 let private parseSharedExamples lines =
-    [], lines
+    let rec parseSharedExamplesInternal examples origLines =
+        let tags, lines = parseTags origLines
+
+        match lines with
+        | (_, _, SharedExamples) :: xs ->
+            let table, lines = parseTable xs
+            parseSharedExamplesInternal (examples @ [ { Tags = tags; Table = table }]) lines
+        | _ -> examples, origLines
+
+    parseSharedExamplesInternal [] lines
 
 let private parseItem lines =
-    None, lines
+    let parseBulletPoints lines = [], lines
+    let parseMultiLineString lines = "", lines
+
+    match lines with
+    | (_, _, Item(_, BulletPoint _)) :: _ ->
+        let bullets, lines = parseBulletPoints lines
+        Some (BulletsItem bullets), lines
+    | (_, _, Item(_, MultiLineStringStart _)) :: _ ->
+        let string, lines = parseMultiLineString lines
+        Some (DocStringItem string), lines
+    | (_, _, Item(_, TableRow _)) :: _ ->
+        let table, lines = parseTable lines
+        Some (TableItem table), lines
+    | _ -> None, lines
 
 let private parseSteps lines =
     let parseStep lines =

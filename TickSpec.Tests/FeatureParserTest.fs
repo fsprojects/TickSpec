@@ -7,11 +7,11 @@ open TickSpec.NewLineParser
 open TickSpec.NewBlockParser
 
 let private verifyParsing (fileContent: string) (expected: FeatureSource) =
-    let featureSource = fileContent.Split([|"\n"|], StringSplitOptions.None) |> FeatureParser.parseFeature
+    let featureSource = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None) |> FeatureParser.parseFeature
     Assert.AreEqual(expected, featureSource)
 
 let private verifyLineParsing (fileContent: string) (expected: LineType list) =
-    let lines = fileContent.Split([|"\n"|], StringSplitOptions.None)
+    let lines = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None)
     let lineParsed =
         lines
         |> Seq.map (fun line ->
@@ -32,7 +32,7 @@ let private verifyLineParsing (fileContent: string) (expected: LineType list) =
     Assert.AreEqual(expected, lineParsed)
 
 let private verifyBlockParsing (fileContent: string) (expected: FeatureBlock) =
-    let lines = fileContent.Split([|"\n"|], StringSplitOptions.None)
+    let lines = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None)
     let parsed = parseBlocks lines
     Assert.AreEqual(expected, parsed)
 
@@ -106,7 +106,7 @@ let TagsAndExamples_ParseBlocks () =
             {
                 Step = GivenStep "User connects to <server>"
                 LineNumber = 6
-                LineString = "        Given User connects to <server>"
+                LineString = "    Given User connects to <server>"
                 Item = None
             }
         ]
@@ -118,13 +118,13 @@ let TagsAndExamples_ParseBlocks () =
                     {
                         Step = WhenStep "Client requests <page>"
                         LineNumber = 10
-                        LineString = "            When Client requests <page>"
+                        LineString = "    When Client requests <page>"
                         Item = None
                     }
                     {
                         Step = ThenStep "Server responds with page <page>"
                         LineNumber = 11
-                        LineString = "            Then Server responds with page <page>"
+                        LineString = "    Then Server responds with page <page>"
                         Item = None
                     }
                 ]
@@ -133,15 +133,15 @@ let TagsAndExamples_ParseBlocks () =
                         Tags = [ "smoke"; "all" ]
                         Table =
                             {
-                                Header = [ "server "]
-                                Rows = [ [ "test" ] ]
+                                Header = [ "server" ]
+                                Rows = [ [ "smoke" ] ]
                             }
                     }
                     {
                         Tags = []
                         Table =
                             {
-                                Header = [ "page "]
+                                Header = [ "page" ]
                                 Rows = [ [ "index.html" ]; [ "default.html" ] ]
                             }
                     }
@@ -153,7 +153,7 @@ let TagsAndExamples_ParseBlocks () =
                 Tags = [ "all" ]
                 Table =
                     {
-                        Header = [ "server "]
+                        Header = [ "server" ]
                         Rows = [ [ "testing" ]; [ "production" ] ]
                     }
             }
@@ -173,21 +173,21 @@ let TagsAndExamples_FeatureSource () =
                 Steps = [|
                     (GivenStep "User connects to smoke", {
                         Number = 6
-                        Text = "        Given User connects to <server>"
+                        Text = "    Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests index.html", {
                         Number = 10
-                        Text = "            When Client requests <page>"
+                        Text = "    When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page index.html", {
                         Number = 11
-                        Text = "            Then Server responds with page <page>"
+                        Text = "    Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -201,21 +201,21 @@ let TagsAndExamples_FeatureSource () =
                 Steps = [|
                     (GivenStep "User connects to smoke", {
                         Number = 6
-                        Text = "        Given User connects to <server>"
+                        Text = "    Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests default.html", {
                         Number = 10
-                        Text = "            When Client requests <page>"
+                        Text = "    When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page default.html", {
                         Number = 11
-                        Text = "            Then Server responds with page <page>"
+                        Text = "    Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -229,21 +229,21 @@ let TagsAndExamples_FeatureSource () =
                 Steps = [|
                     (GivenStep "User connects to testing", {
                         Number = 6
-                        Text = "        Given User connects to <server>"
+                        Text = "    Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests index.html", {
                         Number = 10
-                        Text = "            When Client requests <page>"
+                        Text = "    When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page index.html", {
                         Number = 11
-                        Text = "            Then Server responds with page <page>"
+                        Text = "    Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -257,21 +257,21 @@ let TagsAndExamples_FeatureSource () =
                 Steps = [|
                     (GivenStep "User connects to testing", {
                         Number = 6
-                        Text = "        Given User connects to <server>"
+                        Text = "    Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests default.html", {
                         Number = 10
-                        Text = "            When Client requests <page>"
+                        Text = "    When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page default.html", {
                         Number = 11
-                        Text = "            Then Server responds with page <page>"
+                        Text = "    Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -285,21 +285,21 @@ let TagsAndExamples_FeatureSource () =
                 Steps = [|
                     (GivenStep "User connects to production", {
                         Number = 6
-                        Text = "        Given User connects to <server>"
+                        Text = "    Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests index.html", {
                         Number = 10
-                        Text = "            When Client requests <page>"
+                        Text = "    When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page index.html", {
                         Number = 11
-                        Text = "            Then Server responds with page <page>"
+                        Text = "    Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -313,21 +313,21 @@ let TagsAndExamples_FeatureSource () =
                 Steps = [|
                     (GivenStep "User connects to production", {
                         Number = 6
-                        Text = "        Given User connects to <server>"
+                        Text = "    Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests default.html", {
                         Number = 10
-                        Text = "            When Client requests <page>"
+                        Text = "    When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page default.html", {
                         Number = 11
-                        Text = "            Then Server responds with page <page>"
+                        Text = "    Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
