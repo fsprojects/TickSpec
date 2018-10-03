@@ -2,6 +2,7 @@
 
 open System.Text.RegularExpressions
 open TickSpec.BlockParser
+open System
 
 /// Computes combinations of table values
 let internal computeCombinations (tables:Table []) =
@@ -18,51 +19,45 @@ let internal computeCombinations (tables:Table []) =
         |> Seq.toList
     values |> List.combinations
 
-/// Replace line with specified named values
-let internal replaceLine (xs:seq<string * string>) (scenario,n,tags,line,step) =
-    let replace s =
+/// Parses lines of feature
+let parseFeature (lines:string[]) =
+    let replace combination s =
         let lookup (m:Match) =
             let x = m.Value.TrimStart([|'<'|]).TrimEnd([|'>'|])
-            xs |> Seq.tryFind (fun (k,_) -> k = x)
+            combination |> Seq.tryFind (fun (k,_) -> k = x)
             |> (function Some(_,v) -> v | None -> m.Value)
         let pattern = "<([^<]*)>"
         Regex.Replace(s, pattern, lookup)
-    let step =
-        match step with
-        | GivenStep s -> replace s |> GivenStep
-        | WhenStep s -> replace s |> WhenStep
-        | ThenStep s  -> replace s |> ThenStep
-    let table =
-        line.Table
-        |> Option.map (fun table ->
-            Table(table.Header,
-                table.Rows |> Array.map (fun row ->
-                    row |> Array.map (fun col -> replace col)
-                )
-            )
-        )
-    let bullets =
-        line.Bullets
-        |> Option.map (fun bullets -> bullets |> Array.map replace)
-    (scenario,n,tags,{line with Table=table;Bullets=bullets},step)
 
-/// Appends shared examples to scenarios as examples
-let internal appendSharedExamples (sharedExamples:Table[]) scenarios  =
-    if Seq.length sharedExamples = 0 then
-        scenarios
-    else
-        scenarios |> Seq.map (function
-            | scenarioName,tags,steps,None ->
-                scenarioName,tags,steps,Some(sharedExamples)
-            | scenarioName,tags,steps,Some(exampleTables) ->
-                scenarioName,tags,steps,Some(Array.append exampleTables sharedExamples)
+    let computeCombinations examples =
+        examples
+        |> Seq.map (fun exampleBlock ->
+            exampleBlock.Tags,
+            Seq.zip exampleBlock.Table.Header exampleBlock.Table.Rows
+            |> Seq.fold (fun map (header, value) ->
+                    match Map.tryFind header map with
+                    | Some x -> Exception("Multiple values for a single header") |> raise
+                    | None -> map |> Map.add header value
+                ) Map.empty
         )
 
-/// Parses lines of feature
-let parseFeature (lines:string[]) =
-    let computeCombinations examples = [(["Tag"], [("Lorem", "Ipsum")])]
-    let updateStep combination step = { Step = GivenStep "Lorem"; LineNumber = 1; LineString = "Lorem"; Item = None }
-    let convertToFeatureStep step = (GivenStep "Lorem", { Number = 1; Text="Lorem"; Bullets = None; Table = None; Doc = None})
+        // [(["Tag"], [("Lorem", "Ipsum")])]
+
+    let createStep combination step =
+        let processedStep =
+            match step.Step with
+            | GivenStep s -> replace combination s |> GivenStep
+            | WhenStep s -> replace combination s |> WhenStep
+            | ThenStep s  -> replace combination s |> ThenStep
+
+        let bullets, table, doc =
+            match step.Item with
+            | Some (BulletsItem b) -> Some (b |> List.toArray), None, None
+            | Some (TableItem t) -> None, Some (new Table(t.Header |> List.toArray, t.Rows |> Seq.map List.toArray |> Seq.toArray)), None
+            | Some (DocStringItem d) -> None, None, Some d
+            | None -> None, None, None
+
+        (processedStep, { Number = step.LineNumber; Text=step.LineString; Bullets = bullets; Table = table; Doc = doc})
 
     let parsedFeatureBlocks = parseBlocks lines
     let sharedExamples = parsedFeatureBlocks.SharedExamples
@@ -79,8 +74,7 @@ let parseFeature (lines:string[]) =
                 let name = sprintf "%s (%d)" scenario.Name i
                 let steps =
                     background @ scenario.Steps
-                    |> Seq.map (updateStep combination)
-                    |> Seq.map convertToFeatureStep
+                    |> Seq.map (createStep combination)
                     |> Seq.toArray
 
                 { Name=name; Tags=tags |> List.toArray; Steps=steps; Parameters=combination |> List.toArray }
