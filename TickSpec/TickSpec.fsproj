@@ -73,8 +73,6 @@
     <Compile Include="StepException.fs" />
     <Compile Include="NewLineParser.fs" />
     <Compile Include="NewBlockParser.fs" />
-    <Compile Include="LineParser.fs" />
-    <Compile Include="BlockParser.fs" />
     <Compile Include="FeatureParser.fs" />
     <Compile Include="Feature.fs" />
     <Compile Include="TickSpec.fs" />
