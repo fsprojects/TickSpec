@@ -20,5 +20,6 @@ else
   fi
 
   dotnet restore build.proj
+  dotnet restore TickSpec.sln
   dotnet fake build $@
 fi
