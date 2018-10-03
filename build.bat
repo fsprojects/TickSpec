@@ -8,6 +8,7 @@ if errorlevel 1 (
 )
 
 dotnet restore build.proj
+dotnet restore TickSpec.sln
 
 set encoding=utf-8
 dotnet fake build %*

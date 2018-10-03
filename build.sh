@@ -9,6 +9,7 @@ then
   fi
 
   dotnet restore build.proj
+  dotnet restore TickSpec.sln
   dotnet fake build $@
 else
   # use mono
