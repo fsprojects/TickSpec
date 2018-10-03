@@ -13,13 +13,14 @@ open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.DotNet
 open Fake.DotNet.Testing
+
 open System.Linq
 
-//module Paket = 
-//    let findReferencesFor packageName = 
-//        __SOURCE_DIRECTORY__ </> "paket.dependencies" 
-//        |> Paket.Dependencies
-//        |> fun d -> d.FindReferencesFor(Paket.Domain.MainGroup, packageName)
+module Paket = 
+    let findReferencesFor packageName = 
+        __SOURCE_DIRECTORY__ </> "paket.dependencies" 
+        |> Paket.Dependencies
+        |> fun d -> d.FindReferencesFor(Paket.Domain.MainGroup, packageName)
 
 module AppVeyor = 
     let BuildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
@@ -32,41 +33,41 @@ module Xml =
     let descendants n x = (x:XDocument).Descendants(n)
     let value x = (x:XElement).Value
 
-//module MsBuildProject = 
-//    open System
+module MsBuildProject = 
+    open System
 
-//    let tryAssembly project = 
-//        let xdoc = Xml.load project 
-//        let xmlns = xdoc |> Xml.xns
-//        let assemblyName = 
-//            xdoc |> Xml.descendants (xmlns |> Xml.xn2 "AssemblyName") |> Seq.map Xml.value |> Seq.tryHead
-//            |> Option.defaultValue (project.Replace(".fsproj","").Split( [| '\\'; '/' |]).Last())
+    let tryAssembly project = 
+        let xdoc = Xml.load project 
+        let xmlns = xdoc |> Xml.xns
+        let assemblyName = 
+            xdoc |> Xml.descendants (xmlns |> Xml.xn2 "AssemblyName") |> Seq.map Xml.value |> Seq.tryHead
+            |> Option.defaultValue (project.Replace(".fsproj","").Split( [| '\\'; '/' |]).Last())
 
-//        !! (Path.getDirectory project </> "bin" </> sprintf "**/%s.dll" assemblyName)
-//        |> Seq.tryHead
+        !! (Path.getDirectory project </> "bin" </> sprintf "**/%s.dll" assemblyName)
+        |> Seq.tryHead
 
-//module Analysis = 
-//    let findAssembliesReferencing packageName = 
-//        Paket.findReferencesFor packageName
-//        |> Seq.collect (MsBuildProject.tryAssembly >> Option.toList)
+module Analysis = 
+    let findAssembliesReferencing packageName = 
+        Paket.findReferencesFor packageName
+        |> Seq.collect (MsBuildProject.tryAssembly >> Option.toList)
 
 module Test = 
     module NUnit = 
         ()
-        //let assemblies () = Analysis.findAssembliesReferencing "NUnit" 
-        //let run assemblies = 
-        //    assemblies
-        //    |> NUnit3.run (fun p -> { p with 
-        //                                ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/NUnit.ConsoleRunner/tools/nunit3-console.exe" })
+        let assemblies () = Analysis.findAssembliesReferencing "NUnit" 
+        let run assemblies = 
+            assemblies
+            |> NUnit3.run (fun p -> { p with 
+                                        ToolPath = __SOURCE_DIRECTORY__ </> "packages/NUnit.ConsoleRunner/tools/nunit3-console.exe" })
     module XUnit = 
         ()
-        //let assemblies () = Analysis.findAssembliesReferencing "xunit"  
+        let assemblies () = Analysis.findAssembliesReferencing "xunit"  
 
-        //let run assemblies = 
-        //    assemblies
-        //    |> XUnit2.run (fun p -> { p with 
-        //                                ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/xunit.runner.console/tools/net452/xunit.console.exe"
-        //                                ForceAppVeyor = AppVeyor.BuildNumber |> Option.isSome })
+        let run assemblies = 
+            assemblies
+            |> XUnit2.run (fun p -> { p with 
+                                        ToolPath = __SOURCE_DIRECTORY__ </> "packages/xunit.runner.console/tools/net452/xunit.console.exe"
+                                        ForceAppVeyor = AppVeyor.BuildNumber |> Option.isSome })
 
 open AppVeyor
 open Test
@@ -111,9 +112,8 @@ Target.create "Build" (fun _ ->
 )
 
 Target.create "Test" (fun _ ->
-    //NUnit.assemblies () |> NUnit.run
-    //XUnit.assemblies () |> XUnit.run
-    ()
+    NUnit.assemblies () |> NUnit.run
+    XUnit.assemblies () |> XUnit.run
 )
 
 Target.create "Nuget" (fun _ ->

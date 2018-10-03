@@ -15,6 +15,9 @@ nuget Unquote
 # Example container to illustrate integration
 nuget Autofac
 
+nuget NUnit.ConsoleRunner
+nuget xunit.runner.console
+
 clitool dotnet-fake
 
 group FakeBuild
@@ -35,3 +38,4 @@ group FakeBuild
 	nuget Fake.DotNet.Testing.XUnit2
 	nuget Fake.DotNet.Testing.NUnit
 	nuget Fake.Api.GitHub
+	nuget Paket.Core
