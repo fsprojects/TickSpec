@@ -43,19 +43,20 @@ module Test =
         let projects () = Analysis.findAssembliesReferencing "NUnit"
         let run projects = 
             projects
-            |> Seq.iter (fun p -> DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release}) p)
+            |> Seq.iter (fun p -> DotNet.test (fun o -> 
+                {o with Configuration = DotNet.BuildConfiguration.Release; 
+                        Framework = if Environment.isWindows then None else Some "netcoreapp2.1"}) p)
     module XUnit = 
         ()
         let projects () = Analysis.findAssembliesReferencing "xunit"
 
         let run projects = 
-            projects
-            |> Seq.iter (fun (p:string) -> 
-                // currently support for custom container is broken when IL generator isn't used, so we are skipping the .NET Core test
-                if p.EndsWith("CustomContainer.fsproj") then
-                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release; Framework = Some "net452"}) p
-                else
-                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release}) p)
+            if Environment.isWindows then
+                projects
+                |> Seq.iter (fun (p:string) -> 
+                    // currently support for custom container is broken when IL generator isn't used, so we are skipping the .NET Core test
+                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release;
+                                                  Framework = if p.EndsWith("CustomContainer.fsproj") then Some "net452" else None }) p)
 
 open AppVeyor
 open Test
