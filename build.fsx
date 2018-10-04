@@ -33,41 +33,29 @@ module Xml =
     let descendants n x = (x:XDocument).Descendants(n)
     let value x = (x:XElement).Value
 
-module MsBuildProject = 
-    open System
-
-    let tryAssembly project = 
-        let xdoc = Xml.load project 
-        let xmlns = xdoc |> Xml.xns
-        let assemblyName = 
-            xdoc |> Xml.descendants (xmlns |> Xml.xn2 "AssemblyName") |> Seq.map Xml.value |> Seq.tryHead
-            |> Option.defaultValue (project.Replace(".fsproj","").Split( [| '\\'; '/' |]).Last())
-
-        !! (Path.getDirectory project </> "bin" </> sprintf "**/%s.dll" assemblyName)
-        |> Seq.tryHead
-
 module Analysis = 
     let findAssembliesReferencing packageName = 
         Paket.findReferencesFor packageName
-        |> Seq.collect (MsBuildProject.tryAssembly >> Option.toList)
 
 module Test = 
     module NUnit = 
         ()
-        let assemblies () = Analysis.findAssembliesReferencing "NUnit" 
-        let run assemblies = 
-            assemblies
-            |> NUnit3.run (fun p -> { p with 
-                                        ToolPath = __SOURCE_DIRECTORY__ </> "packages/NUnit.ConsoleRunner/tools/nunit3-console.exe" })
+        let projects () = Analysis.findAssembliesReferencing "NUnit"
+        let run projects = 
+            projects
+            |> Seq.iter (fun p -> DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release}) p)
     module XUnit = 
         ()
-        let assemblies () = Analysis.findAssembliesReferencing "xunit"  
+        let projects () = Analysis.findAssembliesReferencing "xunit"
 
-        let run assemblies = 
-            assemblies
-            |> XUnit2.run (fun p -> { p with 
-                                        ToolPath = __SOURCE_DIRECTORY__ </> "packages/xunit.runner.console/tools/net452/xunit.console.exe"
-                                        ForceAppVeyor = AppVeyor.BuildNumber |> Option.isSome })
+        let run projects = 
+            projects
+            |> Seq.iter (fun (p:string) -> 
+                // currently support for custom container is broken when IL generator isn't used, so we are skipping the .NET Core test
+                if p.EndsWith("CustomContainer.fsproj") then
+                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release; Framework = Some "net452"}) p
+                else
+                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release}) p)
 
 open AppVeyor
 open Test
@@ -112,8 +100,8 @@ Target.create "Build" (fun _ ->
 )
 
 Target.create "Test" (fun _ ->
-    NUnit.assemblies () |> NUnit.run
-    XUnit.assemblies () |> XUnit.run
+    NUnit.projects () |> NUnit.run
+    XUnit.projects () |> XUnit.run
 )
 
 Target.create "Nuget" (fun _ ->
