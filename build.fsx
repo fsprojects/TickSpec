@@ -106,11 +106,12 @@ Target.create "Test" (fun _ ->
 )
 
 Target.create "Nuget" (fun _ ->
-    DotNet.pack (fun p ->
-        { p with
-            Configuration = DotNet.Release
-            OutputPath = Some Build.nuget} )
-        "TickSpec\TickSpec.fsproj"
+    if Environment.isWindows then
+        DotNet.pack (fun p ->
+            { p with
+                Configuration = DotNet.Release
+                OutputPath = Some Build.nuget} )
+            "TickSpec\TickSpec.fsproj"
 )
 
 Target.create "Publish" (fun _ ->
