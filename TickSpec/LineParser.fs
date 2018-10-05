@@ -179,6 +179,7 @@ let parseLine = function
     | TagLine _, SharedExamplesLine
         -> SharedExamples |> Some
     | FeatureName _, line -> FeatureDescription line |> Some
+    | FeatureDescription _, line -> FeatureDescription line |> Some
     | _, _ -> None
 
 let expectingLine = function

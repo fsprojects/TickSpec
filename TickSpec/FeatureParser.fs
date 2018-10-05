@@ -23,7 +23,29 @@ let parseFeature (lines:string[]) =
                     for combinedRow in combinations xs ->
                         (header, row) :: combinedRow ]
 
-        let processRow (rowSet:(string list * (Map<string,string> * string list)) list) : (string list * Map<string,string>) option = None
+        let processRow rowSet =
+            rowSet
+            |> List.fold (fun state (_, (rowMap, rowTags)) ->
+                match state with
+                | None -> None
+                | Some (stateTags, stateMap) ->
+                    let newStateMap =
+                        rowMap
+                        |> Map.fold (fun state key value ->
+                            match state with
+                            | None -> None
+                            | Some map ->
+                                let existingValue = map |> Map.tryFind key
+                                match existingValue with
+                                | None -> Some (map.Add (key, value))
+                                | Some x when x = value -> Some map
+                                | _ -> None) (Some stateMap)
+                    match newStateMap with
+                    | None -> None
+                    | Some s ->
+                        let newStateTags = stateTags @ rowTags
+                        Some (newStateTags, s)
+            ) (Some (List.Empty, Map.empty))
 
         examples
         |> Seq.map (fun exampleBlock ->
@@ -86,6 +108,7 @@ let parseFeature (lines:string[]) =
         parsedFeatureBlocks.Scenarios
         |> Seq.collect (fun scenario ->
             let examples = scenario.Examples @ sharedExamples
+            let baseTags = parsedFeatureBlocks.Tags @ scenario.Tags
 
             let exampleCombinations = computeCombinations examples
             exampleCombinations
@@ -96,7 +119,7 @@ let parseFeature (lines:string[]) =
                     |> Seq.map (createStep combination)
                     |> Seq.toArray
 
-                { Name=name; Tags=tags |> List.toArray; Steps=steps; Parameters=combination |> List.toArray }
+                { Name=name; Tags=baseTags @ tags |> Seq.distinct |> Seq.toArray; Steps=steps; Parameters=combination |> List.toArray }
             )
         )
 

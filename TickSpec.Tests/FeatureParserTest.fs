@@ -193,7 +193,7 @@ let TagsAndExamples_FeatureSource () =
                         Doc = None
                     })
                 |]
-                Parameters = [|("server","smoke");("page","index.html")|]
+                Parameters = [|("page","index.html");("server","smoke")|]
             }
             {
                 Name = "Tags and Examples Sc. (1)"
@@ -221,7 +221,7 @@ let TagsAndExamples_FeatureSource () =
                         Doc = None
                     })
                 |]
-                Parameters = [|("server","smoke");("page","default.html")|]
+                Parameters = [|("page","default.html");("server","smoke")|]
             }
             {
                 Name = "Tags and Examples Sc. (2)"
@@ -249,7 +249,7 @@ let TagsAndExamples_FeatureSource () =
                         Doc = None
                     })
                 |]
-                Parameters = [|("server","testing");("page","index.html")|]
+                Parameters = [|("page","index.html");("server","testing")|]
             }
             {
                 Name = "Tags and Examples Sc. (3)"
@@ -277,7 +277,7 @@ let TagsAndExamples_FeatureSource () =
                         Doc = None
                     })
                 |]
-                Parameters = [|("server","testing");("page","default.html")|]
+                Parameters = [|("page","default.html");("server","testing")|]
             }
             {
                 Name = "Tags and Examples Sc. (4)"
@@ -305,7 +305,7 @@ let TagsAndExamples_FeatureSource () =
                         Doc = None
                     })
                 |]
-                Parameters = [|("server","production");("page","index.html")|]
+                Parameters = [|("page","index.html");("server","production")|]
             }
             {
                 Name = "Tags and Examples Sc. (5)"
@@ -333,7 +333,7 @@ let TagsAndExamples_FeatureSource () =
                         Doc = None
                     })
                 |]
-                Parameters = [|("server","production");("page","default.html")|]
+                Parameters = [|("page","default.html");("server","production")|]
             }
         |]
     }
