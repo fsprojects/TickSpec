@@ -2,6 +2,7 @@
 
 open TickSpec.LineParser
 open System
+open System.Text
 
 type internal FeatureBlock =
     {
@@ -84,8 +85,35 @@ let private parseSharedExamples lines =
     parseSharedExamplesInternal [] lines
 
 let private parseItem lines =
-    let parseBulletPoints lines = [], lines
-    let parseMultiLineString lines = "", lines
+    let parseBulletPoints lines =
+        let rec parseBulletPointsInternal bullets lines =
+            match lines with
+            | (_, _, Item(_, BulletPoint p)) :: xs -> parseBulletPointsInternal (bullets @ [ p ]) xs
+            | _ -> bullets, lines
+        parseBulletPointsInternal [] lines
+
+    let parseMultiLineString lines =
+        let offset, lines =
+            match lines with
+            | (_, _, Item(_, MultiLineStringStart o)) :: xs -> o, xs
+            | _ -> Exception("DocString start expected") |> raise
+
+        let rec readLines (sb:StringBuilder) offset lines =
+            match lines with
+            | (_, _, Item(_, MultiLineString s)) :: xs ->
+                if s.Length > offset then
+                    sb.AppendLine(s.Substring(offset)) |> ignore
+                else
+                    sb.AppendLine("") |> ignore
+
+                readLines sb offset xs
+            | _ -> sb.ToString(), lines
+
+        let text, lines = readLines (new StringBuilder()) offset lines
+
+        match lines with
+        | (_, _, Item(_, MultiLineStringEnd)) :: xs -> text, xs
+        | _ -> Exception("DocString end expected") |> raise
 
     match lines with
     | (_, _, Item(_, BulletPoint _)) :: _ ->
