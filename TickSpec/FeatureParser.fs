@@ -4,21 +4,6 @@ open System.Text.RegularExpressions
 open TickSpec.BlockParser
 open System
 
-/// Computes combinations of table values
-let internal computeCombinations (tables:Table []) =
-    let values =
-        tables
-        |> Seq.map (fun table ->
-            table.Rows |> Array.map (fun row ->
-                row
-                |> Array.mapi (fun i col ->
-                    table.Header.[i],col
-                )
-            )
-        )
-        |> Seq.toList
-    values |> List.combinations
-
 /// Parses lines of feature
 let parseFeature (lines:string[]) =
     let replace combination s =
@@ -30,16 +15,50 @@ let parseFeature (lines:string[]) =
         Regex.Replace(s, pattern, lookup)
 
     let computeCombinations examples =
+        let rec combinations source =
+            match source with
+            | [] -> [[]]
+            | (header, rows) :: xs ->
+                [ for row in rows do
+                    for combinedRow in combinations xs ->
+                        (header, row) :: combinedRow ]
+
+        let processRow (rowSet:(string list * (Map<string,string> * string list)) list) : (string list * Map<string,string>) option = None
+
         examples
         |> Seq.map (fun exampleBlock ->
-            exampleBlock.Tags,
-            Seq.zip exampleBlock.Table.Header exampleBlock.Table.Rows
-            |> Seq.fold (fun map (header, value) ->
-                    match Map.tryFind header map with
-                    | Some x -> Exception("Multiple values for a single header") |> raise
-                    | None -> map |> Map.add header value
-                ) Map.empty
+            exampleBlock.Table.Header |> List.sort,
+            exampleBlock.Table.Rows
+            |> Seq.map (fun row ->
+                Seq.zip exampleBlock.Table.Header row
+                |> Seq.fold (fun map (header, value) ->
+                        match Map.tryFind header map with
+                        | Some x -> Exception("Multiple values for a single header") |> raise
+                        | None -> map |> Map.add header value
+                    ) Map.empty,
+                exampleBlock.Tags
+            )
         )
+        // Union tables with the same columns
+        |> Seq.groupBy (fun (h,_) -> h)
+        |> Seq.map (fun (header,tables) ->
+            header, tables |> Seq.collect (fun (_, rows) -> rows) |> Seq.toList)
+        |> Seq.toList
+        // Cross-join tables with different columns
+        |> combinations
+        |> Seq.map processRow
+        |> Seq.choose id
+        |> Seq.groupBy (fun (_,r) -> r)
+        |> Seq.map (fun (row, taggedRows) ->
+            taggedRows
+            |> Seq.fold (fun tags (t,r) ->
+                Seq.append tags t
+            ) Seq.empty
+            |> Seq.distinct
+            |> Seq.toList,
+            row |> Map.toList
+        )
+
 
         // [(["Tag"], [("Lorem", "Ipsum")])]
 
