@@ -1,11 +1,4 @@
-// --------------------------------------------------------------------------------------
-// FAKE build script
-// --------------------------------------------------------------------------------------
-
-#r "paket: groupref FakeBuild //"
-
 #load "./.fake/build.fsx/intellisense.fsx"
-
 open Fake.Core
 open Fake.Core.TargetOperators
 open Fake.IO
@@ -13,8 +6,6 @@ open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.DotNet
 open Fake.DotNet.Testing
-
-open System.Linq
 
 module Paket = 
     let findReferencesFor packageName = 

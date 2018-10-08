@@ -20,6 +20,7 @@ nuget xunit.runner.console
 
 clitool dotnet-fake
 
+// [ FAKE GROUP ]
 group FakeBuild
     framework: netstandard2.0
     source https://api.nuget.org/v3/index.json

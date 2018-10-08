@@ -1,17 +1,13 @@
 @echo off
 cls
 
-.paket\paket.exe restore
-if errorlevel 1 (
-  echo "Paket restore failed"
-  exit /b %errorlevel%
+SET TOOL_PATH=.fake
+
+IF NOT EXIST "%TOOL_PATH%\fake.exe" (
+  dotnet tool install fake-cli --tool-path ./%TOOL_PATH%
 )
 
-dotnet restore build.proj
-dotnet restore TickSpec.sln
-
-set encoding=utf-8
-dotnet fake build %*
+"%TOOL_PATH%/fake.exe" build %*
 
 if errorlevel 1 (
   echo "Build failed"

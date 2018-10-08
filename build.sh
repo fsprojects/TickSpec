@@ -1,25 +1,27 @@
 #!/bin/bash
-if test "$OS" = "Windows_NT"
+
+set -eu
+set -o pipefail
+
+# liberated from https://stackoverflow.com/a/18443300/433393
+realpath() {
+  OURPWD=$PWD
+  cd "$(dirname "$1")"
+  LINK=$(readlink "$(basename "$1")")
+  while [ "$LINK" ]; do
+    cd "$(dirname "$LINK")"
+    LINK=$(readlink "$(basename "$1")")
+  done
+  REALPATH="$PWD/$(basename "$1")"
+  cd "$OURPWD"
+  echo "$REALPATH"
+}
+
+TOOL_PATH=$(realpath .fake)
+FAKE="$TOOL_PATH"/fake
+
+if ! [ -e "$FAKE" ]
 then
-  # use .Net
-  .paket/paket.exe restore
-  exit_code=$?
-  if [ $exit_code -ne 0 ]; then
-  	exit $exit_code
-  fi
-
-  dotnet restore build.proj
-  dotnet restore TickSpec.sln
-  dotnet fake build $@
-else
-  # use mono
-  mono .paket/paket.exe restore
-  exit_code=$?
-  if [ $exit_code -ne 0 ]; then
-  	exit $exit_code
-  fi
-
-  dotnet restore build.proj
-  dotnet restore TickSpec.sln
-  dotnet fake build $@
+  dotnet tool install fake-cli --tool-path "$TOOL_PATH"
 fi
+"$FAKE" "build $@"

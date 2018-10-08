@@ -45,7 +45,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-
 		appveyor.yml = appveyor.yml
 		build.bat = build.bat
 		build.fsx = build.fsx
-		build.proj = build.proj
 		build.sh = build.sh
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
