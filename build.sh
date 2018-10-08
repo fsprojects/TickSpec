@@ -24,4 +24,7 @@ if ! [ -e "$FAKE" ]
 then
   dotnet tool install fake-cli --tool-path "$TOOL_PATH"
 fi
+
+dotnet restore TickSpec.sln
+
 "$FAKE" "build $@"
