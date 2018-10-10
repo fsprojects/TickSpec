@@ -5,6 +5,7 @@ open TickSpec
 open System
 open TickSpec.LineParser
 open TickSpec.BlockParser
+open System.Text
 
 let private verifyParsing (fileContent: string) (expected: FeatureSource) =
     let featureSource = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None) |> FeatureParser.parseFeature
@@ -171,7 +172,7 @@ let TagsAndExamples_FeatureSource () =
         Name = "HTTP server"
         Scenarios = [|
             {
-                Name = "Scenario Outline: Tags and Examples Sc. (0)"
+                Name = "Scenario Outline: Tags and Examples Sc. (1)"
                 Tags = [|"http";"basics";"index";"smoke";"all"|]
                 Steps = [|
                     (GivenStep "User connects to smoke", {
@@ -199,7 +200,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","index.html");("server","smoke")|]
             }
             {
-                Name = "Scenario Outline: Tags and Examples Sc. (1)"
+                Name = "Scenario Outline: Tags and Examples Sc. (2)"
                 Tags = [|"http";"basics";"index";"smoke";"all"|]
                 Steps = [|
                     (GivenStep "User connects to smoke", {
@@ -227,7 +228,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","default.html");("server","smoke")|]
             }
             {
-                Name = "Scenario Outline: Tags and Examples Sc. (2)"
+                Name = "Scenario Outline: Tags and Examples Sc. (3)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to testing", {
@@ -255,7 +256,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","index.html");("server","testing")|]
             }
             {
-                Name = "Scenario Outline: Tags and Examples Sc. (3)"
+                Name = "Scenario Outline: Tags and Examples Sc. (4)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to testing", {
@@ -283,7 +284,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","default.html");("server","testing")|]
             }
             {
-                Name = "Scenario Outline: Tags and Examples Sc. (4)"
+                Name = "Scenario Outline: Tags and Examples Sc. (5)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to production", {
@@ -311,7 +312,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","index.html");("server","production")|]
             }
             {
-                Name = "Scenario Outline: Tags and Examples Sc. (5)"
+                Name = "Scenario Outline: Tags and Examples Sc. (6)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to production", {
@@ -337,6 +338,134 @@ let TagsAndExamples_FeatureSource () =
                     })
                 |]
                 Parameters = [|("page","default.html");("server","production")|]
+            }
+        |]
+    }
+
+let featureFileWithItems =
+    "
+    Feature: Items test feature
+    Scenario: Items test scenario
+    Given I have a table
+        | col1  | col2  |
+        | v11   | v21   |
+        | v12   | v22   |
+    When I take a doc string
+        \"\"\"
+        First line
+           Second line
+        Third line
+        \"\"\"
+    Then I can take a bullet list
+        * First item
+        * Second item
+    "
+
+let featureFileWithItems_expectedDocString =
+    StringBuilder()
+        .AppendLine("First line")
+        .AppendLine("   Second line")
+        .Append("Third line")
+        .ToString()
+
+[<Test>]
+let FileWithItems_ParseLines () =
+    featureFileWithItems
+    |> verifyLineParsing <|
+    [
+        FileStart
+        FeatureName "Items test feature"
+        Scenario "Scenario: Items test scenario"
+        Step (GivenStep "I have a table")
+        Item (Step (GivenStep "I have a table"), TableRow [ "col1"; "col2" ])
+        Item (Step (GivenStep "I have a table"), TableRow [ "v11"; "v21" ])
+        Item (Step (GivenStep "I have a table"), TableRow [ "v12"; "v22" ])
+        Step (WhenStep "I take a doc string")
+        Item (Step (WhenStep "I take a doc string"), MultiLineStringStart 8)
+        Item (Step (WhenStep "I take a doc string"), MultiLineString "        First line")
+        Item (Step (WhenStep "I take a doc string"), MultiLineString "           Second line")
+        Item (Step (WhenStep "I take a doc string"), MultiLineString "        Third line")
+        Item (Step (WhenStep "I take a doc string"), MultiLineStringEnd)
+        Step (ThenStep "I can take a bullet list")
+        Item (Step (ThenStep "I can take a bullet list"), BulletPoint "First item")
+        Item (Step (ThenStep "I can take a bullet list"), BulletPoint "Second item")
+    ]
+
+[<Test>]
+let FileWithItems_ParseBlocks () =
+    featureFileWithItems
+    |> verifyBlockParsing <|
+    {
+        Name = "Items test feature"
+        Tags = []
+        Background = []
+        Scenarios = [
+            {
+                Name = "Scenario: Items test scenario"
+                Tags = []
+                Steps = [
+                    {
+                        Step = GivenStep "I have a table"
+                        LineNumber = 4
+                        LineString = "    Given I have a table"
+                        Item = Some (TableItem {
+                            Header = [ "col1"; "col2" ]
+                            Rows = [ [ "v11"; "v21" ]; [ "v12"; "v22" ] ]
+                        })
+                    }
+                    {
+                        Step = WhenStep "I take a doc string"
+                        LineNumber = 8
+                        LineString = "    When I take a doc string"
+                        Item = Some (DocStringItem featureFileWithItems_expectedDocString)
+                    }
+                    {
+                        Step = ThenStep "I can take a bullet list"
+                        LineNumber = 14
+                        LineString = "    Then I can take a bullet list"
+                        Item = Some (BulletsItem [ "First item"; "Second item" ])
+                    }
+                ]
+                Examples = []
+            }
+        ]
+        SharedExamples = []
+    }
+
+[<Test>]
+let FileWithItems_ParseFeature () =
+    featureFileWithItems
+    |> verifyParsing <|
+    {
+        Name = "Items test feature"
+        Scenarios = [|
+            {
+                Name = "Scenario: Items test scenario"
+                Tags = [||]
+                Steps = [|
+                    (GivenStep "I have a table", {
+                        Number = 4
+                        Text = "    Given I have a table"
+                        Bullets = None
+                        Table = Some (Table([| "col1"; "col2" |], [| [| "v11"; "v21" |]; [| "v12"; "v22" |] |]))
+                        Doc = None
+                    })
+                    (WhenStep "I take a doc string", {
+                        Number = 8
+                        Text = "    When I take a doc string"
+                        Bullets = None
+                        Table = None
+                        Doc = Some featureFileWithItems_expectedDocString
+                    })
+                    (ThenStep "I can take a bullet list", {
+                        Number = 14
+                        Text = "    Then I can take a bullet list"
+                        Bullets = Some [| "First item"; "Second item" |]
+                        Table = None
+                        Doc = None
+                    })
+                |]
+                Parameters = [||]
             }
         |]
     }

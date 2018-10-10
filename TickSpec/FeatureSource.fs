@@ -33,4 +33,10 @@ and [<System.Diagnostics.DebuggerStepThrough>]
     new () = Table([||])
     member table.Header = header
     member table.Rows = rows
-    member table.Raw = [|yield header;yield! rows|] 
+    member table.Raw = [|yield header;yield! rows|]
+    override table.Equals(o) =
+        match o with
+        | :? Table as t -> table.Raw = t.Raw
+        | _ -> false
+    override table.GetHashCode () =
+        (header.GetHashCode() <<< 12) + rows.GetHashCode()

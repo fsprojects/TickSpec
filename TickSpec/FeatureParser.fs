@@ -112,10 +112,16 @@ let parseFeature (lines:string[]) =
             let examples = scenario.Examples @ sharedExamples
             let baseTags = parsedFeatureBlocks.Tags @ scenario.Tags
 
-            let exampleCombinations = computeCombinations examples
+            let exampleCombinations = computeCombinations examples |> Seq.toList
+            let nameFunc =
+                if exampleCombinations.Length > 1 then
+                    fun i -> sprintf "%s (%d)" scenario.Name (i+1)
+                else
+                    fun _ -> scenario.Name
+
             exampleCombinations
-            |> Seq.mapi (fun i (tags, combination) ->
-                let name = sprintf "%s (%d)" scenario.Name i
+            |> List.mapi (fun i (tags, combination) ->
+                let name = nameFunc i
                 let steps =
                     background @ scenario.Steps
                     |> Seq.map (createStep combination)

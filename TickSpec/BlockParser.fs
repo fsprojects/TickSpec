@@ -111,10 +111,10 @@ let private parseItem lines =
         let rec readLines (sb:StringBuilder) offset lines =
             match lines with
             | (_, _, Item(_, MultiLineString s)) :: xs ->
+                if sb.Length > 0 then sb.AppendLine("") |> ignore
+
                 if s.Length > offset then
-                    sb.AppendLine(s.Substring(offset)) |> ignore
-                else
-                    sb.AppendLine("") |> ignore
+                    sb.Append(s.Substring(offset)) |> ignore
 
                 readLines sb offset xs
             | _ -> sb.ToString(), lines
