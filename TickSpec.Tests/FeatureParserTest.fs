@@ -77,7 +77,7 @@ let TagsAndExamples_ParseLines () =
         Background
         Step (GivenStep "User connects to <server>")
         TagLine [ "basics"; "index" ]
-        Scenario "Tags and Examples Sc."
+        Scenario "Scenario Outline: Tags and Examples Sc."
         Step (WhenStep "Client requests <page>")
         Step (ThenStep "Server responds with page <page>")
         TagLine [ "smoke"; "all" ]
@@ -112,7 +112,7 @@ let TagsAndExamples_ParseBlocks () =
         ]
         Scenarios = [
             {
-                Name = "Tags and Examples Sc."
+                Name = "Scenario Outline: Tags and Examples Sc."
                 Tags = [ "basics"; "index" ]
                 Steps = [
                     {
@@ -168,7 +168,7 @@ let TagsAndExamples_FeatureSource () =
         Name = "HTTP server"
         Scenarios = [|
             {
-                Name = "Tags and Examples Sc. (0)"
+                Name = "Scenario Outline: Tags and Examples Sc. (0)"
                 Tags = [|"http";"basics";"index";"smoke";"all"|]
                 Steps = [|
                     (GivenStep "User connects to smoke", {
@@ -196,7 +196,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","index.html");("server","smoke")|]
             }
             {
-                Name = "Tags and Examples Sc. (1)"
+                Name = "Scenario Outline: Tags and Examples Sc. (1)"
                 Tags = [|"http";"basics";"index";"smoke";"all"|]
                 Steps = [|
                     (GivenStep "User connects to smoke", {
@@ -224,7 +224,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","default.html");("server","smoke")|]
             }
             {
-                Name = "Tags and Examples Sc. (2)"
+                Name = "Scenario Outline: Tags and Examples Sc. (2)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to testing", {
@@ -252,7 +252,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","index.html");("server","testing")|]
             }
             {
-                Name = "Tags and Examples Sc. (3)"
+                Name = "Scenario Outline: Tags and Examples Sc. (3)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to testing", {
@@ -280,7 +280,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","default.html");("server","testing")|]
             }
             {
-                Name = "Tags and Examples Sc. (4)"
+                Name = "Scenario Outline: Tags and Examples Sc. (4)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to production", {
@@ -308,7 +308,7 @@ let TagsAndExamples_FeatureSource () =
                 Parameters = [|("page","index.html");("server","production")|]
             }
             {
-                Name = "Tags and Examples Sc. (5)"
+                Name = "Scenario Outline: Tags and Examples Sc. (5)"
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to production", {

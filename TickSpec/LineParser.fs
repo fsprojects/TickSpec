@@ -47,16 +47,14 @@ let startsWith (pattern:string) (s:string) =
 let (|FeatureLine|_|) s =
     tryRegex s "^\s*Feature:\s(.*)"
     |> Option.map (fun t -> FeatureLine (t.Trim()))
-let (|ScenarioLine|_|) s =
+let (|ScenarioLine|_|) (s:string) =
+    let trimmed = s.Trim()
     let matches =
-        [
-            "^\s*Scenario:\s(.*)"
-            "^\s*Example:\s(.*)"
-            "^\s*Scenario Outline:\s(.*)"
-            "^\s*Scenario Template:\s(.*)"
-        ]
-        |> Seq.map (tryRegex s)
-        |> Seq.map (Option.map (fun t -> ScenarioLine (t.Trim())))
+        [ "Scenario"; "Story" ]
+        |> Seq.map (fun x ->
+            if trimmed |> startsWith x then Some trimmed
+            else None)
+        |> Seq.map (Option.map (fun t -> ScenarioLine t))
         |> Seq.choose id
     if matches |> Seq.isEmpty then None
     else matches |> Seq.head |> Some
