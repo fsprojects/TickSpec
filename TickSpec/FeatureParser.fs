@@ -55,7 +55,9 @@ let parseFeature (lines:string[]) =
                 Seq.zip exampleBlock.Table.Header row
                 |> Seq.fold (fun map (header, value) ->
                         match Map.tryFind header map with
-                        | Some x -> Exception("Multiple values for a single header") |> raise
+                        | Some x ->
+                            let m = sprintf "A single header was specified multiple times in an example block starting at row %d" exampleBlock.LineNumber
+                            ParseException(m, Some exampleBlock.LineNumber) |> raise
                         | None -> map |> Map.add header value
                     ) Map.empty,
                 exampleBlock.Tags

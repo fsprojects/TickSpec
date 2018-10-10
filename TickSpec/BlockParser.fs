@@ -4,6 +4,15 @@ open TickSpec.LineParser
 open System
 open System.Text
 
+let private raiseParseException message lines =
+    match lines with
+    | (lineNumber,_,_) :: _ ->
+        let exMessage = sprintf "Parsing failed on row %d: %s" lineNumber message
+        ParseException(exMessage, Some lineNumber) |> raise
+    | _ ->
+        let exMessage = sprintf "Parsing failed on the end of file: %s" message
+        ParseException(exMessage, None) |> raise
+
 type internal FeatureBlock =
     {
         Name: string
@@ -39,6 +48,7 @@ and internal ExampleBlock =
     {
         Tags: string list
         Table: TableBlock
+        LineNumber: int
     }
 
 let private parseTags lines =
@@ -58,16 +68,16 @@ let parseTable origLines =
     let allRows, lines = readTableRows [] origLines
     match allRows with
     | header :: rows -> { Header = header; Rows = rows }, lines
-    | _ -> Exception("Table expected") |> raise
+    | _ -> lines |> raiseParseException "Table expected"
 
 let private parseExamples lines =
     let rec parseExamplesInternal examples origLines =
         let tags, lines = parseTags origLines
 
         match lines with
-        | (_, _, Examples) :: xs ->
+        | (lineNumber, _, Examples) :: xs ->
             let table, lines = parseTable xs
-            parseExamplesInternal (examples @ [ { Tags = tags; Table = table }]) lines
+            parseExamplesInternal (examples @ [ { Tags = tags; Table = table; LineNumber = lineNumber }]) lines
         | _ -> examples, origLines
 
     parseExamplesInternal [] lines
@@ -77,9 +87,9 @@ let private parseSharedExamples lines =
         let tags, lines = parseTags origLines
 
         match lines with
-        | (_, _, SharedExamples) :: xs ->
+        | (lineNumber, _, SharedExamples) :: xs ->
             let table, lines = parseTable xs
-            parseSharedExamplesInternal (examples @ [ { Tags = tags; Table = table }]) lines
+            parseSharedExamplesInternal (examples @ [ { Tags = tags; Table = table; LineNumber = lineNumber }]) lines
         | _ -> examples, origLines
 
     parseSharedExamplesInternal [] lines
@@ -96,7 +106,7 @@ let private parseItem lines =
         let offset, lines =
             match lines with
             | (_, _, Item(_, MultiLineStringStart o)) :: xs -> o, xs
-            | _ -> Exception("DocString start expected") |> raise
+            | _ -> lines |> raiseParseException "DocString start expected"
 
         let rec readLines (sb:StringBuilder) offset lines =
             match lines with
@@ -113,7 +123,7 @@ let private parseItem lines =
 
         match lines with
         | (_, _, Item(_, MultiLineStringEnd)) :: xs -> text, xs
-        | _ -> Exception("DocString end expected") |> raise
+        | _ -> lines |> raiseParseException "DocString end expected"
 
     match lines with
     | (_, _, Item(_, BulletPoint _)) :: _ ->
@@ -147,7 +157,7 @@ let private parseSteps lines =
         | None -> steps, lines
 
     let steps, lines = parseStepsInternal [] lines
-    if steps = [] then Exception("At least one step is expected") |> raise
+    if steps = [] then lines |> raiseParseException "At least one step is expected"
     steps |> List.rev, lines
 
 let private parseBackground lines =
@@ -184,7 +194,7 @@ let private parseScenarios lines =
         | None -> scenarios, lines
 
     let scenarios, lines = parseScenariosInternal [] lines
-    if scenarios = [] then Exception("At least one scenario is expected") |> raise
+    if scenarios = [] then lines |> raiseParseException "At least one scenario is expected"
     scenarios |> List.rev, lines
 
 let private parseFeatureBlock lines =
@@ -193,7 +203,7 @@ let private parseFeatureBlock lines =
     let featureName, lines =
         match lines with
         | (_,_,FeatureName name) :: xs -> name, xs
-        | _ -> Exception("Expected feature in the beginning of file") |> raise
+        | _ -> lines |> raiseParseException "Expected feature in the beginning of file"
 
     let rec skipDescription lines =
         match lines with
@@ -205,7 +215,7 @@ let private parseFeatureBlock lines =
     let scenarios, lines = parseScenarios lines
     let examples, lines = parseSharedExamples lines
 
-    if lines <> [] then Exception("File continues unexpectedly") |> raise
+    if lines <> [] then lines |> raiseParseException "File continues unexpectedly"
 
     {
         Name = featureName
@@ -218,7 +228,7 @@ let private parseFeatureBlock lines =
 let private parseFeatureFile parsedLines =
     match parsedLines with
     | (_,_,FileStart) :: xs -> parseFeatureBlock xs
-    | _ -> Exception("Unexpected call of parser") |> raise
+    | _ -> parsedLines |> raiseParseException "Unexpected call of parser"
 
 let parseBlocks (lines:string seq) =
     lines
@@ -236,7 +246,7 @@ let parseBlocks (lines:string seq) =
         | None ->
             let e = expectingLine lastParsedLine
             let m = sprintf "Syntax error on line %d %s\r\n%s" lineNumber lineContent e
-            Exception(m) |> raise
+            ParseException(m, Some lineNumber) |> raise
         ) (0, "", FileStart)
     |> Seq.toList
     |> parseFeatureFile

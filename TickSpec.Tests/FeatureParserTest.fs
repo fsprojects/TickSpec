@@ -136,6 +136,7 @@ let TagsAndExamples_ParseBlocks () =
                                 Header = [ "server" ]
                                 Rows = [ [ "smoke" ] ]
                             }
+                        LineNumber = 14
                     }
                     {
                         Tags = []
@@ -144,6 +145,7 @@ let TagsAndExamples_ParseBlocks () =
                                 Header = [ "page" ]
                                 Rows = [ [ "index.html" ]; [ "default.html" ] ]
                             }
+                        LineNumber = 18
                     }
                 ]
             }
@@ -156,6 +158,7 @@ let TagsAndExamples_ParseBlocks () =
                         Header = [ "server" ]
                         Rows = [ [ "testing" ]; [ "production" ] ]
                     }
+                LineNumber = 24
             }
         ]
     }

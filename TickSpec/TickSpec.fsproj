@@ -70,7 +70,7 @@
     <Compile Include="EventAttributes.fs" />
     <Compile Include="ScopeAttributes.fs" />
     <Compile Include="StepAttributes.fs" />
-    <Compile Include="StepException.fs" />
+    <Compile Include="Exceptions.fs" />
     <Compile Include="LineParser.fs" />
     <Compile Include="BlockParser.fs" />
     <Compile Include="FeatureParser.fs" />
