@@ -46,8 +46,7 @@ module Test =
                 projects
                 |> Seq.iter (fun (p:string) -> 
                     // currently support for custom container is broken when IL generator isn't used, so we are skipping the .NET Core test
-                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release;
-                                                  Framework = if p.EndsWith("CustomContainer.fsproj") then Some "net452" else None }) p)
+                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release}) p)
 
 open AppVeyor
 open Test
