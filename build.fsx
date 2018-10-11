@@ -35,7 +35,7 @@ module Test =
         let run projects = 
             projects
             |> Seq.iter (fun p -> DotNet.test (fun o -> 
-                {o with Configuration = DotNet.BuildConfiguration.Release; 
+                {o with Configuration = DotNet.BuildConfiguration.Release; NoBuild = true;
                         Framework = if Environment.isWindows then None else Some "netcoreapp2.1"}) p)
     module XUnit = 
         ()
@@ -46,14 +46,13 @@ module Test =
                 projects
                 |> Seq.iter (fun (p:string) -> 
                     // currently support for custom container is broken when IL generator isn't used, so we are skipping the .NET Core test
-                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release;
+                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release; NoBuild = true;
                                                   Framework = if p.EndsWith("CustomContainer.fsproj") then Some "net452" else None }) p)
 
 open AppVeyor
 open Test
 
 module ReleaseNotes = 
-
     let TickSpec = ReleaseNotes.load (__SOURCE_DIRECTORY__ </> "RELEASE_NOTES.md")
 
 module Build = 
@@ -98,10 +97,17 @@ Target.create "Test" (fun _ ->
 
 Target.create "Nuget" (fun _ ->
     if Environment.isWindows then
+        let props = 
+            let notes = String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
+            "/p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
         DotNet.pack (fun p ->
             { p with
                 Configuration = DotNet.Release
-                OutputPath = Some Build.nuget} )
+                OutputPath = Some Build.nuget
+                Common = 
+                    DotNet.Options.Create()
+                    |> DotNet.Options.withCustomParams (Some props)
+            } )
             "TickSpec\TickSpec.fsproj"
 )
 
