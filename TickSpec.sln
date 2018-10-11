@@ -50,7 +50,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-
 		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Xunit2.FSharp", "Examples\ByFramework\xUnit\FSharp.xUnit2\Xunit2.FSharp.fsproj", "{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Xunit.FSharp", "Examples\ByFramework\xUnit\FSharp.xUnit\Xunit.FSharp.fsproj", "{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ByFeature", "ByFeature", "{EB1F6262-0913-4464-A034-4F4D01268E83}"
 EndProject
