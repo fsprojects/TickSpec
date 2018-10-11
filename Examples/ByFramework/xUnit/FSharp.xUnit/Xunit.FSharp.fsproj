@@ -13,7 +13,7 @@
     <Compile Include="CalculatorDomain.fs" />
     <EmbeddedResource Include="Addition.feature" />
     <Compile Include="AdditionSteps.fs" />
-    <Compile Include="Xunit2Feature.fs" />
+    <Compile Include="XunitFeature.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\TickSpec\TickSpec.fsproj">

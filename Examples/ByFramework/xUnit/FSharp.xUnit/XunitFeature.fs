@@ -1,4 +1,4 @@
-﻿module ByFramework.XUnit2.Feature
+﻿module ByFramework.XUnit.Feature
 
 open TickSpec
 open Xunit
