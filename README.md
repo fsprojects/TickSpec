@@ -10,7 +10,9 @@ A lightweight Behaviour Driven Development (BDD) framework for .NET that'll fit 
 
 2. Easily execute the behaviour against matching F# 'ticked' methods, or attribute-tagged C# or F# methods.
 
-3. Run via your normal test runners (xUnit, NUnit or standalone), set breakpoints in the scenarios and go.
+3. Run via your normal test runners (xUnit, NUnit or standalone)
+
+4. Set breakpoints in the scenarios and go. This is currently supported in .NET Framework version of TickSpec only, .NET Standard version alows debugging of implementation only.
 
 Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
 
@@ -18,10 +20,8 @@ Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
 
 Simply reference TickSpec via [NuGet or Paket](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
 
-- The binary should work cleanly on any NET 4.0 or later environment.
-- To run NUnit-based examples, please ensure that you have installed the `NUnit 2 Test Adapter` tool via **Tools|Extensions And Updates**
-- xUnit.NET examples should work after running `./build.bat`.
-- The TickSpec solution file works with Visual Studio 2015 & 2017. 
+- The binary should work cleanly on any .NET Standard 2.0, .NET 4.5 or later environment.
+- The TickSpec solution file works with Visual Studio 2017. 
 - Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
 
 # Feature specification (Plain text)
