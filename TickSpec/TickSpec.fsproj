@@ -12,7 +12,6 @@
     <PackageLicenseUrl>https://github.com/fsprojects/TickSpec/blob/master/LICENSE.md</PackageLicenseUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>BDD C# F# .Net</PackageTags>
-    <PackageVersion>1.2.0</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Include="paket.references" />

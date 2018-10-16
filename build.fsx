@@ -35,7 +35,7 @@ module Test =
         let run projects = 
             projects
             |> Seq.iter (fun p -> DotNet.test (fun o -> 
-                {o with Configuration = DotNet.BuildConfiguration.Release; 
+                {o with Configuration = DotNet.BuildConfiguration.Release; NoBuild = true;
                         Framework = if Environment.isWindows then None else Some "netcoreapp2.1"}) p)
     module XUnit = 
         ()
@@ -51,7 +51,6 @@ open AppVeyor
 open Test
 
 module ReleaseNotes = 
-
     let TickSpec = ReleaseNotes.load (__SOURCE_DIRECTORY__ </> "RELEASE_NOTES.md")
 
 module Build = 
@@ -95,10 +94,17 @@ Target.create "Test" (fun _ ->
 
 Target.create "Nuget" (fun _ ->
     if Environment.isWindows then
+        let props = 
+            let notes = String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
+            "/p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
         DotNet.pack (fun p ->
             { p with
                 Configuration = DotNet.Release
-                OutputPath = Some Build.nuget} )
+                OutputPath = Some Build.nuget
+                Common = 
+                    DotNet.Options.Create()
+                    |> DotNet.Options.withCustomParams (Some props)
+            } )
             "TickSpec\TickSpec.fsproj"
 )
 
