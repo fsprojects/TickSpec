@@ -1,4 +1,4 @@
 ﻿FSharp.Core
-
-group NUnit3Test
-    NUnit
+NUnit
+Microsoft.NET.Test.Sdk
+NUnit3TestAdapter
