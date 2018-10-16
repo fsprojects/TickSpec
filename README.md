@@ -26,7 +26,7 @@ Simply reference TickSpec via [NuGet or Paket](https://www.nuget.org/packages/Ti
 
 # Feature specification (Plain text)
 
-```
+```Gherkin
 Feature: Refunded or replaced items should be returned to stock
 
 Scenario 1: Refunded items should be returned to stock
