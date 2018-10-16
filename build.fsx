@@ -45,7 +45,7 @@ module Test =
             if Environment.isWindows then
                 projects
                 |> Seq.iter (fun (p:string) -> 
-                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release}) p)
+                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release; NoBuild = true}) p)
 
 open AppVeyor
 open Test
