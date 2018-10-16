@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;net452</TargetFrameworks>
@@ -8,7 +8,7 @@
     <Compile Include="FeatureParserTest.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj" />
+    <ProjectReference Include="..\TickSpec\TickSpec.fsproj" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>
