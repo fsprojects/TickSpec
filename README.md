@@ -38,7 +38,7 @@ Scenario 1: Refunded items should be returned to stock
 
 # Step definitions (F#)
 
-```
+```FSharp
 type StockItem = { Count : int }
 
 let mutable stockItem = { Count = 0 }
@@ -58,7 +58,7 @@ let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) =
 
 # Step definitions (F# without mutable field)
 
-```
+```FSharp
 type StockItem = { Count : int }
 
 let [<Given>] ``a customer buys a black jumper`` () = ()
@@ -76,7 +76,7 @@ let [<Then>] ``I should have (.*) black jumpers in stock`` (n:int) (stockItem:St
 
 # Step definitions (C#)
 
-```
+```CSharp
 public class StockStepDefinitions
 {
    private StockItem _stockItem;
