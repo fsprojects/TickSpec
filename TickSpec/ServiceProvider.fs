@@ -1,9 +1,49 @@
 ﻿namespace TickSpec
 
 open System
-open System.Collections.Generic
 open System.Diagnostics
 open System.Reflection
+
+/// Instances storage
+[<Sealed>]
+type InstanceStore () =
+    let mutable instances : list<Type*obj> = []
+
+    /// Prepends key/value to list if not present; existing key with different value is removed
+    let distinctAdd key value inList =
+        let rec distinctAddRec key value revHead inTail =
+            match inTail with
+            | [] -> (key, value) :: inList
+            | (t, instance:obj) :: rest when key = t ->
+                if value <> instance then
+                    match instance with
+                    | :? IDisposable as d -> d.Dispose()
+                    | _ -> ()
+                    (key, value) :: (List.rev revHead) @ rest
+                else
+                    inList
+            | head :: rest ->
+                distinctAddRec key value (head :: revHead) rest
+        distinctAddRec key value [] inList
+
+    /// Stores element (skips storing existing, old element removed and new prepended)
+    member this.Store key value =
+        instances <- instances |> distinctAdd key value
+
+    /// Returns value for specified key
+    member this.TryGetValue key =
+        match instances |> List.tryFind(fun (x,_) -> x = key) with
+        | Some elem -> Some(snd elem)
+        | None -> None
+
+    interface IDisposable with
+        member __.Dispose() =
+            instances
+            |> Seq.map snd
+            |> Seq.iter (function
+                | :? IDisposable as d -> d.Dispose()
+                | _ -> ())
+            instances <- []
 
 /// Provides an instance provider for tests
 type IInstanceProvider =
@@ -18,11 +58,11 @@ type IInstanceProvider =
 /// <param name="innerProvider">The provider that will GetInstances of Step Definition classes.</param>
 type ExternalServiceProviderInstanceProvider(innerProvider: IServiceProvider) as self =
     /// Type instances for invoked steps
-    let instances = Dictionary<_,_>()
+    let instances = new InstanceStore()
     let getInstance (t:Type) =
         match instances.TryGetValue t with
-        | true, instance -> instance
-        | false, _ -> innerProvider.GetService(t)
+        | Some instance -> instance
+        | None -> innerProvider.GetService(t)
 
     interface IServiceProvider with
         [<DebuggerStepThrough>]
@@ -32,11 +72,11 @@ type ExternalServiceProviderInstanceProvider(innerProvider: IServiceProvider) as
 
     interface IInstanceProvider with
         member __.RegisterInstance (t: Type, instance: obj) =
-            instances.[t] <- instance
+            instances.Store t instance
 
     interface IDisposable with
         member __.Dispose() =
-            instances.Clear()
+            (instances :> IDisposable).Dispose()
             match innerProvider with
             | :? IDisposable as d -> d.Dispose()
             | _ -> ()
@@ -45,7 +85,7 @@ type ExternalServiceProviderInstanceProvider(innerProvider: IServiceProvider) as
 /// Creates instance service provider
 type InstanceProvider() as self =
     /// Type instances for invoked steps
-    let instances = Dictionary<_,_>()
+    let instances = new InstanceStore()
 
     /// Resolves an instance for a specified type (and remembering the stack of types being resolved)
     let rec resolveInstance (t:Type) (typeStack: Type list) =
@@ -61,10 +101,10 @@ type InstanceProvider() as self =
         | t when t = typeof<IInstanceProvider> -> self :> obj
         | t ->
             match instances.TryGetValue t with
-            | true, instance -> instance
-            | false, _ ->
+            | Some instance -> instance
+            | None ->
                 let instance = createInstance t typeStack
-                instances.Add(t, instance)
+                instances.Store t instance
                 instance
 
     /// Creates an instance if there was none for a specified type (and remembering the stack of types being resolved)
@@ -104,16 +144,7 @@ type InstanceProvider() as self =
 
     interface IInstanceProvider with
         member this.RegisterInstance (t: Type, instance: obj) =
-            match instances.TryGetValue t with
-            | true, value ->
-                match value with
-                | :? IDisposable as d -> d.Dispose()
-                | _ -> ()
-
-                instances.[t] <- instance
-            | _ -> instances.Add(t, instance)
-
-            instances.[t] <- instance
+            instances.Store t instance
 
     interface IServiceProvider with
         [<DebuggerStepThrough>]
@@ -122,9 +153,4 @@ type InstanceProvider() as self =
 
     interface IDisposable with
         member this.Dispose() =
-            instances.Values
-            |> Seq.iter (function
-                | :? IDisposable as d -> d.Dispose()
-                | _ -> ())
-
-            instances.Clear()
+            (instances :> IDisposable).Dispose()
