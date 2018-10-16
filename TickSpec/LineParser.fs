@@ -51,13 +51,11 @@ let (|ScenarioLine|_|) (s:string) =
     let trimmed = s.Trim()
     let matches =
         [ "Scenario"; "Story" ]
-        |> Seq.map (fun x ->
+        |> Seq.choose (fun x ->
             if trimmed |> startsWith x then Some trimmed
             else None)
-        |> Seq.map (Option.map (fun t -> ScenarioLine t))
-        |> Seq.choose id
     if matches |> Seq.isEmpty then None
-    else matches |> Seq.head |> Some
+    else ScenarioLine (matches |> Seq.head) |> Some
 let (|BackgroundLine|_|) s =
     tryRegex s "^\s*Background(.*)"
     |> Option.map (fun t -> BackgroundLine)

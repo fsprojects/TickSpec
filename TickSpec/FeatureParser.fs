@@ -83,9 +83,6 @@ let parseFeature (lines:string[]) =
             row |> Map.toList
         )
 
-
-        // [(["Tag"], [("Lorem", "Ipsum")])]
-
     let createStep combination step =
         let processedStep =
             match step.Step with
