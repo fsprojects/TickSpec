@@ -4,6 +4,8 @@
     <TargetFrameworks>netcoreapp2.1;net452</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="WithItems.feature" />
+    <EmbeddedResource Include="TagsAndExamples.feature" />
     <None Include="paket.references" />
     <Compile Include="FeatureParserTest.fs" />
   </ItemGroup>

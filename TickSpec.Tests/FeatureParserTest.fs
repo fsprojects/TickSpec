@@ -6,6 +6,8 @@ open System
 open TickSpec.LineParser
 open TickSpec.BlockParser
 open System.Text
+open System.Reflection
+open System.IO
 
 let private verifyParsing (fileContent: string) (expected: FeatureSource) =
     let featureSource = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None) |> FeatureParser.parseFeature
@@ -37,39 +39,15 @@ let private verifyBlockParsing (fileContent: string) (expected: FeatureBlock) =
     let parsed = parseBlocks lines
     Assert.AreEqual(expected, parsed)
 
-let tagsAndExamplesFeatureFile =
-    "
-    @http
-    Feature: HTTP server
-
-    Background:
-    Given User connects to <server>
-
-    @basics @index
-    Scenario Outline: Tags and Examples Sc.
-    When Client requests <page>
-    Then Server responds with page <page>
-
-    @smoke @all
-    Examples:
-        | server  |
-        | smoke   |
-
-    Examples:
-        | page         |
-        | index.html   |
-        | default.html |
-
-    @all
-    Shared Examples:
-        | server     |
-        | testing    |
-        | production |
-    "
+let private loadFeatureFile filePath =
+    use stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(filePath)
+    use reader = new StreamReader(stream)
+    reader.ReadToEnd()
 
 [<Test>]
 let TagsAndExamples_ParseLines () =
-    tagsAndExamplesFeatureFile
+    "TickSpec.Tests.TagsAndExamples.feature"
+    |> loadFeatureFile
     |> verifyLineParsing <|
     [
         FileStart
@@ -98,7 +76,8 @@ let TagsAndExamples_ParseLines () =
 
 [<Test>]
 let TagsAndExamples_ParseBlocks () =
-    tagsAndExamplesFeatureFile
+    "TickSpec.Tests.TagsAndExamples.feature"
+    |> loadFeatureFile
     |> verifyBlockParsing <|
     {
         Name = "HTTP server"
@@ -106,8 +85,8 @@ let TagsAndExamples_ParseBlocks () =
         Background = [
             {
                 Step = GivenStep "User connects to <server>"
-                LineNumber = 6
-                LineString = "    Given User connects to <server>"
+                LineNumber = 5
+                LineString = "Given User connects to <server>"
                 Item = None
             }
         ]
@@ -118,14 +97,14 @@ let TagsAndExamples_ParseBlocks () =
                 Steps = [
                     {
                         Step = WhenStep "Client requests <page>"
-                        LineNumber = 10
-                        LineString = "    When Client requests <page>"
+                        LineNumber = 9
+                        LineString = "When Client requests <page>"
                         Item = None
                     }
                     {
                         Step = ThenStep "Server responds with page <page>"
-                        LineNumber = 11
-                        LineString = "    Then Server responds with page <page>"
+                        LineNumber = 10
+                        LineString = "Then Server responds with page <page>"
                         Item = None
                     }
                 ]
@@ -137,7 +116,7 @@ let TagsAndExamples_ParseBlocks () =
                                 Header = [ "server" ]
                                 Rows = [ [ "smoke" ] ]
                             }
-                        LineNumber = 14
+                        LineNumber = 13
                     }
                     {
                         Tags = []
@@ -146,7 +125,7 @@ let TagsAndExamples_ParseBlocks () =
                                 Header = [ "page" ]
                                 Rows = [ [ "index.html" ]; [ "default.html" ] ]
                             }
-                        LineNumber = 18
+                        LineNumber = 17
                     }
                 ]
             }
@@ -159,14 +138,15 @@ let TagsAndExamples_ParseBlocks () =
                         Header = [ "server" ]
                         Rows = [ [ "testing" ]; [ "production" ] ]
                     }
-                LineNumber = 24
+                LineNumber = 23
             }
         ]
     }
 
 [<Test>]
 let TagsAndExamples_FeatureSource () =
-    tagsAndExamplesFeatureFile
+    "TickSpec.Tests.TagsAndExamples.feature"
+    |> loadFeatureFile
     |> verifyParsing <|
     {
         Name = "HTTP server"
@@ -176,22 +156,22 @@ let TagsAndExamples_FeatureSource () =
                 Tags = [|"http";"basics";"index";"smoke";"all"|]
                 Steps = [|
                     (GivenStep "User connects to smoke", {
-                        Number = 6
-                        Text = "    Given User connects to <server>"
+                        Number = 5
+                        Text = "Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests index.html", {
-                        Number = 10
-                        Text = "    When Client requests <page>"
+                        Number = 9
+                        Text = "When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page index.html", {
-                        Number = 11
-                        Text = "    Then Server responds with page <page>"
+                        Number = 10
+                        Text = "Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -204,22 +184,22 @@ let TagsAndExamples_FeatureSource () =
                 Tags = [|"http";"basics";"index";"smoke";"all"|]
                 Steps = [|
                     (GivenStep "User connects to smoke", {
-                        Number = 6
-                        Text = "    Given User connects to <server>"
+                        Number = 5
+                        Text = "Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests default.html", {
-                        Number = 10
-                        Text = "    When Client requests <page>"
+                        Number = 9
+                        Text = "When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page default.html", {
-                        Number = 11
-                        Text = "    Then Server responds with page <page>"
+                        Number = 10
+                        Text = "Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -232,22 +212,22 @@ let TagsAndExamples_FeatureSource () =
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to testing", {
-                        Number = 6
-                        Text = "    Given User connects to <server>"
+                        Number = 5
+                        Text = "Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests index.html", {
-                        Number = 10
-                        Text = "    When Client requests <page>"
+                        Number = 9
+                        Text = "When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page index.html", {
-                        Number = 11
-                        Text = "    Then Server responds with page <page>"
+                        Number = 10
+                        Text = "Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -260,22 +240,22 @@ let TagsAndExamples_FeatureSource () =
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to testing", {
-                        Number = 6
-                        Text = "    Given User connects to <server>"
+                        Number = 5
+                        Text = "Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests default.html", {
-                        Number = 10
-                        Text = "    When Client requests <page>"
+                        Number = 9
+                        Text = "When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page default.html", {
-                        Number = 11
-                        Text = "    Then Server responds with page <page>"
+                        Number = 10
+                        Text = "Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -288,22 +268,22 @@ let TagsAndExamples_FeatureSource () =
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to production", {
-                        Number = 6
-                        Text = "    Given User connects to <server>"
+                        Number = 5
+                        Text = "Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests index.html", {
-                        Number = 10
-                        Text = "    When Client requests <page>"
+                        Number = 9
+                        Text = "When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page index.html", {
-                        Number = 11
-                        Text = "    Then Server responds with page <page>"
+                        Number = 10
+                        Text = "Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -316,22 +296,22 @@ let TagsAndExamples_FeatureSource () =
                 Tags = [|"http";"basics";"index";"all"|]
                 Steps = [|
                     (GivenStep "User connects to production", {
-                        Number = 6
-                        Text = "    Given User connects to <server>"
+                        Number = 5
+                        Text = "Given User connects to <server>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (WhenStep "Client requests default.html", {
-                        Number = 10
-                        Text = "    When Client requests <page>"
+                        Number = 9
+                        Text = "When Client requests <page>"
                         Bullets = None
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Server responds with page default.html", {
-                        Number = 11
-                        Text = "    Then Server responds with page <page>"
+                        Number = 10
+                        Text = "Then Server responds with page <page>"
                         Bullets = None
                         Table = None
                         Doc = None
@@ -342,35 +322,17 @@ let TagsAndExamples_FeatureSource () =
         |]
     }
 
-let featureFileWithItems =
-    "
-    Feature: Items test feature
-    Scenario: Items test scenario
-    Given I have a table
-        | col1  | col2  |
-        | v11   | v21   |
-        | v12   | v22   |
-    When I take a doc string
-        \"\"\"
-        First line
-           Second line
-        Third line
-        \"\"\"
-    Then I can take a bullet list
-        * First item
-        * Second item
-    "
-
 let featureFileWithItems_expectedDocString =
     StringBuilder()
         .AppendLine("First line")
-        .AppendLine("   Second line")
+        .AppendLine("    Second line")
         .Append("Third line")
         .ToString()
 
 [<Test>]
 let FileWithItems_ParseLines () =
-    featureFileWithItems
+    "TickSpec.Tests.WithItems.feature"
+    |> loadFeatureFile
     |> verifyLineParsing <|
     [
         FileStart
@@ -381,10 +343,10 @@ let FileWithItems_ParseLines () =
         Item (Step (GivenStep "I have a table"), TableRow [ "v11"; "v21" ])
         Item (Step (GivenStep "I have a table"), TableRow [ "v12"; "v22" ])
         Step (WhenStep "I take a doc string")
-        Item (Step (WhenStep "I take a doc string"), MultiLineStringStart 8)
-        Item (Step (WhenStep "I take a doc string"), MultiLineString "        First line")
-        Item (Step (WhenStep "I take a doc string"), MultiLineString "           Second line")
-        Item (Step (WhenStep "I take a doc string"), MultiLineString "        Third line")
+        Item (Step (WhenStep "I take a doc string"), MultiLineStringStart 4)
+        Item (Step (WhenStep "I take a doc string"), MultiLineString "    First line")
+        Item (Step (WhenStep "I take a doc string"), MultiLineString "        Second line")
+        Item (Step (WhenStep "I take a doc string"), MultiLineString "    Third line")
         Item (Step (WhenStep "I take a doc string"), MultiLineStringEnd)
         Step (ThenStep "I can take a bullet list")
         Item (Step (ThenStep "I can take a bullet list"), BulletPoint "First item")
@@ -393,7 +355,8 @@ let FileWithItems_ParseLines () =
 
 [<Test>]
 let FileWithItems_ParseBlocks () =
-    featureFileWithItems
+    "TickSpec.Tests.WithItems.feature"
+    |> loadFeatureFile
     |> verifyBlockParsing <|
     {
         Name = "Items test feature"
@@ -406,8 +369,8 @@ let FileWithItems_ParseBlocks () =
                 Steps = [
                     {
                         Step = GivenStep "I have a table"
-                        LineNumber = 4
-                        LineString = "    Given I have a table"
+                        LineNumber = 3
+                        LineString = "Given I have a table"
                         Item = Some (TableItem {
                             Header = [ "col1"; "col2" ]
                             Rows = [ [ "v11"; "v21" ]; [ "v12"; "v22" ] ]
@@ -415,14 +378,14 @@ let FileWithItems_ParseBlocks () =
                     }
                     {
                         Step = WhenStep "I take a doc string"
-                        LineNumber = 8
-                        LineString = "    When I take a doc string"
+                        LineNumber = 7
+                        LineString = "When I take a doc string"
                         Item = Some (DocStringItem featureFileWithItems_expectedDocString)
                     }
                     {
                         Step = ThenStep "I can take a bullet list"
-                        LineNumber = 14
-                        LineString = "    Then I can take a bullet list"
+                        LineNumber = 13
+                        LineString = "Then I can take a bullet list"
                         Item = Some (BulletsItem [ "First item"; "Second item" ])
                     }
                 ]
@@ -434,7 +397,8 @@ let FileWithItems_ParseBlocks () =
 
 [<Test>]
 let FileWithItems_ParseFeature () =
-    featureFileWithItems
+    "TickSpec.Tests.WithItems.feature"
+    |> loadFeatureFile
     |> verifyParsing <|
     {
         Name = "Items test feature"
@@ -444,22 +408,22 @@ let FileWithItems_ParseFeature () =
                 Tags = [||]
                 Steps = [|
                     (GivenStep "I have a table", {
-                        Number = 4
-                        Text = "    Given I have a table"
+                        Number = 3
+                        Text = "Given I have a table"
                         Bullets = None
                         Table = Some (Table([| "col1"; "col2" |], [| [| "v11"; "v21" |]; [| "v12"; "v22" |] |]))
                         Doc = None
                     })
                     (WhenStep "I take a doc string", {
-                        Number = 8
-                        Text = "    When I take a doc string"
+                        Number = 7
+                        Text = "When I take a doc string"
                         Bullets = None
                         Table = None
                         Doc = Some featureFileWithItems_expectedDocString
                     })
                     (ThenStep "I can take a bullet list", {
-                        Number = 14
-                        Text = "    Then I can take a bullet list"
+                        Number = 13
+                        Text = "Then I can take a bullet list"
                         Bullets = Some [| "First item"; "Second item" |]
                         Table = None
                         Doc = None
