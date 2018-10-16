@@ -16,7 +16,7 @@ type Shelter(container : AutofacFixture) =
     do source.ServiceProviderFactory <- container.CreateScopedServiceProvider
     // When actually running the tests, wire in the link to the container so creation of the Step Definition and Domain types gets hooked correctly
     static let scenarios resourceName = source.ScenariosFromEmbeddedResource resourceName |> MemberData.ofScenarios
-    [<Theory; MemberData("scenarios", "Shelter.feature")>]
+    [<Theory; MemberData("scenarios", "CustomContainer.Shelter.feature")>]
     let run(scenario : Scenario) = scenario.Action.Invoke()
     // Indicate our interest in having xUnit manage the ContainerFixture for us (notably Disposing at the end of a test run)
     interface IClassFixture<AutofacFixture>

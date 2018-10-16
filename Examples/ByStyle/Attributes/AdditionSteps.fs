@@ -1,7 +1,5 @@
 ﻿module AdditionSteps
 
-type AdditionFixture () = inherit TickSpec.NUnit.FeatureFixture("Addition.feature")
-
 open Library
 open TickSpec
 open NUnit.Framework

@@ -1,15 +1,9 @@
-﻿namespace global
+﻿namespace Computation
 
-type Calculator () =
-    let mutable values = []
-    member __.Push(n) = values <- n :: values
-    member __.Add() = values <- [List.sum values]
-    member __.Result = values.Head
-
-open Xunit
 open TickSpec
+open Xunit
 
-type AdditionSteps () =
+type CalculatorSteps () =
     let calc = Calculator()
 
     [<Given>]
@@ -19,5 +13,5 @@ type AdditionSteps () =
     member __.``I press add`` () = 
         calc.Add()
     [<Then>]
-    member __.``the result should be (.*) on the screen`` (n:int) =        
+    member __.``the result should be (.*) on the screen`` (n:int) =
         Assert.Equal(n, calc.Result)

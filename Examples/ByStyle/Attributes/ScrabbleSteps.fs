@@ -1,6 +1,5 @@
 ﻿[<TickSpec.StepScope(Feature="Scrabble score")>]
 module ScrabbleSteps
-type ScrabbleFixture () = inherit TickSpec.NUnit.FeatureFixture("Scrabble.feature")
 
 open Scrabble
 open TickSpec

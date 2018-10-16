@@ -22,6 +22,15 @@ let performStep (word,guesses) = function
    | _ -> notImplemented ()
    
 open TickSpec.NUnit
+open TickSpec
+
+[<TestFixture>]
 type HangmanFeature () =
-    inherit FeatureFixture<State>("Hangman.feature", performStep, fun () -> "",[])
+    inherit FeatureFixture<State>()
+    [<Test>]
+    [<TestCaseSource("Scenarios")>]
+    member __.TestScenario (scenario:ScenarioSource) =
+        FeatureFixture<State>.PerformTest scenario performStep (fun () -> "",[])
+    static member Scenarios =
+        FeatureFixture<State>.MakeScenarios "Functional.Hangman.feature"
 and State = string * char list

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>TickSpec.xUnit</id>
-    <version>1.0.0.1</version>
+    <version>2.0.0</version>
     <title>TickSpec.xUnit</title>
     <authors>Phillip Trelford</authors>
     <owners>Phillip Trelford</owners>
@@ -14,10 +14,7 @@
     <tags>BDD C# F# .Net xUnit</tags>
     <dependencies>
       <dependency id="TickSpec" />
-      <dependency id="xunit" version="1.9.1" />
+      <dependency id="xunit" />
     </dependencies>
-    <frameworkAssemblies>
-      <frameworkAssembly assemblyName="System.Xml"/>
-    </frameworkAssemblies>
   </metadata>
 </package>

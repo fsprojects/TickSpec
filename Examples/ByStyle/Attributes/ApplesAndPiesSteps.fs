@@ -1,7 +1,5 @@
 ﻿module ApplesAndPiesSteps
 
-type ApplesAndPiesFixture () = inherit TickSpec.NUnit.FeatureFixture("ApplesAndPies.feature")
-
 open TickSpec
 open NUnit.Framework
   

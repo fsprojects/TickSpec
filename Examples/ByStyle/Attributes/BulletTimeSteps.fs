@@ -1,7 +1,5 @@
 ﻿module BulletTime
 
-type BulletTimeFixture () = inherit TickSpec.NUnit.FeatureFixture("BulletTime.feature")
-
 open TickSpec
 open NUnit.Framework
 open Microsoft.FSharp.Collections

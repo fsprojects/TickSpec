@@ -1,4 +1,7 @@
 image: Visual Studio 2017
+before_build:
+  # Display .NET Core version
+  - cmd: dotnet --version
 build_script:
   - cmd: build.bat
 test: off

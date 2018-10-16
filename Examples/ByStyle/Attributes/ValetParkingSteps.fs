@@ -2,9 +2,6 @@
 // http://www.informit.com/store/atdd-by-example-a-practical-guide-to-acceptance-test-9780321784155
 module ValetParkingSteps
 
-type ImpliedPriceFixture () =
-    inherit TickSpec.NUnit.FeatureFixture("ValetParking.feature")
-
 open System
 open System.Globalization
 
