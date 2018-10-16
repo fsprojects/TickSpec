@@ -19,7 +19,7 @@ type FeatureFixture () =
             let testCaseData =
                 (new TestCaseData(scenario))
                     .SetName(scenario.Name)
-                    .SetProperty("Feature", feature.Name.Substring("Feature: ".Length))
+                    .SetProperty("Feature", feature.Name)
 
             scenario.Tags |> Seq.fold (fun (data:TestCaseData) (tag:string) -> data.SetProperty("Tag", tag)) testCaseData
 
@@ -30,8 +30,8 @@ type FeatureFixture () =
         let assembly = typeof<FeatureFixture>.Assembly
         let definitions = new StepDefinitions(assembly)
         [
-            "WebTesting.feature" ;
-            "HttpServer.feature" ;
+            "TaggedExamples.WebTesting.feature" ;
+            "TaggedExamples.HttpServer.feature" ;
         ]
         |> Seq.collect ( fun source ->
             let featureStream = assembly.GetManifestResourceStream(source)

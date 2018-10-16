@@ -46,7 +46,7 @@ type FeatureFixture<'TState> () =
                     |> Seq.fold replaceParameterInScenarioName scenarioName
                 (new TestCaseData(scenario))
                     .SetName(enhanceScenarioName scenario.Parameters scenario.Name)
-                    .SetProperty("Feature", feature.Name.Substring(9))
+                    .SetProperty("Feature", feature.Name)
                 |> Seq.foldBack (fun (tag:string) data -> data.SetProperty("Tag", tag)) scenario.Tags
         feature.Scenarios
         |> Seq.filter (fun scenario ->
