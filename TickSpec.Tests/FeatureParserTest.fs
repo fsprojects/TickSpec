@@ -9,12 +9,11 @@ open System.Text
 open System.Reflection
 open System.IO
 
-let private verifyParsing (fileContent: string) (expected: FeatureSource) =
-    let featureSource = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None) |> FeatureParser.parseFeature
+let private verifyParsing (lines: string[]) (expected: FeatureSource) =
+    let featureSource = lines |> FeatureParser.parseFeature
     Assert.AreEqual(expected, featureSource)
 
-let private verifyLineParsing (fileContent: string) (expected: LineType list) =
-    let lines = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None)
+let private verifyLineParsing (lines: string[]) (expected: LineType list) =
     let lineParsed =
         lines
         |> Seq.map (fun line ->
@@ -34,15 +33,14 @@ let private verifyLineParsing (fileContent: string) (expected: LineType list) =
 
     Assert.AreEqual(expected, lineParsed)
 
-let private verifyBlockParsing (fileContent: string) (expected: FeatureBlock) =
-    let lines = fileContent.Split([|Environment.NewLine|], StringSplitOptions.None)
+let private verifyBlockParsing (lines: string[]) (expected: FeatureBlock) =
     let parsed = parseBlocks lines
     Assert.AreEqual(expected, parsed)
 
 let private loadFeatureFile filePath =
     use stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(filePath)
     use reader = new StreamReader(stream)
-    reader.ReadToEnd()
+    reader |> TextReader.readAllLines
 
 [<Test>]
 let TagsAndExamples_ParseLines () =
