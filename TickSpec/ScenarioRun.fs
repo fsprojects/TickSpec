@@ -23,7 +23,7 @@ let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
     if m.ReturnType <> typeof<System.Void> then
         if FSharpType.IsTuple m.ReturnType then
             let types = FSharpType.GetTupleElements m.ReturnType
-            let values = FSharpValue.GetTupleFields instance
+            let values = FSharpValue.GetTupleFields ret
             Seq.map2 (fun t v -> t,v) types values
             |> Seq.iter (fun (t,v) -> provider.RegisterInstance(t, v))
         else

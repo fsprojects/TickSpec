@@ -1,7 +1,5 @@
 ﻿module AtmSteps
 
-type AccountFixture () = inherit TickSpec.NUnit.FeatureFixture("Atm.feature")
-
 open Atm
 open TickSpec
 open NUnit.Framework

@@ -6,41 +6,34 @@ using System.Reflection;
 namespace TickSpec.NUnit
 {
     [TestFixture]
-    public abstract class FeatureFixture
+    public class FeatureFixture
     {
-        private readonly string _source;
-        private readonly Assembly _assembly;
-        private readonly StepDefinitions _definitions;
-
-        public FeatureFixture(string source)
-        {
-            _source = source;
-            _assembly = typeof(FeatureFixture).Assembly;
-            _definitions = new StepDefinitions(_assembly);
-        }
 
         [Test, TestCaseSource("Source")]
-        public void Scenarios(Scenario scenario)
+        public void Test(Scenario scenario)
         {
             if (scenario.Tags.Contains("ignore"))
                 throw new IgnoreException("Ignored: " + scenario.Name);
             scenario.Action();
         }
 
-        public IEnumerable<Scenario> Source
+        public static IEnumerable<TestCaseData> Source
         {
             get
             {
+                var assembly = typeof(FeatureFixture).Assembly;
+                var definitions = new StepDefinitions(assembly);
                 var resourceName = 
-                    _assembly
+                    assembly
                         .GetManifestResourceNames()
-                        .First(name => name.EndsWith(_source));
+                        .First(name => name.EndsWith(".feature"));
                 var stream = 
-                    _assembly
+                    assembly
                         .GetManifestResourceStream(resourceName);
+                var feature = definitions.GenerateFeature(resourceName, stream);
+                var scenarios = feature.Scenarios;
                 return 
-                    _definitions
-                        .GenerateScenarios(stream);
+                    scenarios.Select(s => (new TestCaseData(s)).SetName(s.Name).SetProperty("Feature", feature.Name.Substring(9)));
             }
         }
     }

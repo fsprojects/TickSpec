@@ -2,10 +2,12 @@ redirects: on
 framework: auto-detect
 source https://api.nuget.org/v3/index.json
 
-# For now, we support F# 3.1 and up; .NET Core support may impact that
-nuget FSharp.Core ~> 3.1.2.0
+nuget FSharp.Core
 
 # Test/assertion frameworks
+nuget NUnit
+nuget NUnit3TestAdapter
+nuget Microsoft.NET.Test.Sdk
 nuget xunit ~> 2 # there are v1 examples but most integrations use v2
 nuget xunit.runner.visualstudio ~> 2 version_in_path: false
 nuget Unquote
@@ -13,20 +15,28 @@ nuget Unquote
 # Example container to illustrate integration
 nuget Autofac
 
-group build
-    framework: auto-detect
-    source https://nuget.org/api/v2
-    nuget FAKE
-    nuget Paket.Core
-    nuget NUnit.ConsoleRunner
-    nuget NUnit.Extension.NUnitV2Driver
-    nuget NUnit.Extension.NUnitV2ResultWriter
-    nuget xunit.runner.console
+nuget NUnit.ConsoleRunner
+nuget xunit.runner.console
 
-group NUnit2Test
-    source https://nuget.org/api/v2
-    nuget NUnit ~> 2.0
+clitool dotnet-fake
 
-group NUnit3Test
-    source https://nuget.org/api/v2
-    nuget NUnit
+// [ FAKE GROUP ]
+group FakeBuild
+    framework: netstandard2.0
+    source https://api.nuget.org/v3/index.json
+	storage: none
+
+	nuget NUnit.ConsoleRunner
+	nuget xunit.runner.console
+	nuget Fake.Core.Target
+	nuget Fake.IO.FileSystem
+	nuget Fake.DotNet.Cli
+	nuget Fake.Tools.Git
+	nuget Fake.DotNet.MSBuild
+	nuget Fake.Core.ReleaseNotes 
+	nuget Fake.DotNet.AssemblyInfoFile
+	nuget Fake.DotNet.Paket
+	nuget Fake.DotNet.Testing.XUnit2
+	nuget Fake.DotNet.Testing.NUnit
+	nuget Fake.Api.GitHub
+	nuget Paket.Core

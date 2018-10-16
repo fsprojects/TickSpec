@@ -204,6 +204,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     member __.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureSource = parseFeature lines
         let feature = featureSource.Name
+#if NET45
         let gen = FeatureGen(featureSource.Name,sourceUrl)
         let genType scenario =
             let lines =
@@ -230,9 +231,14 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 { Name=scenario.Name;Description=getDescription scenario.Steps;
                   Action=action;Parameters=scenario.Parameters;Tags=scenario.Tags}
             )
+        let assembly = gen.Assembly
+#else
+        let scenarios = __.GenerateScenarios lines
+        let assembly = null
+#endif
         { Name = featureSource.Name;
           Source = sourceUrl;
-          Assembly = gen.Assembly;
+          Assembly = assembly;
           Scenarios = scenarios |> Seq.toArray
         }
     member this.GenerateFeature (sourceUrl:string,reader:TextReader) =

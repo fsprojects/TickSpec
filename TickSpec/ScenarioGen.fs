@@ -1,5 +1,6 @@
 ﻿module internal TickSpec.ScenarioGen
 
+#if NET45
 open System
 open System.Collections.Generic
 open System.Reflection
@@ -557,3 +558,5 @@ let generateScenario
     defineRunMethod scenarioBuilder providerField events stepMethods
     /// Return scenario
     scenarioBuilder.CreateType()
+
+#endif

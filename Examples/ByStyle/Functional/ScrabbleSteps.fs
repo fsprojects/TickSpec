@@ -27,5 +27,14 @@ let performStep properties step =
     | _ -> notImplemented()
 
 open TickSpec.NUnit
-type ScrabbleFixture () = 
-    inherit FeatureFixture<Property list>("Scrabble.feature", performStep, fun () -> [])
+open TickSpec
+
+[<TestFixture>]
+type ScrabbleFixture () =
+    inherit FeatureFixture<Property list>()
+    [<Test>]
+    [<TestCaseSource("Scenarios")>]
+    member __.TestScenario (scenario:ScenarioSource) =
+        FeatureFixture<Property list>.PerformTest scenario performStep (fun () -> [])
+    static member Scenarios =
+        FeatureFixture<Property list>.MakeScenarios "Functional.Scrabble.feature"

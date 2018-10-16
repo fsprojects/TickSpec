@@ -1,20 +1,20 @@
-#r "packages/build/FAKE/tools/FakeLib.dll"
-#r "packages/build/Chessie/lib/net40/Chessie.dll"
-#r "packages/build/Paket.Core/lib/net45/Paket.Core.dll"
-#r "System.Xml.Linq"
-
-open Fake
-open Fake.AssemblyInfoFile
-open Fake.Testing
+#load "./.fake/build.fsx/intellisense.fsx"
+open Fake.Core
+open Fake.Core.TargetOperators
+open Fake.IO
+open Fake.IO.FileSystemOperators
+open Fake.IO.Globbing.Operators
+open Fake.DotNet
+open Fake.DotNet.Testing
 
 module Paket = 
     let findReferencesFor packageName = 
         __SOURCE_DIRECTORY__ </> "paket.dependencies" 
-        |> Paket.Dependencies 
+        |> Paket.Dependencies
         |> fun d -> d.FindReferencesFor(Paket.Domain.MainGroup, packageName)
 
 module AppVeyor = 
-    let BuildNumber = environVarOrNone "APPVEYOR_BUILD_NUMBER"
+    let BuildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
 
 module Xml = 
     open System.Xml.Linq
@@ -24,49 +24,41 @@ module Xml =
     let descendants n x = (x:XDocument).Descendants(n)
     let value x = (x:XElement).Value
 
-module MsBuildProject = 
-    open System
-    let tryAssembly project = 
-        let xdoc = Xml.load project 
-        let xmlns = xdoc |> Xml.xns
-        xdoc |> Xml.descendants (xmlns |> Xml.xn2 "AssemblyName") |> Seq.map Xml.value |> Seq.tryHead
-        |> Option.bind (fun assemblyName -> 
-            !! (directory project </> "bin" </> sprintf "**/%s.dll" assemblyName)
-            |> Seq.tryHead)
-
 module Analysis = 
     let findAssembliesReferencing packageName = 
         Paket.findReferencesFor packageName
-        |> Seq.collect (MsBuildProject.tryAssembly >> Option.toList)
 
 module Test = 
     module NUnit = 
-        let assemblies () = Analysis.findAssembliesReferencing "nunit" 
-        let run assemblies = 
-            assemblies
-            |> NUnit3 (fun p -> 
-                { p with 
-                    ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/NUnit.ConsoleRunner/tools/nunit3-console.exe" })
+        ()
+        let projects () = Analysis.findAssembliesReferencing "NUnit"
+        let run projects = 
+            projects
+            |> Seq.iter (fun p -> DotNet.test (fun o -> 
+                {o with Configuration = DotNet.BuildConfiguration.Release; NoBuild = true;
+                        Framework = if Environment.isWindows then None else Some "netcoreapp2.1"}) p)
     module XUnit = 
-        let assemblies () = Analysis.findAssembliesReferencing "xunit"  
+        ()
+        let projects () = Analysis.findAssembliesReferencing "xunit"
 
-        let run assemblies = 
-            assemblies
-            |> XUnit2.xUnit2 (fun p -> 
-                { p with 
-                    ToolPath = __SOURCE_DIRECTORY__ </> "packages/build/xunit.runner.console/tools/net452/xunit.console.exe"
-                    ForceAppVeyor = AppVeyor.BuildNumber |> Option.isSome })
+        let run projects = 
+            if Environment.isWindows then
+                projects
+                |> Seq.iter (fun (p:string) -> 
+                    // currently support for custom container is broken when IL generator isn't used, so we are skipping the .NET Core test
+                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release; NoBuild = true;
+                                                  Framework = if p.EndsWith("CustomContainer.fsproj") then Some "net452" else None }) p)
 
 open AppVeyor
 open Test
 
 module ReleaseNotes = 
-    let TickSpec = ReleaseNotesHelper.LoadReleaseNotes (__SOURCE_DIRECTORY__ </> "RELEASE_NOTES.md")
+    let TickSpec = ReleaseNotes.load (__SOURCE_DIRECTORY__ </> "RELEASE_NOTES.md")
 
 module Build = 
     let rootDir = __SOURCE_DIRECTORY__
     let nuget = rootDir </> "packed_nugets"
-    let setParams defaults =
+    let setParams (defaults :MSBuildParams) =
         { defaults with
             Verbosity = Some MSBuildVerbosity.Normal
             Targets = ["Rebuild"]
@@ -79,45 +71,57 @@ module Build =
 
 let Sln = "./TickSpec.sln"
 
-Target "Clean" <| fun _ -> DeleteDir Build.nuget
-    
-Target "AssemblyInfo" <| fun _ ->
+Target.create "Clean" (fun _ ->
+    Shell.cleanDirs [Build.nuget]
+)
+
+Target.create "AssemblyInfo" (fun _ ->
     !! ("TickSpec" </> "AssemblyInfo.fs")
     |> Seq.iter(fun asmInfo ->
         let fileVersion =
             BuildNumber |> Option.defaultValue "0" 
             |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
-        [ Attribute.Version fileVersion
-          Attribute.FileVersion fileVersion ]
-        |> AssemblyInfoFile.UpdateAttributes asmInfo)
+        [ AssemblyInfo.Version fileVersion
+          AssemblyInfo.FileVersion fileVersion ]
+        |> AssemblyInfoFile.updateAttributes asmInfo)
+)
 
-Target "Build" <| fun _ -> build Build.setParams Sln
+Target.create "Build" (fun _ ->
+    MSBuild.build Build.setParams Sln
+)
 
-NUnit.assemblies >> NUnit.run 
->> XUnit.assemblies >> XUnit.run
-|> Target "Test"
+Target.create "Test" (fun _ ->
+    NUnit.projects () |> NUnit.run
+    XUnit.projects () |> XUnit.run
+)
 
-Target "Nuget" <| fun _ -> 
-    Paket.Pack (fun p ->
-        { p with
-            BuildPlatform = "AnyCPU"
-            MinimumFromLockFile = true
-            Symbols = true
-            OutputPath = Build.nuget 
-            ReleaseNotes = String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
-            Version = ReleaseNotes.TickSpec.NugetVersion } )
+Target.create "Nuget" (fun _ ->
+    if Environment.isWindows then
+        let props = 
+            let notes = String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
+            "/p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
+        DotNet.pack (fun p ->
+            { p with
+                Configuration = DotNet.Release
+                OutputPath = Some Build.nuget
+                Common = 
+                    DotNet.Options.Create()
+                    |> DotNet.Options.withCustomParams (Some props)
+            } )
+            "TickSpec\TickSpec.fsproj"
+)
 
-Target "Publish" <| fun _ ->
-    
+Target.create "Publish" (fun _ ->
     !! (Build.nuget </> "*.nupkg")
     -- (Build.nuget </> "*.symbols.nupkg")
-    |> Seq.iter DeleteFile
+    |> Seq.iter File.delete
 
-    Paket.Push (fun p -> 
+    Paket.push (fun p -> 
         { p with
             WorkingDir = Build.nuget })
+)
 
-Target "All" DoNothing
+Target.create "All" ignore
 
 "AssemblyInfo"
         ==> "Build"
@@ -125,4 +129,4 @@ Target "All" DoNothing
         ==> "Nuget"
         ==> "All"
 
-RunTargetOrDefault "All"
+Target.runOrDefault "All"

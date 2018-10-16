@@ -237,8 +237,8 @@ GeneratedArtifacts/
 ModelManifest.xml
 
 # Paket dependency manager
-.paket/Paket.Restore.targets
 paket-files/
+/.paket/load
 
 # FAKE - F# Make
 .fake/

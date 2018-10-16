@@ -1,7 +1,5 @@
 ﻿module FightSteps
 
-type FightFixture () = inherit TickSpec.NUnit.FeatureFixture("Fight.feature")
-
 open TickSpec
 open NUnit.Framework
 

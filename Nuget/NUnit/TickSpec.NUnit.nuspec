@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>TickSpec.NUnit</id>
-    <version>1.0.0.1</version>
+    <version>2.0.0</version>
     <title>TickSpec.NUnit</title>
     <authors>Phillip Trelford</authors>
     <owners>Phillip Trelford</owners>

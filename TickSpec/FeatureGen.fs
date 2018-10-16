@@ -1,5 +1,6 @@
 ﻿namespace TickSpec
 
+#if NET45
 open System
 open System.Collections.Generic
 open System.Diagnostics
@@ -41,3 +42,5 @@ type internal FeatureGen(featureName:string,documentUrl:string) =
          lines:(LineSource * MethodInfo * string[]) [],
          parameters:(string * string)[]) =
         generateScenario module_ doc events parsers (scenarioName,lines,parameters)
+
+#endif

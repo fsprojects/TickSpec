@@ -1,11 +1,7 @@
 ﻿// See http://www.infinityfutures.com/documents/ImpliedPriceOverview.pdf
 module ImpliedPrice
 
-type ImpliedPriceFixture () = 
-    inherit TickSpec.NUnit.FeatureFixture("ImpliedPrice.feature")
-
 open TickSpec
-open NUnit.Framework
 
 type Side = Bid | Offer
 type Contract = string

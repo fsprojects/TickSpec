@@ -1,2 +1,3 @@
-﻿group NUnit2Test
-    NUnit
+﻿NUnit
+Microsoft.NET.Test.Sdk
+NUnit3TestAdapter
