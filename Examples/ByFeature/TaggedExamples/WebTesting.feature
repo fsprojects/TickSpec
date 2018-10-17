@@ -8,7 +8,7 @@
     Examples:
     | browser       |
     | Firefox       |
-    | Explorer      |
+    | Edge      |
     | Chrome        |
 
     @Smoke

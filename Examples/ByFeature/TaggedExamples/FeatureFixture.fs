@@ -1,16 +1,14 @@
 ﻿module TickSpec.NUnit
 
-open System.Reflection
 open NUnit.Framework
 open TickSpec
 
-/// Inherit from FeatureFixture to define a feature fixture
 [<TestFixture>]
 type FeatureFixture () =
     [<Test>]
     [<TestCaseSource("Scenarios")>]
     member this.TestScenario (scenario:Scenario) =
-        if scenario.Tags |> Seq.exists ((=) "ignore") then
+        if scenario.Tags |> Seq.contains "ignore" then
             raise (IgnoreException("Ignored: " + scenario.Name))
         scenario.Action.Invoke()
 

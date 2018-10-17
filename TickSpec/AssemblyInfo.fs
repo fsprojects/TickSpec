@@ -1,8 +1,8 @@
 namespace TickSpec
 
 open System.Reflection
-open System.Runtime.InteropServices
 open System.Runtime.CompilerServices
+open System.Runtime.InteropServices
 
 [<assembly: AssemblyTitle("TickSpec")>]
 [<assembly: AssemblyDescription(".Net BDD Framework")>]

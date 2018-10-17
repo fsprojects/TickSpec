@@ -52,17 +52,16 @@ let parseFeature (lines:string[]) =
             exampleBlock.Table.Header |> List.sort,
             exampleBlock.Table.Rows
             |> Seq.map (fun row ->
-                Seq.zip exampleBlock.Table.Header row
-                |> Seq.fold (fun map (header, value) ->
-                        match Map.tryFind header map with
-                        | Some x ->
-                            let m = sprintf "A single header was specified multiple times in an example block starting at row %d" exampleBlock.LineNumber
-                            ParseException(m, Some exampleBlock.LineNumber) |> raise
-                        | None -> map |> Map.add header value
-                    ) Map.empty,
-                exampleBlock.Tags
-            )
-        )
+                let rowMap =
+                    Seq.zip exampleBlock.Table.Header row
+                    |> Seq.fold (fun map (header, value) ->
+                            match Map.tryFind header map with
+                            | Some x ->
+                                let m = sprintf "A single header was specified multiple times in an example block starting at row %d" exampleBlock.LineNumber
+                                ParseException(m, Some exampleBlock.LineNumber) |> raise
+                            | None -> map |> Map.add header value)
+                        Map.empty
+                rowMap, exampleBlock.Tags))
         // Union tables with the same columns
         |> Seq.groupBy (fun (h,_) -> h)
         |> Seq.map (fun (header,tables) ->
@@ -74,13 +73,12 @@ let parseFeature (lines:string[]) =
         |> Seq.choose id
         |> Seq.groupBy (fun (_,r) -> r)
         |> Seq.map (fun (row, taggedRows) ->
-            taggedRows
-            |> Seq.fold (fun tags (t,r) ->
-                Seq.append tags t
-            ) Seq.empty
-            |> Seq.distinct
-            |> Seq.toList,
-            row |> Map.toList
+            let t =
+                (Seq.empty, taggedRows)
+                ||> Seq.fold (fun tags (t,_) -> Seq.append tags t)
+                |> Seq.distinct
+                |> Seq.toList
+            t, row |> Map.toList
         )
 
     let createStep combination step =
@@ -92,8 +90,12 @@ let parseFeature (lines:string[]) =
 
         let bullets, table, doc =
             match step.Item with
-            | Some (BulletsItem b) -> Some (b |> List.toArray), None, None
-            | Some (TableItem t) -> None, Some (new Table(t.Header |> List.toArray, t.Rows |> Seq.map List.toArray |> Seq.toArray)), None
+            | Some (BulletsItem b) ->
+                b |> List.toArray |> Some, None, None
+            | Some (TableItem t) ->
+                let header = t.Header |> List.toArray
+                let rows = t.Rows |> Seq.map List.toArray |> Seq.toArray
+                None, new Table(header, rows) |> Some, None
             | Some (DocStringItem d) -> None, None, Some d
             | None -> None, None, None
 
@@ -120,7 +122,7 @@ let parseFeature (lines:string[]) =
             |> List.mapi (fun i (tags, combination) ->
                 let name = nameFunc i
                 let steps =
-                    background @ scenario.Steps
+                    Seq.append background scenario.Steps
                     |> Seq.map (createStep combination)
                     |> Seq.toArray
 

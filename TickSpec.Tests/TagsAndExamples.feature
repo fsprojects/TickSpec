@@ -5,7 +5,7 @@ Background:
 Given User connects to <server>
 
 @basics @index
-Scenario Outline: Tags and Examples Sc.
+Scenario Outline: Tags and Examples
 When Client requests <page>
 Then Server responds with page <page>
 

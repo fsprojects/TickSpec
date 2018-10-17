@@ -44,42 +44,40 @@ let tryRegex input pattern =
 let startsWith (pattern:string) (s:string) =
     s.StartsWith(pattern, System.StringComparison.InvariantCultureIgnoreCase)
 
+let (|Trim|) (s:string) = s.Trim()
 let (|FeatureLine|_|) s =
     tryRegex s "^\s*Feature:\s(.*)"
-    |> Option.map (fun t -> FeatureLine (t.Trim()))
+    |> Option.map (function Trim t -> FeatureLine t)
 let (|ScenarioLine|_|) (s:string) =
     let trimmed = s.Trim()
-    let matches =
-        [ "Scenario"; "Story" ]
-        |> Seq.choose (fun x ->
-            if trimmed |> startsWith x then Some trimmed
-            else None)
-    if matches |> Seq.isEmpty then None
-    else ScenarioLine (matches |> Seq.head) |> Some
+    [ "Scenario"; "Story" ]
+    |> Seq.tryPick (fun x ->
+        if trimmed |> startsWith x then
+            ScenarioLine trimmed |> Some
+        else None)
 let (|BackgroundLine|_|) s =
     tryRegex s "^\s*Background(.*)"
     |> Option.map (fun t -> BackgroundLine)
 let (|GivenLine|_|) s =
     tryRegex s "^\s*Given\s(.*)"
-    |> Option.map (fun t -> GivenLine (t.Trim()))
+    |> Option.map (function Trim t -> GivenLine t)
 let (|WhenLine|_|) s =
     tryRegex s "^\s*When\s(.*)"
-    |> Option.map (fun t -> WhenLine (t.Trim()))
+    |> Option.map (function Trim t -> WhenLine t)
 let (|ThenLine|_|) s =
     tryRegex s "^\s*Then\s(.*)"
-    |> Option.map (fun t -> ThenLine (t.Trim()))
+    |> Option.map (function Trim t -> ThenLine t)
 let (|AndLine|_|) s =
     tryRegex s "^\s*And\s(.*)"
-    |> Option.map (fun t -> AndLine (t.Trim()))
+    |> Option.map (function Trim t -> AndLine t)
 let (|ButLine|_|) s =
     tryRegex s "^\s*But\s(.*)"
-    |> Option.map (fun t -> ButLine (t.Trim()))
+    |> Option.map (function Trim t -> ButLine t)
 let (|TableRowLine|_|) (s:string) =
     if s.Trim().StartsWith("|") then
-        let options = System.StringSplitOptions.RemoveEmptyEntries
-        let cols = s.Trim().Split([|'|'|],options)
-        let cols = cols |> Array.toList |> List.map (fun s -> s.Trim())
-        TableRowLine cols |> Some
+        let columnsStrings = s.Trim().Split([|'|'|], System.StringSplitOptions.RemoveEmptyEntries)
+        let columns = [ for (Trim s) in columnsStrings -> s ]
+        TableRowLine columns |> Some
     else None
 let (|Bullet|_|) (s:string) =
     if s.Trim().StartsWith("*") then
