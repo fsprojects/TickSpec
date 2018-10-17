@@ -7,9 +7,7 @@
 A lightweight Behaviour Driven Development (BDD) framework for .NET that'll fit how you want to test.
 
 1. Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then.
-
 2. Easily execute the behaviour against matching F# 'ticked' methods, or attribute-tagged C# or F# methods.
-
 3. Run via your normal test runners or plugins (xUnit, NUnit or standalone)
 4. Set breakpoints in the scenarios, step definitions or your code and go (setting breakpoints in the Gherkin is currently not supported in .NET Standard version)
 
