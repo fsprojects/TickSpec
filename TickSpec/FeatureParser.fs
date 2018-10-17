@@ -30,8 +30,8 @@ let parseFeature (lines:string[]) =
                 | None -> None
                 | Some (stateTags, stateMap) ->
                     let newStateMap =
-                        rowMap
-                        |> Map.fold (fun state key value ->
+                        (Some stateMap, rowMap)
+                        ||> Map.fold (fun state key value ->
                             match state with
                             | None -> None
                             | Some map ->
@@ -39,7 +39,7 @@ let parseFeature (lines:string[]) =
                                 match existingValue with
                                 | None -> Some (map.Add (key, value))
                                 | Some x when x = value -> Some map
-                                | _ -> None) (Some stateMap)
+                                | _ -> None)
                     match newStateMap with
                     | None -> None
                     | Some s ->
@@ -69,8 +69,7 @@ let parseFeature (lines:string[]) =
         |> Seq.toList
         // Cross-join tables with different columns
         |> combinations
-        |> Seq.map processRow
-        |> Seq.choose id
+        |> Seq.choose processRow
         |> Seq.groupBy (fun (_,r) -> r)
         |> Seq.map (fun (row, taggedRows) ->
             let t =
