@@ -12,7 +12,7 @@ A lightweight Behaviour Driven Development (BDD) framework for .NET that'll fit 
 
 3. Run via your normal test runners or plugins (xUnit, NUnit or standalone)
 
-4. Set breakpoints in the scenarios and go. This is currently supported in .NET Framework version of TickSpec only, .NET Standard version alows debugging of implementation only.
+4. Set breakpoints in the scenarios, step definitions or your code and go (setting breakpoints in the Gherkin is currently not supported in .NET Standard version)
 
 Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
 
