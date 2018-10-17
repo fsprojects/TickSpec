@@ -10,7 +10,7 @@ A lightweight Behaviour Driven Development (BDD) framework for .NET that'll fit 
 
 2. Easily execute the behaviour against matching F# 'ticked' methods, or attribute-tagged C# or F# methods.
 
-3. Run via your normal test runners (xUnit, NUnit or standalone)
+3. Run via your normal test runners or plugins (xUnit, NUnit or standalone)
 
 4. Set breakpoints in the scenarios and go. This is currently supported in .NET Framework version of TickSpec only, .NET Standard version alows debugging of implementation only.
 
