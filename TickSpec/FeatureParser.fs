@@ -54,16 +54,15 @@ let parseFeature (lines:string[]) =
                 exampleBlock.Table.Rows
                 |> Seq.map (fun row ->
                     let rowMap =
-                        Seq.zip exampleBlock.Table.Header row
-                        |> Seq.fold (fun map (header, value) ->
+                        (Map.empty, Seq.zip exampleBlock.Table.Header row)
+                        ||> Seq.fold (fun map (header, value) ->
                                 match Map.tryFind header map with
                                 | Some x ->
                                     let m = sprintf "A single header was specified multiple times in an example block starting at row %d" exampleBlock.LineNumber
                                     ParseException(m, Some exampleBlock.LineNumber) |> raise
                                 | None -> map |> Map.add header value)
-                            Map.empty
                     rowMap, exampleBlock.Tags)
-            (headers, rows))
+            headers, rows)
         // Union tables with the same columns
         |> Seq.groupBy (fun (h,_) -> h)
         |> Seq.map (fun (header,tables) ->
