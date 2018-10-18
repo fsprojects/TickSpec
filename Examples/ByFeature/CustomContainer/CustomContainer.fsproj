@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\netfx.props" />
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;net452</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="paket.references" />
     <Compile Include="XunitAutofacWiring.fs" />
     <Compile Include="Domain.fs" />
     <EmbeddedResource Include="Shelter.feature" />
@@ -13,6 +13,13 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj" />
+    <PackageReference Include="Autofac" Version="4.8.1" />
+    <PackageReference Include="unquote" Version="4.0.0" />
+    <PackageReference Include="Xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
   </ItemGroup>
-  <Import Project="..\..\..\.paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <Reference Include="System.Runtime" />
+  </ItemGroup>
 </Project>

@@ -1,3 +1,6 @@
+# Do not build feature branch with open Pull Requests
+skip_branch_with_pr: true
+
 image: Visual Studio 2017
 before_build:
   # Display .NET Core version
@@ -6,11 +9,12 @@ build_script:
   - cmd: build.bat
 test: off
 version: 1.1.0.{build}
+nuget:
+  account_feed: false
+  project_feed: false
 artifacts:
   - path: TickSpec\bin\Release
     name: release
   - path: 'packed_nugets\*.nupkg'
     type: NuGetPackage
-nuget:
-  account_feed: false
-  project_feed: false
+  
