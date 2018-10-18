@@ -158,37 +158,31 @@ let invokeStep
     invoke provider meth args
 
 /// Generate scenario execution function
-let generate events parsers (scenario, lines) (serviceProviderFactory: unit -> IInstanceProvider) =
+let generate events parsers (scenario, lines) (serviceProviderFactory: Ref<unit -> IInstanceProvider>) =
     fun () ->
-        task {
-            /// Type instance provider
-            let provider = serviceProviderFactory()
+        /// Type instance provider
+        let provider = (!serviceProviderFactory)()
 
+        try
+            let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
+            /// Invokes events
+            let invokeEvents events =
+                events |> Seq.iter (fun (mi:MethodInfo) ->
+                    invoke provider mi [||]
+                )
             try
-                let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
-                /// Invokes events
-                let invokeEvents events =
-                    task {
-                        events |> Seq.iter (fun (mi:MethodInfo) ->
-                            task {
-                                do! invoke provider mi [||]
-                            }
-                        )
-                    }
-                try
-                    beforeScenarioEvents |> invokeEvents
-                    // Iterate scenario lines
-                    lines |> Seq.iter (fun (line:LineSource,m,args) ->
-                        try
-                            beforeStepEvents |> invokeEvents
-                            (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
-                        finally
-                            afterStepEvents |> invokeEvents
-                    )
-                finally
-                    afterScenarioEvents |> invokeEvents
+                beforeScenarioEvents |> invokeEvents
+                // Iterate scenario lines
+                lines |> Seq.iter (fun (line:LineSource,m,args) ->
+                    try
+                        beforeStepEvents |> invokeEvents
+                        (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
+                    finally
+                        afterStepEvents |> invokeEvents
+                )
             finally
-                match provider with
-                | :? IDisposable as d -> d.Dispose()
-                | _ -> ()
-        }
+                afterScenarioEvents |> invokeEvents
+        finally
+            match provider with
+            | :? IDisposable as d -> d.Dispose()
+            | _ -> ()
