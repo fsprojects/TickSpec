@@ -4,6 +4,8 @@ open System
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Reflection
+open FSharp.Control.Tasks.ContextInsensitive
+open System.Threading.Tasks
 
 /// Splits CSV
 let split (s:string) =
@@ -158,29 +160,35 @@ let invokeStep
 /// Generate scenario execution function
 let generate events parsers (scenario, lines) (serviceProviderFactory: unit -> IInstanceProvider) =
     fun () ->
-        /// Type instance provider
-        let provider = serviceProviderFactory()
+        task {
+            /// Type instance provider
+            let provider = serviceProviderFactory()
 
-        try
-            let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
-            /// Invokes events
-            let invokeEvents events =
-                events |> Seq.iter (fun (mi:MethodInfo) ->
-                    invoke provider mi [||]
-                )
             try
-                beforeScenarioEvents |> invokeEvents
-                // Iterate scenario lines
-                lines |> Seq.iter (fun (line:LineSource,m,args) ->
-                    try
-                        beforeStepEvents |> invokeEvents
-                        (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
-                    finally
-                        afterStepEvents |> invokeEvents
-                )
+                let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events
+                /// Invokes events
+                let invokeEvents events =
+                    task {
+                        events |> Seq.iter (fun (mi:MethodInfo) ->
+                            task {
+                                do! invoke provider mi [||]
+                            }
+                        )
+                    }
+                try
+                    beforeScenarioEvents |> invokeEvents
+                    // Iterate scenario lines
+                    lines |> Seq.iter (fun (line:LineSource,m,args) ->
+                        try
+                            beforeStepEvents |> invokeEvents
+                            (m,args,line.Bullets,line.Table,line.Doc) |> invokeStep parsers provider
+                        finally
+                            afterStepEvents |> invokeEvents
+                    )
+                finally
+                    afterScenarioEvents |> invokeEvents
             finally
-                afterScenarioEvents |> invokeEvents
-        finally
-            match provider with
-            | :? IDisposable as d -> d.Dispose()
-            | _ -> ()
+                match provider with
+                | :? IDisposable as d -> d.Dispose()
+                | _ -> ()
+        }

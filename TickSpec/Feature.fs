@@ -3,7 +3,7 @@
 open System
 
 /// Action type
-type Action = delegate of unit -> unit
+type Action = delegate of unit -> Task
 
 /// Encapsulates Gherkin feature
 type Feature = {
