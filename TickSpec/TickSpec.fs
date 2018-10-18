@@ -10,7 +10,7 @@ open TickSpec.ScenarioRun
 
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (givens,whens,thens,events,valueParsers) =
-    let mutable instanceProviderFactory = fun () -> new InstanceProvider() :> IInstanceProvider
+    let instanceProviderFactory = ref (fun () -> new InstanceProvider() :> IInstanceProvider)
     /// Returns method's step attribute or null
     static let getStepAttributes (m:MemberInfo) =
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
@@ -169,7 +169,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         with set providerFactory =
             let mkScenarioContainer () : IInstanceProvider =
                 new ExternalServiceProviderInstanceProvider(providerFactory()) :> _
-            instanceProviderFactory <- mkScenarioContainer
+            instanceProviderFactory := mkScenarioContainer
 
     /// Generate scenarios from specified lines (source undefined)
     member __.GenerateScenarios (lines:string []) =
@@ -220,7 +220,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             let t = lazy (genType scenario)
             TickSpec.Action(fun () ->
                 let ctor = t.Force().GetConstructor([| typeof<FSharpFunc<unit, IInstanceProvider>> |])
-                let instance = ctor.Invoke([| instanceProviderFactory |])
+                let instance = ctor.Invoke([| !instanceProviderFactory |])
                 let mi = instance.GetType().GetMethod("Run")
                 mi.Invoke(instance,[||]) |> ignore
             )

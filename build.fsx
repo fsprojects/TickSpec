@@ -45,9 +45,7 @@ module Test =
             if Environment.isWindows then
                 projects
                 |> Seq.iter (fun (p:string) -> 
-                    // currently support for custom container is broken when IL generator isn't used, so we are skipping the .NET Core test
-                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release; NoBuild = true;
-                                                  Framework = if p.EndsWith("CustomContainer.fsproj") then Some "net452" else None }) p)
+                    DotNet.test (fun o -> {o with Configuration = DotNet.BuildConfiguration.Release; NoBuild = true}) p)
 
 open AppVeyor
 open Test
@@ -60,7 +58,6 @@ module Build =
     let nuget = rootDir </> "packed_nugets"
     let setParams (defaults :MSBuildParams) =
         { defaults with
-            Verbosity = Some MSBuildVerbosity.Normal
             Targets = ["Rebuild"]
             Properties =
                 [ "AllowedReferenceRelatedFileExtensions", ".pdb"
