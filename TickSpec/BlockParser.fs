@@ -1,204 +1,253 @@
 ﻿module internal TickSpec.BlockParser
 
 open TickSpec.LineParser
+open System
+open System.Text
 
-let identity x = x
+let private raiseParseException message lines =
+    match lines with
+    | (lineNumber,_,_) :: _ ->
+        let exMessage = sprintf "Parsing failed on row %d: %s" lineNumber message
+        ParseException(exMessage, Some lineNumber) |> raise
+    | _ ->
+        let exMessage = sprintf "Parsing failed on the end of file: %s" message
+        ParseException(exMessage, None) |> raise
 
-let mapItems items =
-    let items = List.rev items
-    match items with
-    | x::xs ->
-        match x with
-        | BulletPoint _ ->
-            let bullets =
-                items |> List.map (function
-                    | TableRow _ -> None
-                    | BulletPoint s -> Some s
-                    | DocString _ -> None
-                )
-                |> List.choose identity
-            Some(bullets |> List.toArray),None,None
-        | TableRow header ->
-            let rows =
-                xs |> List.map (function
-                    | TableRow cols -> Some cols
-                    | BulletPoint _ -> None
-                    | DocString _ -> None
-                )
-                |> List.choose identity
-            None,Some(Table(header,rows |> List.toArray)),None
-        | DocString _ ->
-            let lines =
-               items |> List.map (function
-                        | TableRow _ -> None
-                        | BulletPoint _ -> None
-                        | DocString s -> Some s
-                )
-                |> List.choose id
-            None,None,Some(String.concat "\r\n" lines)
-    | [] -> None,None,None
+type internal FeatureBlock =
+    {
+        Name: string
+        Tags: string list
+        Background: StepBlock list
+        Scenarios: ScenarioBlock list
+        SharedExamples: ExampleBlock list
+    }
+and internal ScenarioBlock =
+    {
+        Name: string
+        Tags: string list
+        Steps: StepBlock list
+        Examples: ExampleBlock list
+    }
+and internal StepBlock =
+    {
+        Step: StepType
+        LineNumber: int
+        LineString: string
+        Item: ItemBlock option
+    }
+and internal ItemBlock =
+    | BulletsItem of string list
+    | TableItem of TableBlock
+    | DocStringItem of string
+and internal TableBlock =
+    {
+        Header: string list
+        Rows: string list list
+    }
+and internal ExampleBlock =
+    {
+        Tags: string list
+        Table: TableBlock
+        LineNumber: int
+    }
 
-/// Build blocks in specified lines
-let buildBlocks lines =
-    // Scan over lines
+let private parseTags lines =
+    let rec parseTagsInternal tags lines =
+        match lines with
+        | (_,_,TagLine strings) :: xs -> parseTagsInternal (tags @ strings) xs
+        | _ -> tags, lines
+    parseTagsInternal [] lines
+
+let parseTable origLines =
+    let rec readTableRows rows lines =
+        match lines with
+        | (_, _, Item(_, TableRow cells)) :: xs ->
+            readTableRows (rows @ [ cells ]) xs
+        | _ -> rows, lines
+
+    let allRows, lines = readTableRows [] origLines
+    match allRows with
+    | header :: rows -> { Header = header; Rows = rows }, lines
+    | _ -> lines |> raiseParseException "Table expected"
+
+let private parseExamples lines =
+    let rec parseExamplesInternal examples origLines =
+        let tags, lines = parseTags origLines
+
+        match lines with
+        | (lineNumber, _, Examples) :: xs ->
+            let table, lines = parseTable xs
+            parseExamplesInternal (examples @ [ { Tags = tags; Table = table; LineNumber = lineNumber }]) lines
+        | _ -> examples, origLines
+
+    parseExamplesInternal [] lines
+
+let private parseSharedExamples lines =
+    let rec parseSharedExamplesInternal examples origLines =
+        let tags, lines = parseTags origLines
+
+        match lines with
+        | (lineNumber, _, SharedExamples) :: xs ->
+            let table, lines = parseTable xs
+            parseSharedExamplesInternal (examples @ [ { Tags = tags; Table = table; LineNumber = lineNumber }]) lines
+        | _ -> examples, origLines
+
+    parseSharedExamplesInternal [] lines
+
+let private parseItem lines =
+    let parseBulletPoints lines =
+        let rec parseBulletPointsInternal bullets lines =
+            match lines with
+            | (_, _, Item(_, BulletPoint p)) :: xs -> parseBulletPointsInternal (bullets @ [ p ]) xs
+            | _ -> bullets, lines
+        parseBulletPointsInternal [] lines
+
+    let parseMultiLineString lines =
+        let offset, lines =
+            match lines with
+            | (_, _, Item(_, MultiLineStringStart o)) :: xs -> o, xs
+            | _ -> lines |> raiseParseException "DocString start expected"
+
+        let rec readLines (sb:StringBuilder) offset lines =
+            match lines with
+            | (_, _, Item(_, MultiLineString s)) :: xs ->
+                if sb.Length > 0 then sb.AppendLine("") |> ignore
+
+                if s.Length > offset then
+                    sb.Append(s.Substring(offset)) |> ignore
+
+                readLines sb offset xs
+            | _ -> sb.ToString(), lines
+
+        let text, lines = readLines (new StringBuilder()) offset lines
+
+        match lines with
+        | (_, _, Item(_, MultiLineStringEnd)) :: xs -> text, xs
+        | _ -> lines |> raiseParseException "DocString end expected"
+
+    match lines with
+    | (_, _, Item(_, BulletPoint _)) :: _ ->
+        let bullets, lines = parseBulletPoints lines
+        Some (BulletsItem bullets), lines
+    | (_, _, Item(_, MultiLineStringStart _)) :: _ ->
+        let string, lines = parseMultiLineString lines
+        Some (DocStringItem string), lines
+    | (_, _, Item(_, TableRow _)) :: _ ->
+        let table, lines = parseTable lines
+        Some (TableItem table), lines
+    | _ -> None, lines
+
+let private parseSteps lines =
+    let parseStep lines =
+        match lines with
+        | (ln,line,Step(s)) :: xs ->
+            let item, newLines = parseItem xs
+            Some {
+                Step = s
+                LineNumber = ln
+                LineString = line
+                Item = item
+            }, newLines
+        | _ -> None, lines
+
+    let rec parseStepsInternal steps lines =
+        let parsedStep, lines = parseStep lines
+        match parsedStep with
+        | Some step -> parseStepsInternal (step :: steps) lines
+        | None -> steps, lines
+
+    let steps, lines = parseStepsInternal [] lines
+    if steps = [] then lines |> raiseParseException "At least one step is expected"
+    steps |> List.rev, lines
+
+let private parseBackground lines =
+    match lines with
+    | (_,_,Background) :: xs -> parseSteps xs
+    | _ -> [], lines
+
+let private parseScenario origLines =
+    let tags, lines = parseTags origLines
+
+    let scenarioName, lines =
+        match lines with
+        | (_,_,Scenario name) :: xs -> Some name, xs
+        | _ -> None, lines
+
+    match scenarioName with
+    | Some name ->
+        let steps, lines = parseSteps lines
+        let examples, lines = parseExamples lines
+
+        Some {
+            Name = name
+            Tags = tags
+            Steps = steps
+            Examples = examples
+        }, lines
+    | None -> None, origLines
+
+let private parseScenarios lines =
+    let rec parseScenariosInternal scenarios lines =
+        let parsedScenario, lines = parseScenario lines
+        match parsedScenario with
+        | Some scenario -> parseScenariosInternal (scenario :: scenarios) lines
+        | None -> scenarios, lines
+
+    let scenarios, lines = parseScenariosInternal [] lines
+    if scenarios = [] then lines |> raiseParseException "At least one scenario is expected"
+    scenarios |> List.rev, lines
+
+let private parseFeatureBlock lines =
+    let tags, lines = parseTags lines
+
+    let featureName, lines =
+        match lines with
+        | (_,_,FeatureName name) :: xs -> name, xs
+        | _ -> lines |> raiseParseException "Expected feature in the beginning of file"
+
+    let rec skipDescription lines =
+        match lines with
+        | (_,_,FeatureDescription _) :: xs -> skipDescription xs
+        | x -> x
+
+    let lines = skipDescription lines
+    let background, lines = parseBackground lines
+    let scenarios, lines = parseScenarios lines
+    let examples, lines = parseSharedExamples lines
+
+    if lines <> [] then lines |> raiseParseException "File continues unexpectedly"
+
+    {
+        Name = featureName
+        Tags = tags
+        Background = background
+        Scenarios = scenarios
+        SharedExamples = examples
+    }
+
+let private parseFeatureFile parsedLines =
+    match parsedLines with
+    | (_,_,FileStart) :: xs -> parseFeatureBlock xs
+    | _ -> parsedLines |> raiseParseException "Unexpected call of parser"
+
+let parseBlocks (lines:string seq) =
     lines
-    |> Seq.scan (fun (block,blockN,lastStep,lastN,tags,tags',_) (lineN,line) ->
-        let step =
-            match parseLine (lastStep,line) with
-            | Some newStep -> newStep
-            | None ->
-                let e = expectingLine lastStep
-                let m = sprintf "Syntax error on line %d %s\r\n%s" lineN line e
-                StepException(m,lineN,block.ToString()) |> raise
-        match step with
-        | TagLine tag ->
-            block, blockN, step, lineN, tag@tags, tags', None
-        | BlockStart block ->
-            block, blockN+1, step, lineN, [], tags, None
-        | ExamplesStart | Step _ ->
-            block, blockN, step, lineN, tags, tags',
-                Some(block,blockN,tags',lineN,line,step)
-        | Item _ ->
-            block, blockN, step, lastN, tags, tags',
-                Some(block,blockN,tags',lastN,line,step)
-    ) (Background,0,BlockStart(Background),0,[],[],None)
-    // Handle tables
-    |> Seq.choose (fun (_,_,_,_,_,_,step) -> step)
-    |> Seq.groupBy (fun (_,_,_,lineN,_,_) -> lineN)
-    |> Seq.map (fun (line,items) ->
-        items |> Seq.fold (fun (text,row,table) (block,blockN,tags,lineN,line,step) ->
-            let text = if String.length text = 0 then line else text + "\r\n" + line
-            match step with
-            | BlockStart (Shared _)
-            | ExamplesStart | Step _ ->
-                text, (block,blockN,tags,lineN,line,step), table
-            | Item (BlockStart (Shared _),item) ->
-                text, (block,blockN,tags,lineN,line,step), item::table
-            | Item (_,item) ->
-                text, row, item::table
-            | BlockStart _ | TagLine _ ->
-                invalidOp "Unexpected token"
-        ) ("",(Background,0,[],0,"",BlockStart(Background)),[])
-        |> (fun (text, line, items) -> text, line, mapItems items)
+    |> Seq.mapi (fun lineNumber line -> (lineNumber + 1, line))
+    |> Seq.map (fun (lineNumber, line) ->
+        let i = line.IndexOf("#")
+        if i = -1 then lineNumber, line
+        else lineNumber, line.Substring(0, i)
     )
-    // Map to lines
-    |> Seq.map (fun (text, (block,blockN,tags,n,line,step), (bullets,table,doc)) ->
-        let line = {Number=n;Text=text;Bullets=bullets;Table=table;Doc=doc}
-        block,blockN,tags,line,step
-    )
-    // Group into blocks
-    |> Seq.groupBy (fun (block,n,tags,_,_) -> (block,n,tags))
-    |> (fun (blocks) ->
-        let blocks = Seq.cache blocks
-        let names = blocks |> Seq.map (fun ((name,_,_),_) -> name)
-        blocks |> Seq.mapi (fun i ((name,_,tags),lines) ->
-            let names = names |> Seq.take (i+1)
-            let count = names |> Seq.filter ((=) name) |> Seq.length
-            let name =
-                if count = 1 then name
-                else
-                    match name with
-                    | Background ->
-                        let message = "Multiple Backgrounds not supported"
-                        raise (new System.NotSupportedException(message))
-                    | Named text -> Named (sprintf "%s~%d" text count)
-                    | Shared tag -> Shared tag
-            (name,tags),lines
-        )
-    )
-    // Handle examples
-    |> Seq.map (fun (block,lines) ->
-        block,
-            lines
-            |> Seq.toArray
-            |> Array.partition (function
-                | _,_,_,_,ExamplesStart -> true
-                | _ -> false
-            )
-            |> (fun (examples,steps) ->
-                steps,
-                    let tables =
-                        examples
-                        |> Array.choose (fun (_,_,_,line,_) -> line.Table)
-                        |> Array.filter (fun table -> table.Rows.Length > 0)
-                    if tables.Length > 0 then Some tables
-                    else None
-            )
-    )
-    |> Seq.map (fun ((block,tags),(steps,examples)) ->
-        block,tags |> List.toArray,steps,examples
-    )
+    |> Seq.filter (fun (_, line) -> line.Trim().Length > 0)
+    |> Seq.scan(fun (_, _, lastParsedLine) (lineNumber, lineContent) ->
+        let parsed = parseLine (lastParsedLine, lineContent)
+        match parsed with
+        | Some line -> (lineNumber, lineContent, line)
+        | None ->
+            let e = expectingLine lastParsedLine
+            let m = sprintf "Syntax error on line %d %s\r\n%s" lineNumber lineContent e
+            ParseException(m, Some lineNumber) |> raise
+        ) (0, "", FileStart)
+    |> Seq.toList
+    |> parseFeatureFile
 
-/// Parse blocks
-let parseBlocks (featureLines:string[]) =
-    let startsWith s (line:string) = line.Trim().StartsWith(s)
-    let lines =
-        featureLines
-        |> Seq.mapi (fun i line -> (i+1,line))
-    let n, feature =
-        lines
-        |> Seq.tryFind (snd >> startsWith "Feature")
-        |> (function Some line -> line | None -> invalidOp("Expecting Feature keyword"))
-    let blocks =
-        lines
-        |> Seq.skip n
-        |> Seq.skipUntil (fun (_,text) ->
-            text |> startsWith "@" ||
-            text |> startsWith "Scenario" ||
-            text |> startsWith "Story" ||
-            text |> startsWith "Background" ||
-            text |> startsWith "Shared"
-        )
-        |> Seq.map (fun (n,line) ->
-            let i = line.IndexOf("#")
-            if i = -1 then n,line
-            else n,line.Substring(0,i)
-        )
-        |> Seq.filter (fun (_,line) -> line.Trim().Length > 0)
-        |> buildBlocks
-    let tagExamples, sharedExamples =
-        let shared =
-            blocks
-            |> Seq.choose (function
-                | Background,_,_,_ -> None
-                | Named _,_,_,_ -> None
-                | Shared tag,tags,lines,examples ->
-                    let tables = lines |> Seq.map (fun (_,_,_,line,_) -> line.Table) |> Seq.choose identity
-                    let examples = examples |> (function Some x -> Seq.append tables x | None -> tables)
-                    (tag, examples) |> Some
-            )
-        let tagged =
-            shared |> Seq.choose (function Some x,y -> Some(x,y) | None,y -> None)
-        let untagged =
-            shared |> Seq.choose (function Some x,y -> None | None,y -> Some y)
-            |> Seq.concat |> Seq.toArray
-        tagged, untagged
-    let toSteps lines =
-        lines
-        |> Seq.map (fun (block,n,tags,line,lineType) ->
-            let step = match lineType with Step(step) -> step | _ -> invalidOp "Expecting step"
-            (block,n,tags,line,step)
-        )
-    let background =
-        blocks
-        |> Seq.choose (function
-            | Background,tags,lines,examples -> Some (lines,examples)
-            | Named _,_,_,_ -> None
-            | Shared _,_,_,_ -> None
-        )
-        |> Seq.collect (fun (lines,_) -> lines |> toSteps)
-        |> Seq.toArray
-    let scenarios =
-        blocks
-        |> Seq.choose (function
-            | Background,_,_,_ -> None
-            | Named name,tags,lines,examples ->
-                let xs = tagExamples |> Seq.filter (fun (tag,_) -> tags |> Seq.exists ((=) tag)) |> Seq.collect snd |> Seq.toArray
-                let examples =
-                    match examples, xs with
-                    | Some x, xs -> Array.append x xs |> Some
-                    | None, xs -> if xs.Length>0 then Some xs else None
-                Some(name,tags,lines |> toSteps,examples)
-            | Shared _,_,_,_ -> None
-        )
-    feature, background, scenarios, sharedExamples

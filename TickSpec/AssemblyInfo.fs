@@ -1,6 +1,7 @@
 namespace TickSpec
 
 open System.Reflection
+open System.Runtime.CompilerServices
 open System.Runtime.InteropServices
 
 [<assembly: AssemblyTitle("TickSpec")>]
@@ -10,6 +11,7 @@ open System.Runtime.InteropServices
 [<assembly: AssemblyTrademark("")>]
 
 [<assembly: ComVisible(false)>]
+[<assembly: InternalsVisibleTo("TickSpec.Tests")>]
 
 [<assembly: Guid("ce5d72fa-c61d-40dd-bbda-dbb170d4412a")>]
 
