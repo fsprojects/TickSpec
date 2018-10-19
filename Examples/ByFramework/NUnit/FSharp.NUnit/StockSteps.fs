@@ -3,10 +3,15 @@
 open NUnit.Framework
 open Retail
 open TickSpec
+open FSharp.Control.Tasks.ContextInsensitive
+open System.Threading.Tasks
 
 let mutable stockItem = { Count = 0 }
 
-let [<Given>] ``a customer buys a black jumper`` () = ()
+let [<Given>] ``a customer buys a black jumper`` () =
+    task {
+        do! Task.Delay 1000
+    }
       
 let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) =  
     stockItem <- { stockItem with Count = n }

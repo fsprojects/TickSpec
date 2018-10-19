@@ -4,7 +4,6 @@ open System
 open System.Collections.Generic
 open System.Reflection
 open Microsoft.FSharp.Reflection
-open FSharp.Control.Tasks.ContextInsensitive
 open System.Threading.Tasks
 
 /// Splits CSV
@@ -18,18 +17,41 @@ let getInstance (provider:IInstanceProvider) (m:MethodInfo) =
     if m.IsStatic then null
     else provider.GetService m.DeclaringType
 
+let doCall<'T> (validator: obj, value: obj): bool =
+    let validatorU: 'T -> bool = unbox validator
+    let valueU: 'T = unbox value
+    validatorU valueU
+
 /// Invokes specified method with specified parameters
 let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
     let instance = getInstance provider m
-    let ret = m.Invoke(instance,ps)
-    if m.ReturnType <> typeof<System.Void> then
-        if FSharpType.IsTuple m.ReturnType then
-            let types = FSharpType.GetTupleElements m.ReturnType
+    let retP = m.Invoke(instance,ps)
+    let ret =
+        
+        match retP with
+        | :? Async<_> as a ->
+            async {
+                return! a
+            } |> Async.RunSynchronously :> obj
+        | :? Task as t -> 
+            async {
+                do! t |> Async.AwaitTask
+            } |> Async.RunSynchronously
+            let tup = retP.GetType()
+            let p = tup.GetProperty("Result")
+            if isNull p then (() :> obj)
+            else p.GetValue(retP)
+        | _ -> 
+            retP
+    let typ = if ret = null then typeof<System.Void> else ret.GetType()
+    if typ <> typeof<System.Void> then
+        if FSharpType.IsTuple typ then
+            let types = FSharpType.GetTupleElements typ
             let values = FSharpValue.GetTupleFields ret
             Seq.map2 (fun t v -> t,v) types values
             |> Seq.iter (fun (t,v) -> provider.RegisterInstance(t, v))
         else
-            provider.RegisterInstance(m.ReturnType, ret)
+            provider.RegisterInstance(typ, ret)
     
 /// Converts generic methods
 let toConcreteMethod (m:MethodInfo) =
