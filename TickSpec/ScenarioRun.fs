@@ -17,33 +17,51 @@ let getInstance (provider:IInstanceProvider) (m:MethodInfo) =
     if m.IsStatic then null
     else provider.GetService m.DeclaringType
 
-let doCall<'T> (validator: obj, value: obj): bool =
-    let validatorU: 'T -> bool = unbox validator
-    let valueU: 'T = unbox value
-    validatorU valueU
+type AsyncInvoker private () =
+    static let CallMethodInfo = 
+        let flags = System.Reflection.BindingFlags.NonPublic ||| System.Reflection.BindingFlags.Static
+        typeof<AsyncInvoker>.GetMethod("DoAsyncCall", flags).GetGenericMethodDefinition()
+    
+    static member private DoAsyncCall<'T> (input: obj) =
+        let typedInput: Async<'T> = unbox input
+        async {
+            return! typedInput
+        } |> Async.RunSynchronously
+    
+    static member Call (input: obj, typeOfValue: System.Type) =
+        CallMethodInfo.MakeGenericMethod(typeOfValue).Invoke(null, [|input|]) :?> _
+
+type TaskInvoker private () =
+    static let CallMethodInfo = 
+        let flags = System.Reflection.BindingFlags.NonPublic ||| System.Reflection.BindingFlags.Static
+        typeof<TaskInvoker>.GetMethod("DoCallAsync", flags).GetGenericMethodDefinition()
+    
+    static member private DoCallAsync<'T> (input: obj) =
+        let typedInput: Task<'T> = unbox input
+        async {
+            return! typedInput |> Async.AwaitTask
+        } |> Async.RunSynchronously
+    
+    static member Call (input: obj, typeOfValue: System.Type) =
+        CallMethodInfo.MakeGenericMethod(typeOfValue).Invoke(null, [|input|]) :?> _
 
 /// Invokes specified method with specified parameters
 let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
     let instance = getInstance provider m
+    let v = m.ReturnType
     let retP = m.Invoke(instance,ps)
-    let ret =
-        
-        match retP with
-        | :? Async<_> as a ->
+    let ret, typ =
+        match v.Namespace, v.Name with
+        | "System.Threading.Tasks", "Task`1" ->
+            (TaskInvoker.Call(retP, v.GenericTypeArguments.[0]), v.GenericTypeArguments.[0])
+        | "System.Threading.Tasks", "Task" ->
             async {
-                return! a
-            } |> Async.RunSynchronously :> obj
-        | :? Task as t -> 
-            async {
-                do! t |> Async.AwaitTask
+                do! retP :?> Task |> Async.AwaitTask
             } |> Async.RunSynchronously
-            let tup = retP.GetType()
-            let p = tup.GetProperty("Result")
-            if isNull p then (() :> obj)
-            else p.GetValue(retP)
-        | _ -> 
-            retP
-    let typ = if ret = null then typeof<System.Void> else ret.GetType()
+            (() :> obj, typeof<System.Void>)
+        | "Microsoft.FSharp.Control", "FSharpAsync`1" ->
+            (AsyncInvoker.Call(retP, v.GenericTypeArguments.[0]), v.GenericTypeArguments.[0])
+        | _, _ -> (retP, v)
     if typ <> typeof<System.Void> then
         if FSharpType.IsTuple typ then
             let types = FSharpType.GetTupleElements typ

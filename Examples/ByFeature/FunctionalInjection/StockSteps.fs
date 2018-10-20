@@ -6,7 +6,10 @@ open TickSpec
 open FSharp.Control.Tasks.ContextInsensitive
 open System.Threading.Tasks
 
-let [<Given>] ``a customer buys a black jumper`` () = ()
+let [<Given>] ``a customer buys a black jumper`` () =
+    async {
+        ()
+    }
 
 let [<Given>] ``I have (.*) black jumpers left in stock`` (n:int) = 
     task {
