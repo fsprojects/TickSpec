@@ -433,8 +433,28 @@ let defineStepMethod
     else
         gen.Emit(OpCodes.Callvirt, mi)
 
-    if mi.ReturnType <> typeof<System.Void> then
-        gen.Emit(OpCodes.Box,mi.ReturnType)
+    let v = mi.ReturnType
+    let typ =
+        match v.Namespace, v.Name with
+        | "System.Threading.Tasks", "Task`1" ->
+            let callInfo =
+                typeof<AsyncInvoker>.GetMethod("DoCallAsync", BindingFlags.Public ||| BindingFlags.Static).MakeGenericMethod(v.GenericTypeArguments.[0])
+            gen.EmitCall(OpCodes.Call, callInfo, null)
+            v.GenericTypeArguments.[0]
+        | "System.Threading.Tasks", "Task" ->
+            let callInfo =
+                typeof<AsyncInvoker>.GetMethod("DoTaskCall", BindingFlags.Public ||| BindingFlags.Static)
+            gen.EmitCall(OpCodes.Call, callInfo, null)
+            typeof<System.Void>
+        | "Microsoft.FSharp.Control", "FSharpAsync`1" ->
+            let callInfo =
+                typeof<AsyncInvoker>.GetMethod("DoAsyncCall", BindingFlags.Public ||| BindingFlags.Static).MakeGenericMethod(v.GenericTypeArguments.[0])
+            gen.EmitCall(OpCodes.Call, callInfo, null)
+            v.GenericTypeArguments.[0]
+        | _, _ -> v
+
+    if typ <> typeof<System.Void> then
+        gen.Emit(OpCodes.Box,typ)
         let local0 = gen.DeclareLocal(typeof<Object>).LocalIndex
         gen.Emit(OpCodes.Stloc, local0)
 
@@ -449,8 +469,8 @@ let defineStepMethod
             gen.Emit(OpCodes.Ldloc, l)
             gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterInstance"))
 
-        if FSharpType.IsTuple mi.ReturnType then
-            let types = FSharpType.GetTupleElements mi.ReturnType
+        if FSharpType.IsTuple typ then
+            let types = FSharpType.GetTupleElements typ
             for i = 0 to (types.Length - 1) do
                 let t = types.[i]
                 let local1 = gen.DeclareLocal(typeof<Object>).LocalIndex
@@ -462,7 +482,7 @@ let defineStepMethod
 
                 emitRegisterInstanceCall t local1
         else
-            emitRegisterInstanceCall (mi.ReturnType) local0
+            emitRegisterInstanceCall typ local0
 
     // Emit return
     gen.Emit(OpCodes.Ret)

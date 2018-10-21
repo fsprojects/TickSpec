@@ -2,7 +2,6 @@
 
 open NUnit.Framework
 open TickSpec
-open System.Net
 open System
 open FSharp.Control.Tasks.V2.ContextInsensitive
 open System.Threading.Tasks

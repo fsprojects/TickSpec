@@ -19,6 +19,7 @@
     <Compile Include="Extensions.fs" />
     <Compile Include="ServiceProvider.fs" />
     <Compile Include="FeatureSource.fs" />
+    <Compile Include="AsyncInvoker.fs" />
     <Compile Include="ScenarioRun.fs" />
     <Compile Include="ScenarioGen.fs" />
     <Compile Include="FeatureGen.fs" />
