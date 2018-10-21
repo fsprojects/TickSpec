@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.1;net45</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="paket.references" />
+    <Compile Include="NunitWiring.fs" />
+    <EmbeddedResource Include="Web.feature" />
+    <Compile Include="WebSteps.fs" />
+    <EmbeddedResource Include="Time.feature" />
+    <Compile Include="TimeSteps.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj" />
+  </ItemGroup>
+  <Import Project="..\..\..\.paket\Paket.Restore.targets" />
+</Project>

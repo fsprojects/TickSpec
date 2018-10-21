@@ -11,6 +11,7 @@ nuget Microsoft.NET.Test.Sdk
 nuget xunit ~> 2 # there are v1 examples but most integrations use v2
 nuget xunit.runner.visualstudio ~> 2 version_in_path: false
 nuget Unquote
+nuget TaskBuilder.fs
 
 # Example container to illustrate integration
 nuget Autofac
