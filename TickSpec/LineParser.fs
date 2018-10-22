@@ -96,6 +96,13 @@ let (|Attributes|_|) (s:string) =
             seq { for tag in Regex.Matches(s,@"@(\w+)") do yield tag.Value.Substring(1) }
         Attributes (tags |> Seq.toList) |> Some
     else None
+let (|AfterStep|_|) =
+    function
+    | Step(s) -> AfterStep s |> Some
+    | Item(Step(s), TableRow _) -> AfterStep s |> Some
+    | Item(Step(s), BulletPoint _) -> AfterStep s |> Some
+    | Item(Step(s), MultiLineStringEnd) -> AfterStep s |> Some
+    | _ -> None
 
 /// Line state given previous line state and new line text
 let parseLine = function
@@ -118,30 +125,19 @@ let parseLine = function
         -> Scenario text |> Some
     | Background, GivenLine text
     | Scenario _, GivenLine text
-    | Step(_), GivenLine text
-    | Step(GivenStep _), AndLine text
-    | Step(GivenStep _), ButLine text
-    | Item(Step(_), TableRow _), GivenLine text
-    | Item(_, BulletPoint _), GivenLine text
-    | Item(_, MultiLineStringEnd), GivenLine text
+    | AfterStep _, GivenLine text
+    | AfterStep (GivenStep _), AndLine text
+    | AfterStep (GivenStep _), ButLine text
         -> Step(GivenStep text) |> Some
-    | Background, WhenLine text
     | Scenario _, WhenLine text
-    | Step(_), WhenLine text
-    | Step(WhenStep _), AndLine text
-    | Step(WhenStep _), ButLine text
-    | Item(Step(_), TableRow _), WhenLine text
-    | Item(_, BulletPoint _), WhenLine text
-    | Item(_, MultiLineStringEnd), WhenLine text
+    | AfterStep _, WhenLine text
+    | AfterStep (WhenStep _), AndLine text
+    | AfterStep (WhenStep _), ButLine text
         -> Step(WhenStep text) |> Some
-    | Background, ThenLine text
     | Scenario _, ThenLine text
-    | Step(_), ThenLine text
-    | Step(ThenStep _), AndLine text
-    | Step(ThenStep _), ButLine text
-    | Item(Step(_), TableRow _), ThenLine text
-    | Item(_, BulletPoint _), ThenLine text
-    | Item(_, MultiLineStringEnd), ThenLine text
+    | AfterStep _, ThenLine text
+    | AfterStep (ThenStep _), AndLine text
+    | AfterStep (ThenStep _), ButLine text
         -> Step(ThenStep text) |> Some
     | (Step(_) as l), TableRowLine cells
     | Item(l, TableRow _), TableRowLine cells

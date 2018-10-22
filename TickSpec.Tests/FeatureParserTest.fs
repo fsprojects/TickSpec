@@ -349,6 +349,7 @@ let FileWithItems_ParseLines () =
         Step (ThenStep "I can take a bullet list")
         Item (Step (ThenStep "I can take a bullet list"), BulletPoint "First item")
         Item (Step (ThenStep "I can take a bullet list"), BulletPoint "Second item")
+        Step (ThenStep "Even the next step is clear")
     ]
 
 [<Test>]
@@ -385,6 +386,12 @@ let FileWithItems_ParseBlocks () =
                         LineNumber = 13
                         LineString = "Then I can take a bullet list"
                         Item = Some (BulletsItem [ "First item"; "Second item" ])
+                    }
+                    {
+                        Step = ThenStep "Even the next step is clear"
+                        LineNumber = 16
+                        LineString = "And Even the next step is clear"
+                        Item = None
                     }
                 ]
                 Examples = []
@@ -423,6 +430,13 @@ let FileWithItems_ParseFeature () =
                         Number = 13
                         Text = "Then I can take a bullet list"
                         Bullets = Some [| "First item"; "Second item" |]
+                        Table = None
+                        Doc = None
+                    })
+                    (ThenStep "Even the next step is clear", {
+                        Number = 16
+                        Text = "And Even the next step is clear"
+                        Bullets = None
                         Table = None
                         Doc = None
                     })

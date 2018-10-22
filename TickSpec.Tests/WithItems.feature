@@ -13,3 +13,4 @@ When I take a doc string
 Then I can take a bullet list
     * First item
     * Second item
+And Even the next step is clear
