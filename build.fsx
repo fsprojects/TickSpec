@@ -107,7 +107,7 @@ Target.create "Nuget" (fun _ ->
     if Environment.isWindows then
         let props = 
             let notes = String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
-            "/p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
+            "--include-symbols /p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
         DotNet.pack (fun p ->
             { p with
                 Configuration = DotNet.Release
