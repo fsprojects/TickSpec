@@ -7,7 +7,6 @@
   <ItemGroup>
     <EmbeddedResource Include="WithItems.feature" />
     <EmbeddedResource Include="TagsAndExamples.feature" />
-    <None Include="paket.references" />
     <Compile Include="FeatureParserTest.fs" />
   </ItemGroup>
   <ItemGroup>
