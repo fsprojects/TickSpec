@@ -3,7 +3,7 @@
   <Import Project="..\netfx.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
     <Title>TickSpec</Title>
     <Description>
       Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then. Easily execute the behaviour against matching F# 'ticked' methods (let ``tick method`` () = true) or attributed C# or F# methods.
