@@ -58,27 +58,24 @@ module Build =
     let setParams (defaults :DotNet.BuildOptions) =
         { defaults with Configuration = DotNet.BuildConfiguration.Release }
 
-module Test = 
+module Test =
+    let private runTests filter framework =
+        !! "**/*.fsproj"
+        ++ "**/*.csproj"
+        |> Seq.choose (Analysis.projectReferencing filter)
+        |> Seq.iter (fun p -> p |> DotNet.test (fun o ->
+            { o with 
+                Configuration = DotNet.BuildConfiguration.Release
+                NoBuild = true
+                Framework = framework}))
+            
     module NUnit =
-        let run () =
-            !! "**/*.fsproj"
-            ++ "**/*.csproj"
-            |> Seq.choose (Analysis.projectReferencing "NUnit")
-            |> Seq.iter (fun p -> p |> DotNet.test (fun o ->
-                { o with 
-                    Configuration = DotNet.BuildConfiguration.Release
-                    NoBuild = true
-                    Framework = if Environment.isWindows then None else Some "netcoreapp2.1"}))
+        let run () = runTests "NUnit" None
+
     module XUnit = 
-        let run () =
-            if Environment.isWindows then
-                !! "**/*.fsproj"
-                ++ "**/*.csproj"
-                |> Seq.choose (Analysis.projectReferencing "Xunit")
-                |> Seq.iter (fun p -> p|> DotNet.test (fun o ->
-                    { o with
-                        Configuration = DotNet.BuildConfiguration.Release
-                        NoBuild = true}))
+        let run () = 
+            let framework = if Environment.isWindows then None else Some "netcoreapp2.1"
+            runTests "Xunit" framework
 
 let Sln = "./TickSpec.sln"
 
