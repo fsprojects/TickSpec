@@ -6,7 +6,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="paket.references" />
     <Compile Include="NunitWiring.fs" />
     <EmbeddedResource Include="Web.feature" />
     <Compile Include="WebSteps.fs" />
