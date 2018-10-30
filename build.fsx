@@ -77,6 +77,10 @@ module Test =
             let framework = if Environment.isWindows then None else Some "netcoreapp2.1"
             runTests "Xunit" framework
 
+    module MSTest =
+       let run () =
+           runTests "MSTest.TestFramework" None
+
 let Sln = "./TickSpec.sln"
 
 Target.create "Clean" (fun _ ->
@@ -101,6 +105,7 @@ Target.create "Build" (fun _ ->
 Target.create "Test" (fun _ ->
     Test.NUnit.run()
     Test.XUnit.run()
+    Test.MSTest.run()
 )
 
 Target.create "Nuget" (fun _ ->
