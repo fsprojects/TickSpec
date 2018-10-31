@@ -1,6 +1,6 @@
 ﻿namespace TickSpec
 
-#if NET45
+#if !NETSTANDARD2_0
 open System
 open System.Collections.Generic
 open System.Diagnostics

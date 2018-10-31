@@ -204,7 +204,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     member __.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureSource = parseFeature lines
         let feature = featureSource.Name
-#if NET45
+#if !NETSTANDARD2_0
         let gen = FeatureGen(featureSource.Name,sourceUrl)
         let genType scenario =
             let lines =
