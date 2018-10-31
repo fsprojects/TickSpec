@@ -22,6 +22,16 @@ module internal Seq =
                     yield !latest
         }
 
+    /// Checks whether the length of a sequence is equal to the passed length
+    let rec isLengthExactly length source =
+        if length < 0 then false
+        else if length = 0 then
+            if source |> Seq.isEmpty then true else false
+        else if source |> Seq.isEmpty then false
+        else
+            source |> Seq.tail |> isLengthExactly (length - 1)
+
+
  module internal TextReader =
     /// Reads lines from TextReader
     let readLines (reader:System.IO.TextReader) =
