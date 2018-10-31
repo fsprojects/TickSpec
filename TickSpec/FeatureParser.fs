@@ -107,6 +107,14 @@ let parseFeature (lines:string[]) =
 
     let scenarios =
         parsedFeatureBlocks.Scenarios
+        |> Seq.groupBy (fun s -> s.Name)
+        |> Seq.collect (fun (_,scenarios) ->
+            if scenarios |> Seq.isLengthExactly 1 then
+                scenarios
+            else
+                scenarios |> Seq.mapi (fun i s ->
+                    let newName = sprintf "%s~%d" s.Name (i+1)
+                    { s with Name = newName }))
         |> Seq.collect (fun scenario ->
             let examples = scenario.Examples @ sharedExamples
             let baseTags = parsedFeatureBlocks.Tags @ scenario.Tags
