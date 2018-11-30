@@ -81,6 +81,10 @@ module Test =
        let run () =
            runTests "MSTest.TestFramework" None
 
+    module Expecto =
+        let run () =
+            runTests "Expecto" None
+
 let Sln = "./TickSpec.sln"
 
 Target.create "Clean" (fun _ ->
@@ -106,6 +110,7 @@ Target.create "Test" (fun _ ->
     Test.NUnit.run()
     Test.XUnit.run()
     Test.MSTest.run()
+    Test.Expecto.run()
 )
 
 Target.create "Nuget" (fun _ ->
