@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\..\netfx.props" />
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Retail.fs" />
+    <EmbeddedResource Include="Stock.feature" />
+    <Compile Include="StockSteps.fs" />
+    <Compile Include="CalculatorDomain.fs" />
+    <EmbeddedResource Include="Addition.feature" />
+    <Compile Include="AdditionSteps.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\TickSpec\TickSpec.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Runtime" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="Expecto" Version="8.6.0" />
+    <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.6.0" />
+  </ItemGroup>
+</Project>
