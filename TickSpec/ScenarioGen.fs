@@ -392,29 +392,30 @@ let defineStepMethod
         emitArray gen providerField parsers t x
     )
     // Emit table argument
-    line.Table |> Option.iter (fun table ->
-        let p = ps.[ps.Length-1]
-        let t = p.ParameterType
-        if t = typeof<Table> then emitTable gen table
-        elif t.IsArray then
-            let found =
-                t.GetElementType().GetConstructors()
-                |> Seq.tryFind (fun c -> c.GetParameters().Length = table.Header.Length)
-            match found with
-            | Some ci -> emitObjectArray gen providerField parsers t table ci
-            | None ->
+    if ps.Length > args.Length then
+        line.Table |> Option.iter (fun table ->
+            let p = ps.[args.Length]
+            let t = p.ParameterType
+            if t = typeof<Table> then emitTable gen table
+            elif t.IsArray then
+                let found =
+                    t.GetElementType().GetConstructors()
+                    |> Seq.tryFind (fun c -> c.GetParameters().Length = table.Header.Length)
+                match found with
+                | Some ci -> emitObjectArray gen providerField parsers t table ci
+                | None ->
+                    let ci = typeof<ArgumentException>.GetConstructor([|typeof<string>;typeof<string>|])
+                    gen.Emit(OpCodes.Ldstr, sprintf "No matching constructor found on type: %s" (t.GetElementType().Name))
+                    gen.Emit(OpCodes.Ldstr, p.Name)
+                    gen.Emit(OpCodes.Newobj, ci)
+                    gen.Emit(OpCodes.Throw)
+            else
                 let ci = typeof<ArgumentException>.GetConstructor([|typeof<string>;typeof<string>|])
-                gen.Emit(OpCodes.Ldstr, sprintf "No matching constructor found on type: %s" (t.GetElementType().Name))
+                gen.Emit(OpCodes.Ldstr, sprintf "Expected a Table or array argument at position %d" (args.Length))
                 gen.Emit(OpCodes.Ldstr, p.Name)
                 gen.Emit(OpCodes.Newobj, ci)
                 gen.Emit(OpCodes.Throw)
-        else
-            let ci = typeof<ArgumentException>.GetConstructor([|typeof<string>;typeof<string>|])
-            gen.Emit(OpCodes.Ldstr, "Expecting table or array argument")
-            gen.Emit(OpCodes.Ldstr, p.Name)
-            gen.Emit(OpCodes.Newobj, ci)
-            gen.Emit(OpCodes.Throw)
-    )
+        )
     // Emit doc argument
     line.Doc |> Option.iter (fun doc -> gen.Emit(OpCodes.Ldstr, doc))
     // Emit remaining arguments using dependency injection
