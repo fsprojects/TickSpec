@@ -14,7 +14,6 @@
     <Compile Include="DogSteps.fs" />
     <Compile Include="BowlSteps.fs" />
     <Compile Include="FeedingSteps.fs" />
-    <Compile Include="Wallet.fs" />
     <EmbeddedResource Include="Shopping.feature" />
     <Compile Include="ShoppingSteps.fs" />
     <Compile Include="Room.fs" />
