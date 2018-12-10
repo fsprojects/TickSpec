@@ -103,6 +103,82 @@ public class StockStepDefinitions
 }
 ```
 
+# Type Conversions
+
+Arguments to Step Methods will be converted from `string` to the declared types of the Step Method parameters when possible.
+The following conversions are supported:
+
+ - `Enum` types
+ - `Union` types with no parameters
+ - `Nullable<T>` types where the inner `T` type can be converted from `string`
+ - F# Tuple types where each element can be converted from `string`
+ - Array types `T []` where `T` can be converted from `string` and the original `string` is comma delimited
+ - Types supported by `System.Convert.ChangeType`
+
+# Tables
+
+A table may be passed as an argument to a Step Method:
+
+```gherkin
+When a market place has outright orders:
+   | Contract | Bid Qty | Bid Price | Offer Price | Offer Qty |
+   | V1       | 1       | 9505      |             |           |
+   | V2       |         |           | 9503        | 1         |
+```
+
+The parameter can be declared with type `Table`:
+
+```fsharp
+let [<When>] ``a market place has outright orders:`` (table:Table) =
+    outrightOrders <- toOrders table
+```
+
+Alternatively, the parameter can be converted to an array of records, or other type with constructor parameters supported by the [Type Conversions](#type-conversions)
+
+```fsharp
+type OrderRow = { Contract: string; BidQty: string; BidPrice: string; OfferPrice: string; OfferQty: string }
+
+let [<When>] ``a market place has outright orders:`` (orderRows: OrderRow[]) =
+    outrightOrders <- toOrders orderRows
+```
+
+The `Table` parameter must appear after any regex capture parameters, and before any `Functional Injection` parameters:
+
+```fsharp
+let [<Given>] ``A market place``() =
+    createMarketPlace()
+
+let [<When>] ``a market place has outright (.*) orders:``
+    (orderType: string)       # captured
+    (table: Table)            # table
+    (maketPlace: MarketPlace) # injected
+    =
+  ...
+```
+
+# Lists
+
+A bullet list may be passed to a Step Method similarly to a [Table](#tables):
+
+```gherkin
+Scenario: Who is the one?
+Given the following actors:
+    * Keanu Reeves
+    * Bruce Willis
+    * Johnny Depp
+When the following are not available:
+    * Johnny Depp
+    * Bruce Willis
+Then Keanu Reeves is the obvious choice
+```
+
+The parameter type must be an array type supported by the [Type Conversions](#type-conversions):
+
+```fsharp
+let [<Given>] ``the following actors:`` (actors : string[]) =
+    availableActors <- Set.ofArray actors
+```
+
 # Advanced features
 
 ## Resolving referenced types (beta)
