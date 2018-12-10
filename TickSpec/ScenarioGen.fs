@@ -386,13 +386,13 @@ let defineStepMethod
         gen.Emit(OpCodes.Ldloc, local)
     )
 
-    // Emit bullets argument
-    line.Bullets |> Option.iter (fun x ->
-        let t = (ps.[ps.Length-1].ParameterType)
-        emitArray gen providerField parsers t x
-    )
-    // Emit table argument
     if ps.Length > args.Length then
+        // Emit bullets argument
+        line.Bullets |> Option.iter (fun x ->
+            let t = (ps.[args.Length].ParameterType)
+            emitArray gen providerField parsers t x
+        )
+        // Emit table argument
         line.Table |> Option.iter (fun table ->
             let p = ps.[args.Length]
             let t = p.ParameterType
