@@ -1,7 +1,19 @@
 ﻿Feature: Shopping
 
-Scenario: Shopping in a store
-Given I have 100 dollars in my wallet
-When I buy an item for 5 dollars
-And I buy an item for 10 dollars
-Then My wallet contains 85 dollars
+This sample demonstrates the usage of Tables, Lists and Doc Strings with Functional Injection.
+
+Scenario: Making a purchase
+  Given the 2018 product catalog:
+    |Id |Description |Price|
+    |123|Black Jumper|5    |
+    |456|Blue Jeans  |10   |
+  When I make an order:
+    * Blue Jeans
+    * Black Jumper
+  Then the receipt dated 2018-12-22 includes:
+      """
+      Thankyou for your purchase.
+       - Black Jumper: $5.00
+       - Blue Jeans: $10.00
+      Total: $15.00
+      """
