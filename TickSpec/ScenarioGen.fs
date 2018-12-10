@@ -411,7 +411,7 @@ let defineStepMethod
                     gen.Emit(OpCodes.Throw)
             else
                 let ci = typeof<ArgumentException>.GetConstructor([|typeof<string>;typeof<string>|])
-                gen.Emit(OpCodes.Ldstr, sprintf "Expected a Table or array argument at position %d" (args.Length))
+                gen.Emit(OpCodes.Ldstr, sprintf "Expected a Table or array argument at position %d" args.Length)
                 gen.Emit(OpCodes.Ldstr, p.Name)
                 gen.Emit(OpCodes.Newobj, ci)
                 gen.Emit(OpCodes.Throw)

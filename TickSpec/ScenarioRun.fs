@@ -136,15 +136,15 @@ let invokeStep
         match bullets,table,doc with
         | Some xs,None,None ->
             let p = if ps.Length > args.Length then ps.[args.Length].ParameterType
-                    else failwithf "Expected an array argument at position %d" (args.Length)
+                    else failwithf "Expected an array argument at position %d" args.Length
             let t = p.GetElementType()
             [|box (toArray parsers provider t xs)|]
         | None,Some table,None ->
             let p = if ps.Length > args.Length then ps.[args.Length].ParameterType
-                    else failwithf "Expected a Table or array argument at position %d" (args.Length)
+                    else failwithf "Expected a Table or array argument at position %d" args.Length
             if p = typeof<Table> then [|box table|]
             elif p.IsArray then [|convertTable parsers provider p table|]
-            else failwithf "Expected a Table or array argument at position %d" (args.Length)
+            else failwithf "Expected a Table or array argument at position %d" args.Length
         | None,None,Some doc -> [|box doc|]
         | _,_,_ -> [||]
     let args = 
