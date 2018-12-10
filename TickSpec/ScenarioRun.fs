@@ -133,21 +133,22 @@ let invokeStep
         )
     let args = buildArgs args
     let tail =
+        let getTailParameter() =
+            if ps.Length > args.Length then ps.[args.Length].ParameterType
+            else failwithf "Step Method %s requires %d parameters" meth.Name args.Length
         match bullets,table,doc with
         | Some xs,None,None ->
-            let p = if ps.Length > args.Length then ps.[args.Length].ParameterType
-                    else failwithf "Expected an array argument at position %d" args.Length
+            let p = getTailParameter()
             let t = p.GetElementType()
             [|box (toArray parsers provider t xs)|]
         | None,Some table,None ->
-            let p = if ps.Length > args.Length then ps.[args.Length].ParameterType
-                    else failwithf "Expected a Table or array argument at position %d" args.Length
+            let p = getTailParameter()
             if p = typeof<Table> then [|box table|]
             elif p.IsArray then [|convertTable parsers provider p table|]
             else failwithf "Expected a Table or array argument at position %d" args.Length
         | None,None,Some doc -> [|box doc|]
         | _,_,_ -> [||]
-    let args = 
+    let args =
         let stArgs = Array.append args tail
         let injectionArgs = 
             let pars = meth.GetParameters()
