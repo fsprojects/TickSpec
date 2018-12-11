@@ -19,6 +19,8 @@
     <Compile Include="Room.fs" />
     <Compile Include="Computer.fs" />
     <EmbeddedResource Include="ComputerHeating.feature" />
+    <Compile Include="WalletSteps.fs" />
+    <EmbeddedResource Include="Wallet.feature" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj" />
