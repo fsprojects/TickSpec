@@ -1,34 +1,36 @@
 ﻿module ShoppingSteps
 
+open System
 open NUnit.Framework
 open TickSpec
 
 type CatalogItem = {Id: int; Description: string; Price: decimal}
-type Catalog = Catalog of Season:string * Items:(CatalogItem [])
-type Order = Order of string[]
-type Receipt = Receipt of string
+type Year = Year of int
+type Catalog = Catalog of Year:Year * Items:(CatalogItem [])
+type Catalogs = Map<Year, Catalog>
+type Receipt = Receipt of Date:DateTime * Lines:(string [])
+
+let [<Given>] ``no catalogs prior to 2018``() =
+    Map.empty: Catalogs
 
 // Table parameters can be bound to record type arrays
-let [<Given>] ``the (.+) product catalog:`` (season: string) (rows: CatalogItem[]) =
-    Catalog(season, rows) // Available to later steps
+let [<Given>] ``the (.+) product catalog:`` (yearInt: int) (items: CatalogItem[]) (catalogs: Catalogs) =
+    let year = Year yearInt
+    let catalog = Catalog(year, items)
+    Map.add year catalog catalogs
 
 // Bullet list is bound to string[]
-let [<When>] ``I make an order:`` (orderItems: string[]) (catalog: Catalog) =
-    let receipt =
-        """
-        Thankyou for your purchase.
-          - Black Jumper: $5.00
-          - Blue Jeans: $10.00
-        Total: $15.00
-        """
-    (Order orderItems, Receipt receipt) // tuple elements will be injected separately in the next step
+let [<When>] ``I make a purchase on (.*):`` (purchaseDate: DateTime) (orderItems: string[]) (catalogs: Catalogs) =
+    let Catalog(Items=catalogItems) = catalogs |> Map.find (Year purchaseDate.Year)
+    let receiptLines =
+        orderItems
+        |> Array.map (fun x -> catalogItems |> Array.find (fun y -> y.Description = x))
+        |> Array.map (fun x -> sprintf "%s: $%.2f" x.Description x.Price)
+    Receipt(purchaseDate, receiptLines)
 
 // DocString is passed as a regular string following captures
-let [<Then>] ``the receipt dated (.+) includes:``
-        (receiptDate: string)   // captured
-        (expected: string)      // doc string
-        (Receipt actual)        // Injected from tuple element
-        (catalog: Catalog) =    // Injected from original Step Method
-
-    for line in expected.Split('\n') do
-        Assert.True(actual.Contains(line))
+let [<Then>] ``the receipt dated (.+) includes:`` (expectedDate: DateTime) (expected: string) (receipt: Receipt) =
+    let expectedLines = expected.Split('\n') |> Array.map(fun s -> s.Trim())
+    let Receipt(Date=receiptDate; Lines=receiptLines) = receipt
+    Assert.AreEqual(expectedDate, receiptDate)
+    Assert.AreEqual(expectedLines, receiptLines)
