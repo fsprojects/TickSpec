@@ -31,7 +31,7 @@ let [<When>] ``I make a purchase on (.*):`` (purchaseDate: DateTime) (orderItems
 
 // DocString is passed as a regular string following captures
 let [<Then>] ``the receipt dated (.+) includes:`` (expectedDate: DateTime) (expected: string) (receipt: Receipt) =
-    let expectedLines = expected.Split('\n') |> Array.map(fun s -> s.Trim())
+    let expectedLines = expected.Split('\n')
     let Receipt(Date=receiptDate; Lines=receiptLines) = receipt
     Assert.AreEqual(expectedDate, receiptDate)
     Assert.AreEqual(expectedLines, receiptLines)
