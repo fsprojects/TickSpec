@@ -22,10 +22,11 @@ let [<Given>] ``the (.+) product catalog:`` (yearInt: int) (items: CatalogItem[]
 // Bullet list is bound to string[]
 let [<When>] ``I make a purchase on (.*):`` (purchaseDate: DateTime) (orderItems: string[]) (catalogs: Catalogs) =
     let Catalog(Items=catalogItems) = catalogs |> Map.find (Year purchaseDate.Year)
-    let receiptLines =
-        orderItems
-        |> Array.map (fun x -> catalogItems |> Array.find (fun y -> y.Description = x))
-        |> Array.map (fun x -> sprintf "%s: $%.2f" x.Description x.Price)
+    let receiptLines = [|
+        for orderItem in orderItems do
+            let catalogItem = Array.find (fun x -> x.Description = orderItem) catalogItems
+            yield sprintf "%s: $%.2f" catalogItem.Description catalogItem.Price
+    |]
     Receipt(purchaseDate, receiptLines)
 
 // DocString is passed as a regular string following captures
