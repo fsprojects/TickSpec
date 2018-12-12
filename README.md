@@ -111,7 +111,7 @@ The following conversions are supported:
  - `Enum` types
  - `Union` types with no parameters
  - `Nullable<T>` types where the inner `T` type can be converted from `string`
- - F# Tuple types where each element can be converted from `string`
+ - `Tuple` types where each element can be converted from `string`
  - Array types `T []` where `T` can be converted from `string` and the original `string` is comma delimited
  - Types supported by `System.Convert.ChangeType`
 
