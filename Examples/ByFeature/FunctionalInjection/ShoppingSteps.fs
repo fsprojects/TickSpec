@@ -23,9 +23,9 @@ let [<Given>] ``the (.+) product catalog:`` (yearInt: int) (items: CatalogItem[]
 let [<When>] ``I make a purchase on (.*):`` (purchaseDate: DateTime) (orderItems: string[]) (catalogs: Catalogs) =
     let Catalog(Items=catalogItems) = catalogs |> Map.find (Year purchaseDate.Year)
     let receiptLines = [|
-        for orderItem in orderItems do
+        for orderItem in orderItems ->
             let catalogItem = Array.find (fun x -> x.Description = orderItem) catalogItems
-            yield sprintf "%s: $%.2f" catalogItem.Description catalogItem.Price
+            sprintf "%s: $%.2f" catalogItem.Description catalogItem.Price
     |]
     Receipt(purchaseDate, receiptLines)
 
