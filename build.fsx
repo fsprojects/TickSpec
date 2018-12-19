@@ -1,3 +1,4 @@
+open Fake.Core.CommandLineParsing
 #r "paket:
     nuget NUnit.ConsoleRunner
     nuget xunit.runner.console
@@ -25,6 +26,8 @@ open Fake.DotNet
 
 module AppVeyor = 
     let BuildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
+    let Tag = Environment.environVarOrNone "APPVEYOR_REPO_TAG_NAME"
+    let NugetKey = Environment.environVarOrNone "NUGET_KEY"
 
 module Xml = 
     open System.Xml.Linq
@@ -56,7 +59,18 @@ module Build =
     let rootDir = __SOURCE_DIRECTORY__
     let nuget = rootDir </> "packed_nugets"
     let setParams (defaults :DotNet.BuildOptions) =
-        { defaults with Configuration = DotNet.BuildConfiguration.Release }
+        let fileVersion =
+            AppVeyor.BuildNumber |> Option.defaultValue "0" 
+            |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
+
+        let props =
+            sprintf "/p:Version=%s /p:AssemblyVersion=%s" ReleaseNotes.TickSpec.AssemblyVersion fileVersion
+
+        { defaults with 
+            Configuration = DotNet.BuildConfiguration.Release 
+            Common =
+                DotNet.Options.Create()
+                |> DotNet.Options.withCustomParams (Some props) }
 
 module Test =
     let private runTests filter framework =
@@ -91,17 +105,6 @@ Target.create "Clean" (fun _ ->
     Shell.cleanDirs [Build.nuget]
 )
 
-Target.create "AssemblyInfo" (fun _ ->
-    !! ("TickSpec" </> "AssemblyInfo.fs")
-    |> Seq.iter(fun asmInfo ->
-        let fileVersion =
-            AppVeyor.BuildNumber |> Option.defaultValue "0" 
-            |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
-        [ AssemblyInfo.Version fileVersion
-          AssemblyInfo.FileVersion fileVersion ]
-        |> AssemblyInfoFile.updateAttributes asmInfo)
-)
-
 Target.create "Build" (fun _ ->
     Sln |> DotNet.build Build.setParams
 )
@@ -117,7 +120,7 @@ Target.create "Nuget" (fun _ ->
     if Environment.isWindows then
         let props = 
             let notes = String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
-            "--include-symbols /p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
+            "--no-build --include-symbols /p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
         DotNet.pack (fun p ->
             { p with
                 Configuration = DotNet.Release
@@ -129,22 +132,38 @@ Target.create "Nuget" (fun _ ->
             "TickSpec\\TickSpec.fsproj"
 )
 
-Target.create "Publish" (fun _ ->
-    !! (Build.nuget </> "*.nupkg")
-    -- (Build.nuget </> "*.symbols.nupkg")
-    |> Seq.iter File.delete
+Target.create "PublishNuget" (fun _ ->
+    match AppVeyor.NugetKey with
+    | Some k -> TraceSecrets.register k "<NUGET_KEY>"
+    | None -> ()
 
-    Paket.push (fun p -> 
-        { p with
-            WorkingDir = Build.nuget })
+    let publishNugets () =
+        let key = 
+            match AppVeyor.NugetKey with
+            | Some x -> x
+            | None -> failwith "To publish nuget, it is needed to set NUGET_KEY environment variable"        
+
+        let publishNuget nuget =
+            DotNet.exec id "nuget" (sprintf "push %s -k %s -s https://api.nuget.org/v3/index.json" nuget key)
+    
+        !! (Build.nuget </> "*.nupkg")
+        -- (Build.nuget </> "*.symbols.nupkg")
+        |> Seq.map publishNuget
+
+    match AppVeyor.Tag with
+    | None -> ()
+    | Some t when t = ReleaseNotes.TickSpec.NugetVersion ->
+        publishNugets () |> Seq.iter (fun x -> if not x.OK then failwithf "Nuget publish failed with %A" x)
+    | Some t -> failwithf "Unexpected tag %s" t
 )
 
 Target.create "All" ignore
 
-"AssemblyInfo"
+"Clean"
     ==> "Build"
     ==> "Test"
     ==> "Nuget"
+    ==> "PublishNuget"
     ==> "All"
 
 Target.runOrDefault "All"

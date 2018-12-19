@@ -5,15 +5,16 @@
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
     <Title>TickSpec</Title>
-    <Description>
-      Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then. Easily execute the behaviour against matching F# 'ticked' methods (let ``tick method`` () = true) or attributed C# or F# methods.
-      summary TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
-    </Description>
+    <Description>TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
+Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then. Easily execute the behaviour against matching F# 'ticked' methods (let ``tick method`` () = true) or attributed C# or F# methods.</Description>
     <Authors>Phillip Trelford</Authors>
+    <Copyright>Copyright © 2010-9 Phillip Trelford</Copyright>
     <PackageProjectUrl>https://github.com/fsprojects/TickSpec</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/fsprojects/TickSpec/blob/master/LICENSE.md</PackageLicenseUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>BDD C# F# .Net</PackageTags>
+    <RepositoryUrl>https://github.com/fsprojects/TickSpec</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
     <DisableImplicitSystemValueTupleReference>true</DisableImplicitSystemValueTupleReference>
     <!-- SourceLink related properties https://github.com/dotnet/SourceLink#using-sourcelink -->
