@@ -1,13 +1,15 @@
 # Do not build feature branch with open Pull Requests
 skip_branch_with_pr: true
 
-image: Visual Studio 2019
+image:
+  - Visual Studio 2019
+  - Ubuntu1804
 before_build:
   # Display .NET Core version
-  - cmd: dotnet --version
+  - dotnet --version
 build_script:
-  - cmd: dotnet tool restore
-  - cmd: dotnet fake build
+  - dotnet tool restore
+  - dotnet fake build
 test: off
 version: 2.0.0.{build}
 nuget:
@@ -16,6 +18,7 @@ nuget:
 artifacts:
   - path: TickSpec\bin\Release
     name: release
-  - path: 'packed_nugets\*.nupkg'
+  - path: 'packed_nugets\*.*'
     type: NuGetPackage
+    name: nuget
   
