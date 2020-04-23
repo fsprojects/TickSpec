@@ -1,14 +1,15 @@
 # Do not build feature branch with open Pull Requests
 skip_branch_with_pr: true
 
-image: Visual Studio 2017
+image: Visual Studio 2019
 before_build:
   # Display .NET Core version
   - cmd: dotnet --version
 build_script:
-  - cmd: build.bat
+  - cmd: dotnet tool restore
+  - cmd: dotnet fake build
 test: off
-version: 1.1.0.{build}
+version: 2.0.0.{build}
 nuget:
   account_feed: false
   project_feed: false

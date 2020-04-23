@@ -10,16 +10,21 @@ Describe behaviour in plain text using the Gherkin business language, i.e. Given
     <Authors>Phillip Trelford</Authors>
     <Copyright>Copyright © 2010-9 Phillip Trelford</Copyright>
     <PackageProjectUrl>https://github.com/fsprojects/TickSpec</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/fsprojects/TickSpec/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageTags>BDD C# F# .Net</PackageTags>
     <RepositoryUrl>https://github.com/fsprojects/TickSpec</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
     <DisableImplicitSystemValueTupleReference>true</DisableImplicitSystemValueTupleReference>
-    <!-- SourceLink related properties https://github.com/dotnet/SourceLink#using-sourcelink -->
+    <!-- Following part is taken from: https://github.com/dotnet/SourceLink#using-sourcelink -->
+    <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Embed source files that are not tracked by the source control manager in the PDB -->
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
@@ -38,13 +43,11 @@ Describe behaviour in plain text using the Gherkin business language, i.e. Given
     <Compile Include="FeatureParser.fs" />
     <Compile Include="Feature.fs" />
     <Compile Include="TickSpec.fs" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="LICENSE.txt"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="4.2.3" Condition=" '$(TargetFramework)' == 'net452' " />
     <PackageReference Include="FSharp.Core" Version="4.3.4" Condition=" '$(TargetFramework)' == 'netstandard2.0' " />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>

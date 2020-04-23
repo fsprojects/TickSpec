@@ -6,7 +6,7 @@ sudo: false
 
 install:
   - dotnet --info
+  - dotnet tool restore
 
 script:
-  - chmod u+x ./build.sh
-  - ./build.sh
+  - dotnet fake build
