@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
+    <GenerateProgramFile>False</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Retail.fs" />

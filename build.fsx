@@ -1,4 +1,3 @@
-open Fake.Core.CommandLineParsing
 #r "paket:
     nuget NUnit.ConsoleRunner
     nuget xunit.runner.console
@@ -46,7 +45,7 @@ module Analysis =
         let pRefs = 
             projDoc 
             |> Xml.descendants packageRefName
-            |> Seq.filter (fun x -> x.Attribute(includeName) <> null)
+            |> Seq.filter (fun x -> not (isNull (x.Attribute(includeName))))
             |> Seq.map (fun x -> x.Attribute(includeName).Value)
         
         if pRefs |> Seq.contains packageName then Some project

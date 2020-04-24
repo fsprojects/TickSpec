@@ -148,6 +148,7 @@ publish/
 
 # NuGet Packages
 *.nupkg
+*.snupkg
 # The packages folder can be ignored because of Package Restore
 packages/
 
@@ -248,3 +249,6 @@ Nuget/**/Lib
 
 # build working directory
 bin/
+
+# VS Code Ionide directory
+.ionide/
