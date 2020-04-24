@@ -1,3 +1,6 @@
+#### 2.0.0 (Released 2020/04/24)
+* Minor build updates by @mchaloupka
+
 #### 2.0.0-rc1 (Released 2018/12/21)
 * Migration to .NET Standard 2.0 + .NET 4.5 by @michalkovy
 * Improved feature file parser (to support tagged examples) by @mchaloupka
