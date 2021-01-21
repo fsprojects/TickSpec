@@ -24,5 +24,12 @@
 
     <!-- Add the Facades directory.  Not sure how else to do this. Necessary at least for .NET 4.5 -->
     <AssemblySearchPaths Condition="'$(BaseFrameworkPathOverrideForMono)' != ''">$(FrameworkPathOverride)/Facades;$(AssemblySearchPaths)</AssemblySearchPaths>
+
+    <DisableImplicitFSharpCoreReference Condition=" '$(ProjectExt)'=='.fsproj' ">true</DisableImplicitFSharpCoreReference>
+    <DisableImplicitSystemValueTupleReference Condition=" '$(ProjectExt)'=='.fsproj' ">true</DisableImplicitSystemValueTupleReference>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.2.3" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework)' == 'net452' " />
+    <PackageReference Include="FSharp.Core" Version="4.3.4" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework)' == 'netstandard2.0' " />
+  </ItemGroup>
 </Project>
