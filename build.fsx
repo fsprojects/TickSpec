@@ -87,7 +87,7 @@ module Test =
 
     module XUnit = 
         let run () = 
-            let framework = if Environment.isWindows then None else Some "netcoreapp2.1"
+            let framework = if Environment.isWindows then None else Some "net5.0"
             runTests "Xunit" framework
 
     module MSTest =

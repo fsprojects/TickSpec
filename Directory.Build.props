@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information. -->
+<Project>
+  <PropertyGroup>
+    <DisableImplicitFSharpCoreReference Condition=" '$(ProjectExt)'=='.fsproj' ">true</DisableImplicitFSharpCoreReference>
+    <DisableImplicitSystemValueTupleReference Condition=" '$(ProjectExt)'=='.fsproj' ">true</DisableImplicitSystemValueTupleReference>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.2.3" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(net4))' " />
+    <PackageReference Include="FSharp.Core" Version="4.3.4" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(net5))' " />
+    <PackageReference Include="FSharp.Core" Version="4.3.4" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(netstandard))' " />
+  </ItemGroup>
+</Project>
