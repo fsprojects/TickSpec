@@ -94,7 +94,11 @@ let parseFeature (lines:string[]) =
                 b |> List.toArray |> Some, None, None
             | Some (TableItem t) ->
                 let header = t.Header |> List.toArray
-                let rows = t.Rows |> Seq.map List.toArray |> Seq.toArray
+                let rows = 
+                    t.Rows 
+                    |> Seq.map (List.map (fun s -> replace combination s))
+                    |> Seq.map List.toArray 
+                    |> Seq.toArray
                 None, new Table(header, rows) |> Some, None
             | Some (DocStringItem d) -> None, None, Some d
             | None -> None, None, None

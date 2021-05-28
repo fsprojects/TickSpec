@@ -445,3 +445,71 @@ let FileWithItems_ParseFeature () =
             }
         |]
     }
+    
+[<Test>]
+let PlaceholdersInTables_ParseFeature () =
+    "TickSpec.Tests.PlaceholdersInTables.feature"
+    |> loadFeatureFile
+    |> verifyParsing <|
+    {
+        Name = "Placeholders in tables feature"
+        Scenarios = [|
+            {
+                Name = "Scenario Outline: Placeholders in tables test scenario (1)"
+                Tags = [||]
+                Steps = [|
+                    (GivenStep "I have a table with placeholders", {
+                        Number = 3
+                        Text = "Given I have a table with placeholders"
+                        Bullets = None
+                        Table = Some (Table([| "col1" |], [| [| "Value1" |] |]))
+                        Doc = None
+                    })
+                    (WhenStep "I take a table with placeholders", {
+                        Number = 6
+                        Text = "When I take a table with placeholders"
+                        Bullets = None
+                        Table = Some (Table([| "col1" |], [| [| "Value1" |] |]))
+                        Doc = None
+                    })
+                    (ThenStep "I can compare with a table with placeholders", {
+                        Number = 9
+                        Text = "Then I can compare with a table with placeholders"
+                        Bullets = None
+                        Table = Some (Table([| "col1" |], [| [| "Value1" |] |]))
+                        Doc = None
+                    })
+                |]
+                Parameters = [|("Placeholder1", "Value1")|]
+            }
+            {
+                Name = "Scenario Outline: Placeholders in tables test scenario (2)"
+                Tags = [||]
+                Steps = [|
+                    (GivenStep "I have a table with placeholders", {
+                        Number = 3
+                        Text = "Given I have a table with placeholders"
+                        Bullets = None
+                        Table = Some (Table([| "col1" |], [| [| "Value2" |] |]))
+                        Doc = None
+                    })
+                    (WhenStep "I take a table with placeholders", {
+                        Number = 6
+                        Text = "When I take a table with placeholders"
+                        Bullets = None
+                        Table = Some (Table([| "col1" |], [| [| "Value2" |] |]))
+                        Doc = None
+                    })
+                    (ThenStep "I can compare with a table with placeholders", {
+                        Number = 9
+                        Text = "Then I can compare with a table with placeholders"
+                        Bullets = None
+                        Table = Some (Table([| "col1" |], [| [| "Value2" |] |]))
+                        Doc = None
+                    })
+                |]
+                Parameters = [|("Placeholder1", "Value2")|]
+            }
+
+        |]
+    }        
