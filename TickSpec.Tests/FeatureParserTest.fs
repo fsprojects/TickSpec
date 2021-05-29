@@ -445,17 +445,24 @@ let FileWithItems_ParseFeature () =
             }
         |]
     }
+
+let placeholdersInItems_expectedDocString placeholder =
+    StringBuilder()
+        .AppendLine("First line with placeholder " + placeholder)
+        .AppendLine("    Second line")
+        .Append("Third line")
+        .ToString()
     
 [<Test>]
-let PlaceholdersInTables_ParseFeature () =
-    "TickSpec.Tests.PlaceholdersInTables.feature"
+let PlaceholdersInItems_ParseFeature () =
+    "TickSpec.Tests.PlaceholdersInItems.feature"
     |> loadFeatureFile
     |> verifyParsing <|
     {
-        Name = "Placeholders in tables feature"
+        Name = "Placeholders in items feature"
         Scenarios = [|
             {
-                Name = "Scenario Outline: Placeholders in tables test scenario (1)"
+                Name = "Scenario Outline: Placeholders in items test scenario (1)"
                 Tags = [||]
                 Steps = [|
                     (GivenStep "I have a table with placeholders", {
@@ -465,25 +472,25 @@ let PlaceholdersInTables_ParseFeature () =
                         Table = Some (Table([| "col1" |], [| [| "Value1" |] |]))
                         Doc = None
                     })
-                    (WhenStep "I take a table with placeholders", {
+                    (WhenStep "I take a doc string with placeholders", {
                         Number = 6
-                        Text = "When I take a table with placeholders"
+                        Text = "When I take a doc string with placeholders"
                         Bullets = None
-                        Table = Some (Table([| "col1" |], [| [| "Value1" |] |]))
-                        Doc = None
+                        Table = None
+                        Doc = placeholdersInItems_expectedDocString "Value1" |> Some
                     })
-                    (ThenStep "I can compare with a table with placeholders", {
-                        Number = 9
-                        Text = "Then I can compare with a table with placeholders"
-                        Bullets = None
-                        Table = Some (Table([| "col1" |], [| [| "Value1" |] |]))
+                    (ThenStep "I can even have a bullet list with placeholders", {
+                        Number = 12
+                        Text = "Then I can even have a bullet list with placeholders"
+                        Bullets = Some [| "First item with placeholder Value1"; "Second item" |]
+                        Table = None
                         Doc = None
                     })
                 |]
                 Parameters = [|("Placeholder1", "Value1")|]
             }
             {
-                Name = "Scenario Outline: Placeholders in tables test scenario (2)"
+                Name = "Scenario Outline: Placeholders in items test scenario (2)"
                 Tags = [||]
                 Steps = [|
                     (GivenStep "I have a table with placeholders", {
@@ -493,18 +500,18 @@ let PlaceholdersInTables_ParseFeature () =
                         Table = Some (Table([| "col1" |], [| [| "Value2" |] |]))
                         Doc = None
                     })
-                    (WhenStep "I take a table with placeholders", {
+                    (WhenStep "I take a doc string with placeholders", {
                         Number = 6
-                        Text = "When I take a table with placeholders"
+                        Text = "When I take a doc string with placeholders"
                         Bullets = None
-                        Table = Some (Table([| "col1" |], [| [| "Value2" |] |]))
-                        Doc = None
+                        Table = None
+                        Doc = placeholdersInItems_expectedDocString "Value2" |> Some
                     })
-                    (ThenStep "I can compare with a table with placeholders", {
-                        Number = 9
-                        Text = "Then I can compare with a table with placeholders"
-                        Bullets = None
-                        Table = Some (Table([| "col1" |], [| [| "Value2" |] |]))
+                    (ThenStep "I can even have a bullet list with placeholders", {
+                        Number = 12
+                        Text = "Then I can even have a bullet list with placeholders"
+                        Bullets = Some [| "First item with placeholder Value2"; "Second item" |]
+                        Table = None
                         Doc = None
                     })
                 |]
