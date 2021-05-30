@@ -1,3 +1,6 @@
+#### 2.0.1 (Released 2021/05/30)
+* Placeholders are replaced also in tables, bullets and docs by @deyanp
+
 #### 2.0.0 (Released 2020/04/24)
 * Minor build updates by @mchaloupka
 
