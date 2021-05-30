@@ -118,7 +118,10 @@ Target.create "Test" (fun _ ->
 Target.create "Nuget" (fun _ ->
     if Environment.isWindows then
         let props = 
-            let notes = String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
+            let notes =
+                String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
+                |> (fun x -> x.Replace(",", "%2c"))
+
             "--no-build --include-symbols /p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
         DotNet.pack (fun p ->
             { p with
