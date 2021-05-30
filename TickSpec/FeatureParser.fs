@@ -92,15 +92,14 @@ let parseFeature (lines:string[]) =
             match step.Item with
             | Some (BulletsItem b) ->
                 b
-                |> List.map (replace combination)
-                |> List.toArray |> Some,
+                |> Seq.map (replace combination)
+                |> Seq.toArray |> Some,
                 None, None
             | Some (TableItem t) ->
                 let header = t.Header |> List.toArray
                 let rows = 
                     t.Rows 
-                    |> Seq.map (List.map (replace combination))
-                    |> Seq.map List.toArray 
+                    |> Seq.map (Seq.map (replace combination) >> Seq.toArray)
                     |> Seq.toArray
                 None, Table(header, rows) |> Some, None
             | Some (DocStringItem d) ->
