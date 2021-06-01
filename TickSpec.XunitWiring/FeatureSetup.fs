@@ -7,8 +7,8 @@ open Xunit.Abstractions
 /// A (Xunit) serializable equivalent of TickSpec.Scenario without the non-serializable Action property,
 /// so that example-based scenarios can be individually debugged/run in dotnet test -t, VS, Rider
 type XunitSerializableScenario =
-    val mutable FeatureName : string
-    val mutable Name : string
+    val mutable FeatureName: string
+    val mutable Name: string
     val mutable Parameters: (string*string)[]
     val mutable Tags: string[]
     new (featureName: string, name: string, parameters: (string*string)[], tags: string[]) = { FeatureName = featureName; Name = name; Parameters = parameters; Tags = tags }
@@ -16,7 +16,7 @@ type XunitSerializableScenario =
     override this.ToString() =
         if this.Parameters.Length = 0 && this.Tags.Length = 0 then this.Name
         else
-            let parameters =  this.Parameters |> Array.map (fun (k,v) -> sprintf "%s=%s" k v) |> String.concat ","
+            let parameters =  this.Parameters |> Seq.map (fun (k,v) -> sprintf "%s=%s" k v) |> String.concat ","
             let tags =  this.Tags |> String.concat ","
             sprintf "%s<%s>{%s}" this.Name tags parameters
 
@@ -24,7 +24,7 @@ type XunitSerializableScenario =
         member this.Serialize (info:IXunitSerializationInfo) =
             info.AddValue("FeatureName", this.FeatureName)
             info.AddValue("Name", this.Name)
-            info.AddValue("Parameters", this.Parameters |> Array.map (fun (k,v) -> sprintf "%s=%s" k v))       
+            info.AddValue("Parameters", [| for k, v in this.Parameters -> sprintf "%s=%s" k v |])       
             info.AddValue("Tags", this.Tags)
             
         member this.Deserialize(info:IXunitSerializationInfo) =
