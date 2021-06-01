@@ -1,9 +1,11 @@
 ﻿namespace TickSpec.XunitWiring
 
 open System.Collections.Generic
-open Xunit.Abstractions
 open TickSpec
+open Xunit.Abstractions
 
+/// A (Xunit) serializable equivalent of TickSpec.Scenario without the non-serializable Action property,
+/// so that example-based scenarios can be individually debugged/run in dotnet test -t, VS, Rider
 type XunitSerializableScenario =
     val mutable FeatureName : string
     val mutable Name : string
