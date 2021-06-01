@@ -2,7 +2,7 @@
 
 open Retail
 open TickSpec
-open Xunit
+open global.Xunit
 
 let mutable stockItem = { Count = 0 }
 

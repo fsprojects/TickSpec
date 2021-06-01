@@ -1,4 +1,4 @@
-﻿namespace TickSpec.XunitWiring
+﻿namespace TickSpec.Xunit
 
 open System.Collections.Generic
 open TickSpec

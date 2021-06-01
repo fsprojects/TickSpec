@@ -66,7 +66,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Expecto", "Expecto", "{750A
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Expecto.FSharp", "Examples\ByFramework\Expecto\FSharp.Expecto\Expecto.FSharp.fsproj", "{F9B139E4-0160-4150-B420-73DCCD57B6B8}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.XunitWiring", "TickSpec.XunitWiring\TickSpec.XunitWiring.fsproj", "{AF5CBB4C-47C6-4598-A707-293D3A22A29C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Xunit", "TickSpec.Xunit\TickSpec.Xunit.fsproj", "{AF5CBB4C-47C6-4598-A707-293D3A22A29C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

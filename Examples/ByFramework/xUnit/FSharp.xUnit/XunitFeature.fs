@@ -1,7 +1,7 @@
 ﻿module ByFramework.XUnit.Feature
 
-open Xunit
-open TickSpec.XunitWiring
+open global.Xunit
+open TickSpec.Xunit
 
 let source = AssemblyStepDefinitionsSource(System.Reflection.Assembly.GetExecutingAssembly())
 let scenarios resourceName = source.ScenariosFromEmbeddedResource resourceName |> MemberData.ofScenarios
