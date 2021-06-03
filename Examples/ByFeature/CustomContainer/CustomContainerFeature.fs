@@ -19,6 +19,6 @@ type Shelter(container : AutofacFixture) =
     static let scenarios resourceName = source.ScenariosFromEmbeddedResource resourceName |> MemberData.ofScenarios
     
     [<Theory; MemberData("scenarios", "CustomContainer.Shelter.feature")>]
-    let run(scenario : XunitSerializableScenario) = source.ScenarioAction(scenario).Invoke()
+    let run(scenario : XunitSerializableScenario) = source.RunScenario(scenario)
     // Indicate our interest in having xUnit manage the ContainerFixture for us (notably Disposing at the end of a test run)
     interface IClassFixture<AutofacFixture>

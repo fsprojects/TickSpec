@@ -7,7 +7,7 @@ let source = AssemblyStepDefinitionsSource(System.Reflection.Assembly.GetExecuti
 let scenarios resourceName = source.ScenariosFromEmbeddedResource resourceName |> MemberData.ofScenarios
 
 [<Theory; MemberData("scenarios", "Xunit.FSharp.Addition.feature")>]
-let Addition (scenario : XunitSerializableScenario) = source.ScenarioAction(scenario).Invoke()
+let Addition (scenario : XunitSerializableScenario) = source.RunScenario(scenario)
 
 [<Theory; MemberData("scenarios", "Xunit.FSharp.Stock.feature")>]
-let Stock (scenario : XunitSerializableScenario) = source.ScenarioAction(scenario).Invoke()
+let Stock (scenario : XunitSerializableScenario) = source.RunScenario(scenario)

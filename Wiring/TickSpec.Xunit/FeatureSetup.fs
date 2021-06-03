@@ -61,8 +61,8 @@ type AssemblyStepDefinitionsSource(assembly : System.Reflection.Assembly) =
             XunitSerializableScenario (resourceName, s.Name, s.Parameters, s.Tags))
 
     /// Retrieves the Action for a given XunitSerializableScenario
-    member __.ScenarioAction(scenario: XunitSerializableScenario) : Action =
-        scenarioActions.[createScenarioActionsKey scenario.FeatureName scenario.Name]
+    member __.RunScenario(scenario: XunitSerializableScenario) =
+        scenarioActions.[createScenarioActionsKey scenario.FeatureName scenario.Name].Invoke()
 
     /// Hook creation of a container scope per Scenario Run so creation is via the specified factory
     member __.ServiceProviderFactory
