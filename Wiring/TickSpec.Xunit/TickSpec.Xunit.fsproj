@@ -9,7 +9,7 @@
     <Compile Include="FeatureSetup.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TickSpec\TickSpec.fsproj" />
+    <ProjectReference Include="..\..\TickSpec\TickSpec.fsproj" />
     <PackageReference Include="Xunit" Version="2.4.0" />
   </ItemGroup>
 </Project>

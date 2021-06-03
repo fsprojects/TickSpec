@@ -66,7 +66,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Expecto", "Expecto", "{750A
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Expecto.FSharp", "Examples\ByFramework\Expecto\FSharp.Expecto\Expecto.FSharp.fsproj", "{F9B139E4-0160-4150-B420-73DCCD57B6B8}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Xunit", "TickSpec.Xunit\TickSpec.Xunit.fsproj", "{AF5CBB4C-47C6-4598-A707-293D3A22A29C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Wiring", "Wiring", "{373B654A-3A88-48CC-A0A3-0454514E61FF}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Xunit", "Wiring\TickSpec.Xunit\TickSpec.Xunit.fsproj", "{DDB39875-AA8B-494E-B923-C8143930464F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -142,10 +144,10 @@ Global
 		{F9B139E4-0160-4150-B420-73DCCD57B6B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9B139E4-0160-4150-B420-73DCCD57B6B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9B139E4-0160-4150-B420-73DCCD57B6B8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AF5CBB4C-47C6-4598-A707-293D3A22A29C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF5CBB4C-47C6-4598-A707-293D3A22A29C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AF5CBB4C-47C6-4598-A707-293D3A22A29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AF5CBB4C-47C6-4598-A707-293D3A22A29C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDB39875-AA8B-494E-B923-C8143930464F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDB39875-AA8B-494E-B923-C8143930464F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDB39875-AA8B-494E-B923-C8143930464F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDB39875-AA8B-494E-B923-C8143930464F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -174,6 +176,7 @@ Global
 		{6EAC46DB-177A-4482-970A-D43124DB2FB9} = {694A8BD0-05B1-4000-BDD2-67CC4B3B8D90}
 		{750A854A-FB45-4E51-94DF-D79B4F1E46DC} = {1D43105D-361B-4D27-8069-FBE067C8C114}
 		{F9B139E4-0160-4150-B420-73DCCD57B6B8} = {750A854A-FB45-4E51-94DF-D79B4F1E46DC}
+		{DDB39875-AA8B-494E-B923-C8143930464F} = {373B654A-3A88-48CC-A0A3-0454514E61FF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B381617-F1EE-4BFC-8EAE-CAB4DBB4B9A2}

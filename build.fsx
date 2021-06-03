@@ -75,6 +75,7 @@ module Test =
     let private runTests filter framework =
         !! "**/*.fsproj"
         ++ "**/*.csproj"
+        -- "Wiring/*.fsproj"
         |> Seq.choose (Analysis.projectReferencing filter)
         |> Seq.iter (fun p -> p |> DotNet.test (fun o ->
             { o with 

@@ -60,8 +60,13 @@ type AssemblyStepDefinitionsSource(assembly : System.Reflection.Assembly) =
         |> Seq.map (fun s ->
             XunitSerializableScenario (resourceName, s.Name, s.Parameters, s.Tags))
 
+    /// Retrieves the Action for a given XunitSerializableScenario
     member __.ScenarioAction(scenario: XunitSerializableScenario) : Action =
         scenarioActions.[createScenarioActionsKey scenario.FeatureName scenario.Name]
+
+    /// Hook creation of a container scope per Scenario Run so creation is via the specified factory
+    member __.ServiceProviderFactory
+        with set factory = definitions.ServiceProviderFactory <- factory
 
 /// Adapts a Scenario Sequence to match the required format for an xUnit MemberData attribute
 module MemberData =

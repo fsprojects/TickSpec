@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj" />
+    <ProjectReference Include="..\..\..\Wiring\TickSpec.Xunit\TickSpec.Xunit.fsproj" />
     <PackageReference Include="Autofac" Version="4.8.1" />
     <PackageReference Include="unquote" Version="4.0.0" />
     <PackageReference Include="Xunit" Version="2.4.0" />
