@@ -33,7 +33,7 @@ type XunitSerializableScenario =
             let parameters =
                 info.GetValue<string[]>("Parameters")
                 |> Array.map (fun kv ->
-                    let kva = kv.Split('=')
+                    let kva = kv.Split([|'='|], 2)  // max 2 substrings as the value itself may contain '='
                     kva.[0], kva.[1])
             let tags = info.GetValue<string[]>("Tags")
             this.FeatureName <- featureName
@@ -60,7 +60,7 @@ type AssemblyStepDefinitionsSource(assembly : System.Reflection.Assembly) =
         |> Seq.map (fun s ->
             XunitSerializableScenario (resourceName, s.Name, s.Parameters, s.Tags))
 
-    /// Retrieves the Action for a given XunitSerializableScenario
+    /// Executes the scenario
     member __.RunScenario(scenario: XunitSerializableScenario) =
         scenarioActions.[createScenarioActionsKey scenario.FeatureName scenario.Name].Invoke()
 
