@@ -1,7 +1,7 @@
 ﻿namespace Computation
 
 open TickSpec
-open Xunit
+open global.Xunit
 
 type CalculatorSteps () =
     let calc = Calculator()
