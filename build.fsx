@@ -57,14 +57,16 @@ module ReleaseNotes =
 module Build = 
     let rootDir = __SOURCE_DIRECTORY__
     let nuget = rootDir </> "packed_nugets"
-    let setParams (defaults :DotNet.BuildOptions) =
-        let fileVersion =
-            AppVeyor.BuildNumber |> Option.defaultValue "0" 
-            |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
 
-        let props =
+    let fileVersion =
+        AppVeyor.BuildNumber 
+        |> Option.defaultValue "0" 
+        |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
+
+    let props =
             sprintf "/p:Version=%s /p:AssemblyVersion=%s" ReleaseNotes.TickSpec.AssemblyVersion fileVersion
 
+    let setParams (defaults: DotNet.BuildOptions) =
         { defaults with 
             Configuration = DotNet.BuildConfiguration.Release 
             Common =
@@ -123,16 +125,24 @@ Target.create "Nuget" (fun _ ->
                 String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
                 |> (fun x -> x.Replace(",", "%2c"))
 
-            "--no-build --include-symbols /p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
+            sprintf
+                "%s /p:PackageReleaseNotes=\"%s\";PackageVersion=\"%s\""
+                Build.props
+                notes
+                ReleaseNotes.TickSpec.NugetVersion
+
         DotNet.pack (fun p ->
             { p with
                 Configuration = DotNet.Release
                 OutputPath = Some Build.nuget
-                Common = 
+                NoBuild = false // Not sure why but it seems to be necessary to rebuild it
+                IncludeSymbols = true
+                Common =
                     DotNet.Options.Create()
                     |> DotNet.Options.withCustomParams (Some props)
+                    |> DotNet.Options.withVerbosity (Some DotNet.Verbosity.Minimal)
             } )
-            "TickSpec\\TickSpec.fsproj"
+            Sln
     else
         Trace.tracef "--- Skipping Nuget target as the build is not running on Windows ---"   
 )
@@ -169,8 +179,8 @@ Target.create "All" ignore
 
 "Clean"
     ==> "Build"
-    ==> "Test"
     ==> "Nuget"
+    ==> "Test"
     ==> "PublishNuget"
     ==> "All"
 

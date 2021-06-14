@@ -2,6 +2,9 @@
 <!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information. -->
 <Project>
   <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <PropertyGroup>
     <DisableImplicitFSharpCoreReference Condition=" '$(ProjectExt)'=='.fsproj' ">true</DisableImplicitFSharpCoreReference>
     <DisableImplicitSystemValueTupleReference Condition=" '$(ProjectExt)'=='.fsproj' ">true</DisableImplicitSystemValueTupleReference>
   </PropertyGroup>

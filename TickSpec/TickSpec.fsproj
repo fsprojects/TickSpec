@@ -1,28 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../netfx.props" />
+  <Import Project="../nuget.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
-    <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
+    <RootNamespace>TickSpec.Xunit</RootNamespace>
     <Title>TickSpec</Title>
-    <Description>TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
-Describe behaviour in plain text using the Gherkin business language, i.e. Given, When, Then. Easily execute the behaviour against matching F# 'ticked' methods (let ``tick method`` () = true) or attributed C# or F# methods.</Description>
-    <Authors>Phillip Trelford</Authors>
-    <Copyright>Copyright © 2010-9 Phillip Trelford</Copyright>
-    <PackageProjectUrl>https://github.com/fsprojects/TickSpec</PackageProjectUrl>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageTags>BDD C# F# .Net</PackageTags>
-    <RepositoryUrl>https://github.com/fsprojects/TickSpec</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <!-- Following part is taken from: https://github.com/dotnet/SourceLink#using-sourcelink -->
-    <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <!-- Embed source files that are not tracked by the source control manager in the PDB -->
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <!-- Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Description>
+      TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
+      Describe behaviour in plain text using the Gherkin business language, i.e. Given,
+      When, Then. Easily execute the behaviour against matching F# 'ticked' methods 
+      (let ``tick method`` () = true) or attributed C# or F# methods.
+    </Description>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
@@ -41,9 +30,5 @@ Describe behaviour in plain text using the Gherkin business language, i.e. Given
     <Compile Include="FeatureParser.fs" />
     <Compile Include="Feature.fs" />
     <Compile Include="TickSpec.fs" />
-    <None Include="..\LICENSE.txt" Pack="true" PackagePath="LICENSE.txt"/>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>

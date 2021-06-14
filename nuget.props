@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information. -->
+<Project>
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Authors>Phillip Trelford, Ruben Bartelink, Milos Chaloupka</Authors>
+    <Copyright>Copyright © 2010-21 Phillip Trelford, Ruben Bartelink, Milos Chaloupka</Copyright>
+    <PackageProjectUrl>https://github.com/fsprojects/TickSpec</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageTags>BDD C# F# .Net</PackageTags>
+    <RepositoryUrl>https://github.com/fsprojects/TickSpec</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!-- Following part is taken from: https://github.com/dotnet/SourceLink#using-sourcelink -->
+    <!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <!-- Embed source files that are not tracked by the source control manager in the PDB -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <!-- Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>  
+    <None Include="$(MSBuildThisFileDirectory)/LICENSE.txt" Pack="true" PackagePath="LICENSE.txt"/>
+  </ItemGroup>
+</Project>
