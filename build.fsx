@@ -102,6 +102,7 @@ Target.create "Test" (fun _ ->
     Sln
     |> DotNet.test (fun o ->
         { o with
+            Configuration = DotNet.Release
             NoBuild = true
         }
     )
