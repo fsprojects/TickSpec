@@ -87,38 +87,11 @@ module Build =
                 DotNet.Options.Create()
                 |> DotNet.Options.withCustomParams (Some props) }
 
-module Test =
-    let private runTests filter framework =
-        !! "**/*.fsproj"
-        ++ "**/*.csproj"
-        -- "Wiring/**/*.fsproj"
-        |> Seq.choose (Analysis.projectReferencing filter)
-        |> Seq.iter (fun p -> p |> DotNet.test (fun o ->
-            { o with 
-                Configuration = DotNet.BuildConfiguration.Release
-                NoBuild = true
-                Framework = framework}))
-            
-    module NUnit =
-        let run () = runTests "NUnit" None
-
-    module XUnit = 
-        let run () = 
-            let framework = if Environment.isWindows then None else Some "net5.0"
-            runTests "Xunit" framework
-
-    module MSTest =
-       let run () =
-           runTests "MSTest.TestFramework" None
-
-    module Expecto =
-        let run () =
-            runTests "Expecto" None
-
 let Sln = "./TickSpec.sln"
 
 Target.create "Clean" (fun _ ->
     Shell.cleanDirs [Build.nuget]
+    DotNet.exec id "clean" "" |> ignore
 )
 
 Target.create "Build" (fun _ ->
@@ -126,10 +99,12 @@ Target.create "Build" (fun _ ->
 )
 
 Target.create "Test" (fun _ ->
-    Test.NUnit.run()
-    Test.XUnit.run()
-    Test.MSTest.run()
-    Test.Expecto.run()
+    Sln
+    |> DotNet.test (fun o ->
+        { o with
+            NoBuild = true
+        }
+    )
 )
 
 Target.create "Nuget" (fun _ ->
