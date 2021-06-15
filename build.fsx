@@ -1,6 +1,7 @@
 #r "paket:
     nuget NUnit.ConsoleRunner
     nuget xunit.runner.console
+    nuget Fake.BuildServer.AppVeyor
     nuget Fake.Core.Target
     nuget Fake.IO.FileSystem
     nuget Fake.DotNet.Cli
@@ -22,6 +23,13 @@ open Fake.IO
 open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.DotNet
+open Fake.BuildServer
+
+BuildServer.install [
+    AppVeyor.Installer
+]
+
+CoreTracing.ensureConsoleListener()
 
 module AppVeyor = 
     let BuildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
@@ -58,13 +66,19 @@ module Build =
     let rootDir = __SOURCE_DIRECTORY__
     let nuget = rootDir </> "packed_nugets"
 
-    let fileVersion =
+    let private fileVersion =
         AppVeyor.BuildNumber 
         |> Option.defaultValue "0" 
         |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
 
+    let private continuousBuild =
+        if AppVeyor.detect() then
+            "/p:ContinuousIntegrationBuild=true"
+        else
+            ""
+
     let props =
-            sprintf "/p:Version=%s /p:AssemblyVersion=%s" ReleaseNotes.TickSpec.AssemblyVersion fileVersion
+            sprintf "/p:Version=%s /p:AssemblyVersion=%s %s" ReleaseNotes.TickSpec.AssemblyVersion fileVersion continuousBuild
 
     let setParams (defaults: DotNet.BuildOptions) =
         { defaults with 
