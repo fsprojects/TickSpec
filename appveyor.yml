@@ -11,7 +11,7 @@ build_script:
   - dotnet tool restore
   - dotnet fake build
 test: off
-version: 2.0.0.{build}
+version: 2.0.2.{build}
 nuget:
   account_feed: false
   project_feed: false

@@ -1,6 +1,7 @@
 #r "paket:
     nuget NUnit.ConsoleRunner
     nuget xunit.runner.console
+    nuget Fake.BuildServer.AppVeyor
     nuget Fake.Core.Target
     nuget Fake.IO.FileSystem
     nuget Fake.DotNet.Cli
@@ -22,6 +23,13 @@ open Fake.IO
 open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.DotNet
+open Fake.BuildServer
+
+BuildServer.install [
+    AppVeyor.Installer
+]
+
+CoreTracing.ensureConsoleListener()
 
 module AppVeyor = 
     let BuildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
@@ -57,52 +65,33 @@ module ReleaseNotes =
 module Build = 
     let rootDir = __SOURCE_DIRECTORY__
     let nuget = rootDir </> "packed_nugets"
-    let setParams (defaults :DotNet.BuildOptions) =
-        let fileVersion =
-            AppVeyor.BuildNumber |> Option.defaultValue "0" 
-            |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
 
-        let props =
-            sprintf "/p:Version=%s /p:AssemblyVersion=%s" ReleaseNotes.TickSpec.AssemblyVersion fileVersion
+    let private fileVersion =
+        AppVeyor.BuildNumber 
+        |> Option.defaultValue "0" 
+        |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
 
+    let private continuousBuild =
+        if AppVeyor.detect() then
+            "/p:ContinuousIntegrationBuild=true"
+        else
+            ""
+
+    let props =
+            sprintf "/p:Version=%s /p:AssemblyVersion=%s %s" ReleaseNotes.TickSpec.AssemblyVersion fileVersion continuousBuild
+
+    let setParams (defaults: DotNet.BuildOptions) =
         { defaults with 
             Configuration = DotNet.BuildConfiguration.Release 
             Common =
                 DotNet.Options.Create()
                 |> DotNet.Options.withCustomParams (Some props) }
 
-module Test =
-    let private runTests filter framework =
-        !! "**/*.fsproj"
-        ++ "**/*.csproj"
-        -- "Wiring/**/*.fsproj"
-        |> Seq.choose (Analysis.projectReferencing filter)
-        |> Seq.iter (fun p -> p |> DotNet.test (fun o ->
-            { o with 
-                Configuration = DotNet.BuildConfiguration.Release
-                NoBuild = true
-                Framework = framework}))
-            
-    module NUnit =
-        let run () = runTests "NUnit" None
-
-    module XUnit = 
-        let run () = 
-            let framework = if Environment.isWindows then None else Some "net5.0"
-            runTests "Xunit" framework
-
-    module MSTest =
-       let run () =
-           runTests "MSTest.TestFramework" None
-
-    module Expecto =
-        let run () =
-            runTests "Expecto" None
-
 let Sln = "./TickSpec.sln"
 
 Target.create "Clean" (fun _ ->
     Shell.cleanDirs [Build.nuget]
+    DotNet.exec id "clean" "" |> ignore
 )
 
 Target.create "Build" (fun _ ->
@@ -110,10 +99,20 @@ Target.create "Build" (fun _ ->
 )
 
 Target.create "Test" (fun _ ->
-    Test.NUnit.run()
-    Test.XUnit.run()
-    Test.MSTest.run()
-    Test.Expecto.run()
+    // Xunit seems to be failing under Linux with net452 runner, let's just skip it
+    // the .NET 4 tests all together there
+    let framework = if Environment.isWindows then None else Some "net5.0"
+    let logger = if AppVeyor.detect () then "Appveyor" |> Some else None
+
+    Sln
+    |> DotNet.test (fun o ->
+        { o with
+            Configuration = DotNet.Release
+            NoBuild = true
+            Framework = framework
+            Logger = logger
+        }
+    )
 )
 
 Target.create "Nuget" (fun _ ->
@@ -123,16 +122,24 @@ Target.create "Nuget" (fun _ ->
                 String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
                 |> (fun x -> x.Replace(",", "%2c"))
 
-            "--no-build --include-symbols /p:" + "PackageReleaseNotes=\"" + notes + "\";PackageVersion=\"" + ReleaseNotes.TickSpec.NugetVersion + "\""
+            sprintf
+                "%s /p:PackageReleaseNotes=\"%s\";PackageVersion=\"%s\""
+                Build.props
+                notes
+                ReleaseNotes.TickSpec.NugetVersion
+
         DotNet.pack (fun p ->
             { p with
                 Configuration = DotNet.Release
                 OutputPath = Some Build.nuget
-                Common = 
+                NoBuild = false // Not sure why but it seems to be necessary to rebuild it
+                IncludeSymbols = true
+                Common =
                     DotNet.Options.Create()
                     |> DotNet.Options.withCustomParams (Some props)
+                    |> DotNet.Options.withVerbosity (Some DotNet.Verbosity.Minimal)
             } )
-            "TickSpec\\TickSpec.fsproj"
+            Sln
     else
         Trace.tracef "--- Skipping Nuget target as the build is not running on Windows ---"   
 )
@@ -169,8 +176,8 @@ Target.create "All" ignore
 
 "Clean"
     ==> "Build"
-    ==> "Test"
     ==> "Nuget"
+    ==> "Test"
     ==> "PublishNuget"
     ==> "All"
 

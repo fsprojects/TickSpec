@@ -1,3 +1,6 @@
+#### 2.0.2 (to be released)
+* Added library with Xunit integration by @deyanp
+
 #### 2.0.1 (Released 2021/05/30)
 * Placeholders are replaced also in tables, bullets and docs by @deyanp
 
