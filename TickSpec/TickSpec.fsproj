@@ -4,15 +4,10 @@
   <PropertyGroup>
     <TargetFrameworks>$(DotNetStandardVersion);$(DotNetFrameworkVersion)</TargetFrameworks>
     <Title>TickSpec</Title>
-    <Description>
-      TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
-      Describe behaviour in plain text using the Gherkin business language, i.e. Given,
-      When, Then. Easily execute the behaviour against matching F# 'ticked' methods 
-      (let ``tick method`` () = true) or attributed C# or F# methods.
-    </Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
-      <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0"/>
+      <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
@@ -31,5 +26,11 @@
     <Compile Include="FeatureParser.fs" />
     <Compile Include="Feature.fs" />
     <Compile Include="TickSpec.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 </Project>
