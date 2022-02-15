@@ -26,6 +26,11 @@ type InstanceStore () =
                 distinctAddRec key value (head :: revHead) rest
         distinctAddRec key value [] inList
 
+    let disposeAsync (d:IAsyncDisposable) =
+        d.DisposeAsync()
+        |> ignore
+        ()
+
     /// Stores element (skips storing existing, old element removed and new prepended)
     member this.Store key value =
         instances <- instances |> distinctAdd key value
@@ -36,11 +41,13 @@ type InstanceStore () =
         | Some elem -> Some(snd elem)
         | None -> None
 
+
     interface IDisposable with
         member __.Dispose() =
             instances
             |> Seq.map snd
             |> Seq.iter (function
+                | :? IAsyncDisposable as d -> disposeAsync(d)
                 | :? IDisposable as d -> d.Dispose()
                 | _ -> ())
             instances <- []
