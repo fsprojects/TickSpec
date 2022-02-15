@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../netfx.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
+    <TargetFrameworks>$(DotNetStandardVersion);$(DotNetFrameworkVersion)</TargetFrameworks>
     <Title>TickSpec</Title>
     <Description>
       TickSpec is a lightweight Behaviour Driven Development (BDD) framework for .Net.
@@ -11,6 +11,9 @@
       (let ``tick method`` () = true) or attributed C# or F# methods.
     </Description>
   </PropertyGroup>
+  <ItemGroup>
+      <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0"/>
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Extensions.fs" />

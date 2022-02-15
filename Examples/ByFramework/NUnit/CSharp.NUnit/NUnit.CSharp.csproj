@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../../../../netfx.props" />
   <PropertyGroup>
-    <TargetFrameworks>net5.0;net452</TargetFrameworks>
+    <TargetFrameworks>$(DotNetCoreVersion);$(DotNetFrameworkVersion)</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Stock.feature" />
