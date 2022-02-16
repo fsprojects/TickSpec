@@ -1,6 +1,6 @@
 ﻿module internal TickSpec.ScenarioGen
 
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_1
 open System
 open System.Collections.Generic
 open System.Reflection

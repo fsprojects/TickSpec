@@ -15,7 +15,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     static let getStepAttributes (m:MemberInfo) =
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
     static let isMethodInScope (feature:string) (scenario:ScenarioSource) (scopedTags,scopedFeatures,scopedScenarios,m) =
-        let trim p (s:string) =
+        let trim (p:string) (s:string) =
             if s.StartsWith p then (s.Substring p.Length).Trim() else s
         let tagged =
             match scopedTags with
@@ -204,7 +204,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     member __.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureSource = parseFeature lines
         let feature = featureSource.Name
-#if !NETSTANDARD2_0
+#if !NETSTANDARD2_1
         let gen = FeatureGen(featureSource.Name,sourceUrl)
         let genType scenario =
             let lines =

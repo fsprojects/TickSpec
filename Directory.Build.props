@@ -29,7 +29,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <DotNetFrameworkVersion>net472</DotNetFrameworkVersion>
-    <DotNetStandardVersion>netstandard2.0</DotNetStandardVersion>
+    <DotNetStandardVersion>netstandard2.1</DotNetStandardVersion>
     <DotNetCoreVersion>net6.0</DotNetCoreVersion>
   </PropertyGroup>
   <ItemGroup>  
