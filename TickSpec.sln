@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{CD7A2701-42ED-47BD-8724-1E130B5C5071}"
 EndProject
@@ -33,11 +33,15 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Functional", "Examples\BySt
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-4315-83F5-54800BC03EB4}"
 	ProjectSection(SolutionItems) = preProject
-		.travis.yml = .travis.yml
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
 		appveyor.yml = appveyor.yml
 		build.bat = build.bat
 		build.fsx = build.fsx
-		build.sh = build.sh
+		Directory.Build.props = Directory.Build.props
+		.config\dotnet-tools.json = .config\dotnet-tools.json
+		LICENSE.txt = LICENSE.txt
+		netfx.props = netfx.props
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
@@ -54,7 +58,7 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "DependencyInjection", "Exam
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FunctionalInjection", "Examples\ByFeature\FunctionalInjection\FunctionalInjection.fsproj", "{1CE6B475-C94F-438E-97D4-5E99FD0F04D4}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Tests", "TickSpec.Tests\TickSpec.Tests.fsproj", "{CD2AA807-5E4F-4A2C-80F7-A7D7CA6B3C2D}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TickSpec.Tests", "TickSpec.Tests\TickSpec.Tests.fsproj", "{CD2AA807-5E4F-4A2C-80F7-A7D7CA6B3C2D}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TaggedExamples", "Examples\ByFeature\TaggedExamples\TaggedExamples.fsproj", "{39C63F8E-F3A5-48D8-851C-62BEB9C701C2}"
 EndProject
@@ -64,11 +68,11 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "MSTest.FSharp", "Examples\B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Expecto", "Expecto", "{750A854A-FB45-4E51-94DF-D79B4F1E46DC}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Expecto.FSharp", "Examples\ByFramework\Expecto\FSharp.Expecto\Expecto.FSharp.fsproj", "{F9B139E4-0160-4150-B420-73DCCD57B6B8}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Expecto.FSharp", "Examples\ByFramework\Expecto\FSharp.Expecto\Expecto.FSharp.fsproj", "{F9B139E4-0160-4150-B420-73DCCD57B6B8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Wiring", "Wiring", "{373B654A-3A88-48CC-A0A3-0454514E61FF}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Xunit", "Wiring\TickSpec.Xunit\TickSpec.Xunit.fsproj", "{DDB39875-AA8B-494E-B923-C8143930464F}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TickSpec.Xunit", "Wiring\TickSpec.Xunit\TickSpec.Xunit.fsproj", "{DDB39875-AA8B-494E-B923-C8143930464F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
