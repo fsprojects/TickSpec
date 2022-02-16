@@ -17,8 +17,8 @@ Example video: http://www.youtube.com/watch?v=UuTL3nj9fIE
 
 Simply reference TickSpec via [NuGet or Paket](https://www.nuget.org/packages/TickSpec/), download the assembly or build the project from source.
 
-- The binary should work cleanly on any .NET Standard 2.0, .NET 4.7.2 or later environment.
-- The TickSpec solution file works with Visual Studio 2017 and newer (tested with VS 2022).
+- The binary should work cleanly on any .NET Standard 2.1, .NET 4.7.2 or later environment.
+- The TickSpec solution file works with Visual Studio 2022.
 - Historically, Silverlight was supported; this support and the related examples were removed in 2017 (but remain in the commit history for the archeologically inclined)
 - Useful samples are available in the Examples folder https://github.com/fsprojects/TickSpec/tree/master/Examples/ and depending your choice, this one is a good start : https://github.com/fsprojects/TickSpec/tree/master/Examples/ByFramework 
 
