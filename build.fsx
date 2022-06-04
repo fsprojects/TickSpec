@@ -1,4 +1,6 @@
 #r "paket:
+    source https://api.nuget.org/v3/index.json
+    framework: net6.0
     nuget NUnit.ConsoleRunner
     nuget xunit.runner.console
     nuget Fake.BuildServer.AppVeyor
