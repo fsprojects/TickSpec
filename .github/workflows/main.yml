@@ -30,11 +30,13 @@ jobs:
     - name: Build & Tests
       run: dotnet fake run build.fsx -t "Test"
     - name: Upload NuGet Packages
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v3
       with:
         name: nuget
         path: packed_nugets/*.nupkg
     - name: Upload Release Binaries
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v3
       with:
         name: release
