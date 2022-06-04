@@ -17,50 +17,46 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CommandLine", "CommandLine"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSharp", "Examples\ByFramework\CommandLine\CSharp\CSharp.csproj", "{FBB69434-1AC8-46B9-8533-81F09B69B134}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp", "Examples\ByFramework\CommandLine\FSharp\FSharp.fsproj", "{9A6D191D-73B3-48D9-A0C1-51581E8894A8}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp", "Examples\ByFramework\CommandLine\FSharp\FSharp.fsproj", "{9A6D191D-73B3-48D9-A0C1-51581E8894A8}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TicTacToe", "Examples\ByFramework\CommandLine\TicTacToe\TicTacToe.fsproj", "{3D58E3C3-1A7C-426D-BC9F-555735EA622E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TicTacToe", "Examples\ByFramework\CommandLine\TicTacToe\TicTacToe.fsproj", "{3D58E3C3-1A7C-426D-BC9F-555735EA622E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NUnit.CSharp", "Examples\ByFramework\NUnit\CSharp.NUnit\NUnit.CSharp.csproj", "{B224A186-190C-43D8-B83C-3E2F0FD7BE39}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "NUnit.FSharp", "Examples\ByFramework\NUnit\FSharp.NUnit\NUnit.FSharp.fsproj", "{5DFF73BD-8C5D-4EE2-B5DD-2D244EC06A61}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NUnit.FSharp", "Examples\ByFramework\NUnit\FSharp.NUnit\NUnit.FSharp.fsproj", "{5DFF73BD-8C5D-4EE2-B5DD-2D244EC06A61}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Interactive", "Examples\ByStyle\Interactive\Interactive.fsproj", "{BA6F3A69-34F3-4D85-8804-DD354F8E17FA}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Interactive", "Examples\ByStyle\Interactive\Interactive.fsproj", "{BA6F3A69-34F3-4D85-8804-DD354F8E17FA}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Attributes", "Examples\ByStyle\Attributes\Attributes.fsproj", "{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Attributes", "Examples\ByStyle\Attributes\Attributes.fsproj", "{B3AA7D1B-E83A-4C9B-97CF-12293AF46E10}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Functional", "Examples\ByStyle\Functional\Functional.fsproj", "{1D2CA398-6F02-41B1-BAA5-E63DC15508A4}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Functional", "Examples\ByStyle\Functional\Functional.fsproj", "{1D2CA398-6F02-41B1-BAA5-E63DC15508A4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-4315-83F5-54800BC03EB4}"
 	ProjectSection(SolutionItems) = preProject
-		.travis.yml = .travis.yml
-		appveyor.yml = appveyor.yml
-		build.bat = build.bat
 		build.fsx = build.fsx
-		build.sh = build.sh
 		README.md = README.md
 		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Xunit.FSharp", "Examples\ByFramework\xUnit\FSharp.xUnit\Xunit.FSharp.fsproj", "{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Xunit.FSharp", "Examples\ByFramework\xUnit\FSharp.xUnit\Xunit.FSharp.fsproj", "{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ByFeature", "ByFeature", "{EB1F6262-0913-4464-A034-4F4D01268E83}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TickSpec", "TickSpec\TickSpec.fsproj", "{DC4A4A1D-CCC5-42E7-8EE6-4F015E8A2E3E}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec", "TickSpec\TickSpec.fsproj", "{DC4A4A1D-CCC5-42E7-8EE6-4F015E8A2E3E}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "CustomContainer", "Examples\ByFeature\CustomContainer\CustomContainer.fsproj", "{4F45F8E2-F9FD-4C80-B4E0-A38B17A791D2}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CustomContainer", "Examples\ByFeature\CustomContainer\CustomContainer.fsproj", "{4F45F8E2-F9FD-4C80-B4E0-A38B17A791D2}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "DependencyInjection", "Examples\ByFeature\DependencyInjection\DependencyInjection.fsproj", "{6DD7F109-6798-4CAF-BD13-7BA4689BD892}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DependencyInjection", "Examples\ByFeature\DependencyInjection\DependencyInjection.fsproj", "{6DD7F109-6798-4CAF-BD13-7BA4689BD892}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FunctionalInjection", "Examples\ByFeature\FunctionalInjection\FunctionalInjection.fsproj", "{1CE6B475-C94F-438E-97D4-5E99FD0F04D4}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FunctionalInjection", "Examples\ByFeature\FunctionalInjection\FunctionalInjection.fsproj", "{1CE6B475-C94F-438E-97D4-5E99FD0F04D4}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TickSpec.Tests", "TickSpec.Tests\TickSpec.Tests.fsproj", "{CD2AA807-5E4F-4A2C-80F7-A7D7CA6B3C2D}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TaggedExamples", "Examples\ByFeature\TaggedExamples\TaggedExamples.fsproj", "{39C63F8E-F3A5-48D8-851C-62BEB9C701C2}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TaggedExamples", "Examples\ByFeature\TaggedExamples\TaggedExamples.fsproj", "{39C63F8E-F3A5-48D8-851C-62BEB9C701C2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MSTest", "MSTest", "{694A8BD0-05B1-4000-BDD2-67CC4B3B8D90}"
 EndProject
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "MSTest.FSharp", "Examples\ByFramework\MSTest\MSTest.FSharp\MSTest.FSharp.fsproj", "{6EAC46DB-177A-4482-970A-D43124DB2FB9}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MSTest.FSharp", "Examples\ByFramework\MSTest\MSTest.FSharp\MSTest.FSharp.fsproj", "{6EAC46DB-177A-4482-970A-D43124DB2FB9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Expecto", "Expecto", "{750A854A-FB45-4E51-94DF-D79B4F1E46DC}"
 EndProject

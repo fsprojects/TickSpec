@@ -29,6 +29,8 @@ jobs:
       run: dotnet tool restore
     - name: Build & Tests
       run: dotnet fake run build.fsx -t "Test"
+      env:
+        BUILD_NUMBER: ${{github.run_number}}
     - name: Upload NuGet Packages
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v3
