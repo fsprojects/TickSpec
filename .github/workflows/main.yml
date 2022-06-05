@@ -36,10 +36,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: nuget
-        path: packed_nugets/*.nupkg
-    - name: Upload Release Binaries
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: release
-        path: TickSpec/bin/Release/*.*
+        path: packed_nugets/*.*
