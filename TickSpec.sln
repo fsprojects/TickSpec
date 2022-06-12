@@ -31,13 +31,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Attributes", "Examples\BySt
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Functional", "Examples\ByStyle\Functional\Functional.fsproj", "{1D2CA398-6F02-41B1-BAA5-E63DC15508A4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "._", "._", "{51B6BE98-A176-4315-83F5-54800BC03EB4}"
-	ProjectSection(SolutionItems) = preProject
-		build.fsx = build.fsx
-		README.md = README.md
-		RELEASE_NOTES.md = RELEASE_NOTES.md
-	EndProjectSection
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Xunit.FSharp", "Examples\ByFramework\xUnit\FSharp.xUnit\Xunit.FSharp.fsproj", "{1207F9C8-3B84-4939-B6E2-DB96D06B73E2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ByFeature", "ByFeature", "{EB1F6262-0913-4464-A034-4F4D01268E83}"
