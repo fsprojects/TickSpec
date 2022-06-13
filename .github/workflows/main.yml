@@ -1,0 +1,39 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+
+  build:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macOS-latest]
+        dotnet: [6.0.x]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+    - name: Install local tools
+      run: dotnet tool restore
+    - name: Build & Tests
+      run: dotnet fake run build.fsx -t "Test"
+      env:
+        BUILD_NUMBER: ${{github.run_number}}
+    - name: Upload NuGet Packages
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: nuget
+        path: packed_nugets/*.*

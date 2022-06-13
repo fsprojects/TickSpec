@@ -1,0 +1,29 @@
+name: Release
+
+on: 
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version of new NuGet package
+        required: true
+
+
+jobs:
+  release:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ 6.0.x }}
+    - name: Install local tools
+      run: dotnet tool restore
+    - name: Build, Tests & Release
+      if: matrix.os == 'windows-latest' && github.ref == 'refs/heads/master'
+      run: dotnet fake run build.fsx -t "PublishNuget"
+      env:
+        BUILD_NUMBER: ${{github.run_number}}
+        NUGET_VERSION: ${{github.events.inputs.version}}
+        NUGET_KEY: ${{secrets.NUGET_KEY}}

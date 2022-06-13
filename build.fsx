@@ -1,7 +1,6 @@
 #r "paket:
-    nuget NUnit.ConsoleRunner
-    nuget xunit.runner.console
-    nuget Fake.BuildServer.AppVeyor
+    source https://api.nuget.org/v3/index.json
+    framework: net6.0
     nuget Fake.Core.Target
     nuget Fake.IO.FileSystem
     nuget Fake.DotNet.Cli
@@ -9,11 +8,7 @@
     nuget Fake.DotNet.MSBuild
     nuget Fake.Core.ReleaseNotes 
     nuget Fake.DotNet.AssemblyInfoFile
-    nuget Fake.DotNet.Paket
-    nuget Fake.DotNet.Testing.XUnit2
-    nuget Fake.DotNet.Testing.NUnit
-    nuget Fake.Api.GitHub
-    nuget Paket.Core //"
+    nuget Fake.Api.GitHub //"
 
 #load "./.fake/build.fsx/intellisense.fsx"
 
@@ -23,18 +18,15 @@ open Fake.IO
 open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.DotNet
-open Fake.BuildServer
-
-BuildServer.install [
-    AppVeyor.Installer
-]
 
 CoreTracing.ensureConsoleListener()
 
-module AppVeyor = 
-    let BuildNumber = Environment.environVarOrNone "APPVEYOR_BUILD_NUMBER"
-    let Tag = Environment.environVarOrNone "APPVEYOR_REPO_TAG_NAME"
+module GitHubActions = 
+    let BuildNumber = Environment.environVarOrNone "BUILD_NUMBER"
+    let NugetVersion = Environment.environVarOrNone "NUGET_VERSION"
     let NugetKey = Environment.environVarOrNone "NUGET_KEY"
+
+    let detect() = BuildNumber |> Option.isSome
 
 module Xml = 
     open System.Xml.Linq
@@ -67,12 +59,12 @@ module Build =
     let nuget = rootDir </> "packed_nugets"
 
     let private fileVersion =
-        AppVeyor.BuildNumber 
+        GitHubActions.BuildNumber 
         |> Option.defaultValue "0" 
         |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
 
     let private continuousBuild =
-        if AppVeyor.detect() then
+        if GitHubActions.detect() then
             "/p:ContinuousIntegrationBuild=true"
         else
             ""
@@ -101,8 +93,7 @@ Target.create "Build" (fun _ ->
 Target.create "Test" (fun _ ->
     // Xunit seems to be failing under Linux with net452 runner, let's just skip it
     // the .NET 4 tests all together there
-    let framework = if Environment.isWindows then None else Some "net5.0"
-    let logger = if AppVeyor.detect () then "Appveyor" |> Some else None
+    let framework = if Environment.isWindows then None else Some "net6.0"
 
     Sln
     |> DotNet.test (fun o ->
@@ -110,7 +101,6 @@ Target.create "Test" (fun _ ->
             Configuration = DotNet.Release
             NoBuild = true
             Framework = framework
-            Logger = logger
         }
     )
 )
@@ -146,13 +136,13 @@ Target.create "Nuget" (fun _ ->
 
 Target.create "PublishNuget" (fun _ ->
     if Environment.isWindows then
-        match AppVeyor.NugetKey with
+        match GitHubActions.NugetKey with
         | Some k -> TraceSecrets.register k "<NUGET_KEY>"
         | None -> ()
 
         let publishNugets () =
             let key = 
-                match AppVeyor.NugetKey with
+                match GitHubActions.NugetKey with
                 | Some x -> x
                 | None -> failwith "To publish nuget, it is needed to set NUGET_KEY environment variable"        
 
@@ -163,7 +153,7 @@ Target.create "PublishNuget" (fun _ ->
             -- (Build.nuget </> "*.symbols.nupkg")
             |> Seq.map publishNuget
 
-        match AppVeyor.Tag with
+        match GitHubActions.NugetVersion with
         | None -> ()
         | Some t when t = ReleaseNotes.TickSpec.NugetVersion ->
             publishNugets () |> Seq.iter (fun x -> if not x.OK then failwithf "Nuget publish failed with %A" x)
