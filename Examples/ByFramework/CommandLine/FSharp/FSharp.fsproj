@@ -3,7 +3,7 @@
   <Import Project="../../../../netfx.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0;net452</TargetFrameworks>
+    <TargetFrameworks>net6.0;net452</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="StockItem.fs" />
