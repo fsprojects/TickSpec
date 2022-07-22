@@ -1,3 +1,6 @@
+#### 2.0.3 (To be released)
+* Fix unit test serialization to allow running from IDE easily
+
 #### 2.0.2 (Released 2021/06/19)
 * Added library with Xunit integration by @deyanp
 

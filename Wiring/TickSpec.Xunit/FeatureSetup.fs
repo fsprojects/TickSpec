@@ -12,6 +12,7 @@ type XunitSerializableScenario =
     val mutable Parameters: (string*string)[]
     val mutable Tags: string[]
     new (featureName: string, name: string, parameters: (string*string)[], tags: string[]) = { FeatureName = featureName; Name = name; Parameters = parameters; Tags = tags }
+    new () = XunitSerializableScenario("", "", Array.empty, Array.empty)
     
     override this.ToString() =
         if this.Parameters.Length = 0 && this.Tags.Length = 0 then this.Name
@@ -26,7 +27,7 @@ type XunitSerializableScenario =
             info.AddValue("Name", this.Name)
             info.AddValue("Parameters", [| for k, v in this.Parameters -> sprintf "%s=%s" k v |])       
             info.AddValue("Tags", this.Tags)
-            
+
         member this.Deserialize(info:IXunitSerializationInfo) =
             let featureName = info.GetValue<string>("FeatureName")
             let name = info.GetValue<string>("Name")
@@ -62,7 +63,12 @@ type AssemblyStepDefinitionsSource(assembly : System.Reflection.Assembly) =
 
     /// Executes the scenario
     member __.RunScenario(scenario: XunitSerializableScenario) =
-        scenarioActions.[createScenarioActionsKey scenario.FeatureName scenario.Name].Invoke()
+        let scenarioActionsKey = createScenarioActionsKey scenario.FeatureName scenario.Name
+
+        if not (scenarioActions.ContainsKey scenarioActionsKey) then
+            __.ScenariosFromEmbeddedResource scenario.FeatureName |> ignore
+
+        scenarioActions.[scenarioActionsKey].Invoke()
 
     /// Hook creation of a container scope per Scenario Run so creation is via the specified factory
     member __.ServiceProviderFactory
