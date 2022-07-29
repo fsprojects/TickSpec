@@ -13,7 +13,6 @@ type Col = left = 0 | middle = 1 | right = 2
 let [<Literal>] rowEx = "(top|middle|bottom)"
 let [<Literal>] colEx = "(left|middle|right)"
 
-[<When("a player marks (X|O) at {0} {1}", rowEx, colEx)>]
 let [<When>] ``a player marks (X|O) at (top|middle|bottom) (left|middle|right)`` 
         (mark:string,row:Row,col:Col) =       
     let y = int row             

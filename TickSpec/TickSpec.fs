@@ -134,7 +134,6 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                         | step -> step
                     p,a,sm
                 )
-                |> Seq.distinctBy (fun (p,a,m) -> p)
             )
             |> Seq.fold (fun (gs,ws,ts) (p,a,m) ->
                 match a with
