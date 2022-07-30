@@ -217,20 +217,29 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 events
                 valueParsers
                 (scenario.Name, lines, scenario.Parameters)
-        let createAction scenario =
+        let createAction scenario (scenarioInformation: ScenarioInformation) =
             let t = lazy (genType scenario)
             TickSpec.Action(fun () ->
-                let ctor = t.Force().GetConstructor([| typeof<FSharpFunc<unit, IInstanceProvider>> |])
-                let instance = ctor.Invoke([| !instanceProviderFactory |])
+                let ctor = t.Force().GetConstructor([|
+                    typeof<FSharpFunc<unit, IInstanceProvider>>
+                    typeof<ScenarioInformation>
+                |])
+
+                let instance = ctor.Invoke([|
+                    instanceProviderFactory.Value
+                    scenarioInformation
+                |])
+
                 let mi = instance.GetType().GetMethod("Run")
                 mi.Invoke(instance,[||]) |> ignore
             )
         let scenarios =
             featureSource.Scenarios
             |> Seq.map (fun scenario ->
-                let action = createAction scenario
-                { Name=scenario.Name;Description=getDescription scenario.Steps;
-                  Action=action;Parameters=scenario.Parameters;Tags=scenario.Tags}
+                let scenarioInformation =
+                    { Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags }
+                createAction scenario scenarioInformation
+                |> Scenario.fromScenarioInformation scenarioInformation
             )
         let assembly = gen.Assembly
 #else

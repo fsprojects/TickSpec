@@ -23,6 +23,18 @@ let defineProviderField
         typeof<IInstanceProvider>,
         FieldAttributes.Private ||| FieldAttributes.InitOnly)
 
+/// Emits register instance call
+let emitRegisterInstanceCall (gen:ILGenerator) (instanceType: Type) (localVariableIndex: int) (providerField: FieldBuilder) =
+    gen.Emit(OpCodes.Ldarg_0)
+    gen.Emit(OpCodes.Ldfld, providerField)
+    gen.Emit(OpCodes.Ldtoken, instanceType)
+    let getType =
+        typeof<Type>.GetMethod("GetTypeFromHandle",
+            [|typeof<RuntimeTypeHandle>|])
+    gen.EmitCall(OpCodes.Call, getType, null)
+    gen.Emit(OpCodes.Ldloc, localVariableIndex)
+    gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterInstance"))
+
 /// Defines Constructor
 let defineCons
         (scenarioBuilder:TypeBuilder)
@@ -32,7 +44,7 @@ let defineCons
         scenarioBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Standard,
-            [| typeof<FSharpFunc<unit, IInstanceProvider>> |])
+            [| typeof<FSharpFunc<unit, IInstanceProvider>>; typeof<ScenarioInformation> |])
     let gen = cons.GetILGenerator()
     // Call base constructor
     gen.Emit(OpCodes.Ldarg_0)
@@ -56,6 +68,12 @@ let defineCons
         gen.Emit(OpCodes.Ldstr,value)
         gen.Emit(OpCodes.Stfld,field)
     )
+
+    let scenarioInformationLocalIdx = gen.DeclareLocal(typeof<Object>).LocalIndex
+    gen.Emit(OpCodes.Ldarg_2)
+    gen.Emit(OpCodes.Stloc, scenarioInformationLocalIdx)
+    emitRegisterInstanceCall gen typeof<ScenarioInformation> scenarioInformationLocalIdx providerField
+
     // Emit return
     gen.Emit(OpCodes.Ret)
 
@@ -439,17 +457,6 @@ let defineStepMethod
         let local0 = gen.DeclareLocal(typeof<Object>).LocalIndex
         gen.Emit(OpCodes.Stloc, local0)
 
-        let emitRegisterInstanceCall (t:Type) (l:int) =
-            gen.Emit(OpCodes.Ldarg_0)
-            gen.Emit(OpCodes.Ldfld, providerField)
-            gen.Emit(OpCodes.Ldtoken,t)
-            let getType =
-                typeof<Type>.GetMethod("GetTypeFromHandle",
-                    [|typeof<RuntimeTypeHandle>|])
-            gen.EmitCall(OpCodes.Call,getType,null)
-            gen.Emit(OpCodes.Ldloc, l)
-            gen.Emit(OpCodes.Callvirt, typeof<IInstanceProvider>.GetMethod("RegisterInstance"))
-
         if FSharpType.IsTuple mi.ReturnType then
             let types = FSharpType.GetTupleElements mi.ReturnType
             for i = 0 to (types.Length - 1) do
@@ -461,9 +468,9 @@ let defineStepMethod
                 gen.EmitCall(OpCodes.Call, typeof<Microsoft.FSharp.Reflection.FSharpValue>.GetMethod("GetTupleField"), null)
                 gen.Emit(OpCodes.Stloc, local1)
 
-                emitRegisterInstanceCall t local1
+                emitRegisterInstanceCall gen t local1 providerField
         else
-            emitRegisterInstanceCall (mi.ReturnType) local0
+            emitRegisterInstanceCall gen (mi.ReturnType) local0 providerField
 
     // Emit return
     gen.Emit(OpCodes.Ret)
