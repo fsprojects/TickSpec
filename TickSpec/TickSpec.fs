@@ -168,7 +168,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         with set providerFactory =
             let mkScenarioContainer () : IInstanceProvider =
                 new ExternalServiceProviderInstanceProvider(providerFactory()) :> _
-            instanceProviderFactory := mkScenarioContainer
+            instanceProviderFactory.Value <- mkScenarioContainer
 
     /// Generate scenarios from specified lines (source undefined)
     member __.GenerateScenarios (lines:string []) =
@@ -181,9 +181,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 |> Seq.map (resolveLine feature scenario)
                 |> Seq.toArray
             let events = chooseInScopeEvents feature scenario
-            let action = generate events valueParsers (scenario.Name, steps) instanceProviderFactory
-            {Name=scenario.Name;Description=getDescription scenario.Steps;
-             Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
+            let scenarioInformation =
+                {Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags}
+            
+            TickSpec.Action(generate events valueParsers (scenarioInformation, steps) instanceProviderFactory)
+            |> Scenario.fromScenarioInformation scenarioInformation
         )
     member this.GenerateScenarios (reader:TextReader) =
         this.GenerateScenarios(TextReader.readAllLines reader)
