@@ -1,5 +1,6 @@
 ﻿module internal TickSpec.LineParser
 
+open System
 open System.Text.RegularExpressions
 
 type internal ItemType =
@@ -45,6 +46,9 @@ let startsWith (pattern:string) (s:string) =
     s.StartsWith(pattern, System.StringComparison.InvariantCultureIgnoreCase)
 
 let (|Trim|) (s:string) = s.Trim()
+let (|NonEmpty|_|) (s:string) =
+    if String.IsNullOrWhiteSpace(s) then None
+    else s |> Some
 let (|FeatureLine|_|) s =
     tryRegex s "^\s*Feature:\s(.*)"
     |> Option.map (function Trim t -> FeatureLine t)
@@ -168,8 +172,8 @@ let parseLine = function
     | Item(_, MultiLineStringEnd), SharedExamplesLine
     | TagLine _, SharedExamplesLine
         -> SharedExamples |> Some
-    | FeatureName _, line -> FeatureDescription line |> Some
-    | FeatureDescription _, line -> FeatureDescription line |> Some
+    | FeatureName _, NonEmpty line -> FeatureDescription line |> Some
+    | FeatureDescription _, NonEmpty line -> FeatureDescription line |> Some
     | _, _ -> None
 
 let expectingLine = function
