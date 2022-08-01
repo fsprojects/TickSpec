@@ -230,11 +230,11 @@ let private parseFeatureFile parsedLines =
     | (_,_,FileStart) :: xs -> parseFeatureBlock xs
     | _ -> parsedLines |> raiseParseException "Unexpected call of parser"
 
-type internal ScannedLine =
+type [<RequireQualifiedAccess>] internal ScannedLine =
     // Scanned line: (lineNumber, lineContent, lineType) of parsed line
-    | Line of int * string * LineType
+    | Ok of int * string * LineType
     // Ignored line: lineType of last preceeding parsed non-ignored line
-    | IgnoredLine of LineType
+    | Ignored of LineType
 
 let parseBlocks (lines:string seq) =
     lines
@@ -247,21 +247,21 @@ let parseBlocks (lines:string seq) =
     |> Seq.scan(fun prevLine (lineNumber, lineContent) ->
         let lastParsedLine =
             match prevLine with
-            | Line (_, _, prevLineType) -> prevLineType
-            | IgnoredLine prevLineType -> prevLineType
+            | ScannedLine.Ok (_, _, prevLineType)
+            | ScannedLine.Ignored prevLineType -> prevLineType
         let parsed = parseLine (lastParsedLine, lineContent)
         match parsed with
-        | Some line -> (lineNumber, lineContent, line) |> Line
+        | Some line -> (lineNumber, lineContent, line) |> ScannedLine.Ok
         | None when lineContent.Trim().Length = 0 ->
-            lastParsedLine |> IgnoredLine
+            lastParsedLine |> ScannedLine.Ignored
         | None ->
             let e = expectingLine lastParsedLine
             let m = sprintf "Syntax error on line %d %s\r\n%s" lineNumber lineContent e
             ParseException(m, Some lineNumber) |> raise
-        ) (Line (0, "", FileStart))
+        ) (ScannedLine.Ok (0, "", FileStart))
     |> Seq.choose (function
-        | IgnoredLine _ -> None
-        | Line (lineNumber, lineContent, lineType) -> Some (lineNumber, lineContent, lineType)
+        | ScannedLine.Ignored _ -> None
+        | ScannedLine.Ok (lineNumber, lineContent, lineType) -> Some (lineNumber, lineContent, lineType)
     )
     |> Seq.toList
     |> parseFeatureFile

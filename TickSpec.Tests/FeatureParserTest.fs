@@ -16,8 +16,7 @@ let private verifyParsing (lines: string[]) (expected: FeatureSource) =
 let private verifyLineParsing (lines: string[]) (expected: LineType list) =
     let lineParsed =
         lines
-        |> Seq.mapi (fun lineNumber line -> (lineNumber + 1, line))
-        |> Seq.map (fun (lineNumber, line) ->
+        |> Seq.mapi (fun lineNumber line -> 
             let i = line.IndexOf("#")
             if i = -1 then lineNumber, line
             else lineNumber, line.Substring(0, i)
@@ -25,21 +24,21 @@ let private verifyLineParsing (lines: string[]) (expected: LineType list) =
         |> Seq.scan (fun prevLine (lineNumber, lineContent) ->
             let lastParsedLine =
                 match prevLine with
-                | Line (_, _, prevLineType) -> prevLineType
-                | IgnoredLine prevLineType -> prevLineType
+                | ScannedLine.Ok (_, _, prevLineType)
+                | ScannedLine.Ignored prevLineType -> prevLineType
 
             let parsed = parseLine (lastParsedLine, lineContent)
             match parsed with
-            | Some line -> (lineNumber, lineContent, line) |> Line
-            | None when lineContent.Trim().Length = 0 -> lastParsedLine |> IgnoredLine
+            | Some line -> (lineNumber, lineContent, line) |> ScannedLine.Ok
+            | None when lineContent.Trim().Length = 0 -> lastParsedLine |> ScannedLine.Ignored
             | None ->
                 let e = expectingLine lastParsedLine
-                Exception(e) |> raise) (Line (0, "", FileStart))
-        |> Seq.choose (function
-            | IgnoredLine _ -> None
-            | Line (lineNumber, lineContent, lineType) -> Some (lineNumber, lineContent, lineType)
+                Exception(e) |> raise) (ScannedLine.Ok (0, "", FileStart)
         )
-        |> Seq.map (fun (_, _, line) -> line)
+        |> Seq.choose (function
+            | ScannedLine.Ignored _ -> None
+            | ScannedLine.Ok (_, _, line) -> Some line
+        )
 
     Assert.AreEqual(expected, lineParsed)
 
