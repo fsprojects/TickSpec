@@ -189,8 +189,8 @@ As shown in [Step definitions (F# without mutable field)](#step-definitions-f-wi
 
 * **Resolving dependencies:** If an instance cannot be located in the type-to-instance cache based on a preceding step having stashed the value, TickSpec will attempt to use the 'widest' constructor (the one with the most arguments) of the required type to instantiate it. Any input arguments to the constructor are all resolved recursively using the same mechanism. Any constructed instances are also cached in the type-to-instance cache, so next time it will return the same instance.
 
-* **accessing scenario metadata:** You can access contextual information about the scenario within which a step definition is executing (e.g. tags). To do this, add a parameter of type  `ScenarioInformation` in the step definition argument list (or in a constructor parameter list of a dependency)
-scenario information (e.g. tags), then you can reference `ScenarioInformation` in your method argument (or in constructor of dependencies) and you will get an instance describing the scenario which is invoked.
+* **Accessing scenario metadata:** You can access contextual information about the scenario within which a step definition is executing (e.g. tags). To do this, add a parameter of type  `ScenarioMetadata` in the step definition argument list (or in a constructor parameter list of a dependency)
+scenario information (e.g. tags), then you can reference `ScenarioMetadata` in your method argument (or in constructor of dependencies) and you will get an instance describing the scenario which is invoked.
 
 The lifetime of instances is per-scenario:- Each scenario run starts an empty type-to-instance cache, and at the end of the scenario the cache gets cleared. Moreover, if any instance is `IDisposable`, `Dispose` will be called.
 

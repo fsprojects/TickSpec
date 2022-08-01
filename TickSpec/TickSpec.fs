@@ -181,11 +181,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 |> Seq.map (resolveLine feature scenario)
                 |> Seq.toArray
             let events = chooseInScopeEvents feature scenario
-            let scenarioInformation =
+            let scenarioMetadata =
                 {Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags}
             
-            TickSpec.Action(generate events valueParsers (scenarioInformation, steps) instanceProviderFactory)
-            |> Scenario.fromScenarioInformation scenarioInformation
+            TickSpec.Action(generate events valueParsers (scenarioMetadata, steps) instanceProviderFactory)
+            |> Scenario.fromScenarioMetadata scenarioMetadata
         )
     member this.GenerateScenarios (reader:TextReader) =
         this.GenerateScenarios(TextReader.readAllLines reader)
@@ -217,17 +217,17 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 events
                 valueParsers
                 (scenario.Name, lines, scenario.Parameters)
-        let createAction scenario (scenarioInformation: ScenarioInformation) =
+        let createAction scenario (scenarioMetadata: ScenarioMetadata) =
             let t = lazy (genType scenario)
             TickSpec.Action(fun () ->
                 let ctor = t.Force().GetConstructor([|
                     typeof<FSharpFunc<unit, IInstanceProvider>>
-                    typeof<ScenarioInformation>
+                    typeof<ScenarioMetadata>
                 |])
 
                 let instance = ctor.Invoke([|
                     instanceProviderFactory.Value
-                    scenarioInformation
+                    scenarioMetadata
                 |])
 
                 let mi = instance.GetType().GetMethod("Run")
@@ -236,10 +236,10 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         let scenarios =
             featureSource.Scenarios
             |> Seq.map (fun scenario ->
-                let scenarioInformation =
+                let scenarioMetadata =
                     { Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags }
-                createAction scenario scenarioInformation
-                |> Scenario.fromScenarioInformation scenarioInformation
+                createAction scenario scenarioMetadata
+                |> Scenario.fromScenarioMetadata scenarioMetadata
             )
         let assembly = gen.Assembly
 #else

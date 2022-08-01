@@ -44,7 +44,7 @@ let defineCons
         scenarioBuilder.DefineConstructor(
             MethodAttributes.Public,
             CallingConventions.Standard,
-            [| typeof<FSharpFunc<unit, IInstanceProvider>>; typeof<ScenarioInformation> |])
+            [| typeof<FSharpFunc<unit, IInstanceProvider>>; typeof<ScenarioMetadata> |])
     let gen = cons.GetILGenerator()
     // Call base constructor
     gen.Emit(OpCodes.Ldarg_0)
@@ -69,10 +69,10 @@ let defineCons
         gen.Emit(OpCodes.Stfld,field)
     )
 
-    let scenarioInformationLocalIdx = gen.DeclareLocal(typeof<Object>).LocalIndex
+    let scenarioMetadataLocalIdx = gen.DeclareLocal(typeof<Object>).LocalIndex
     gen.Emit(OpCodes.Ldarg_2)
-    gen.Emit(OpCodes.Stloc, scenarioInformationLocalIdx)
-    emitRegisterInstanceCall gen typeof<ScenarioInformation> scenarioInformationLocalIdx providerField
+    gen.Emit(OpCodes.Stloc, scenarioMetadataLocalIdx)
+    emitRegisterInstanceCall gen typeof<ScenarioMetadata> scenarioMetadataLocalIdx providerField
 
     // Emit return
     gen.Emit(OpCodes.Ret)

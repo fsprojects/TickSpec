@@ -5,7 +5,7 @@ open System
 /// Action type
 type Action = delegate of unit -> unit
 
-type ScenarioInformation = {
+type ScenarioMetadata = {
     Name: string
     Description: string
     Parameters: (string * string)[]
@@ -31,13 +31,13 @@ type Scenario = {
             sprintf "%s{%s}" this.Name ps
 
 module Scenario =
-    let fromScenarioInformation (information: ScenarioInformation) action =
+    let fromScenarioMetadata (metadata: ScenarioMetadata) action =
         {
-            Name = information.Name
-            Description = information.Description
+            Name = metadata.Name
+            Description = metadata.Description
             Action = action
-            Parameters = information.Parameters
-            Tags = information.Tags
+            Parameters = metadata.Parameters
+            Tags = metadata.Tags
         }
 
 /// Encapsulates Gherkin feature
