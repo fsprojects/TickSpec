@@ -1,6 +1,7 @@
 #### 2.0.3 (To be released)
-* Fix to allow multiple step types on a single method (issue #55)
-* Fix unit test serialization to allow running from IDE easily
+* [Fix] Keep empty lines in doc strings (issue #60)
+* [Fix] Allow multiple step types on a single method (issue #55)
+* [Fix] Unit test serialization to allow running from IDE easily
 
 #### 2.0.2 (Released 2021/06/19)
 * Added library with Xunit integration by @deyanp
