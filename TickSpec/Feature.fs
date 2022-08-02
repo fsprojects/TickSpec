@@ -5,15 +5,15 @@ open System
 /// Action type
 type Action = delegate of unit -> unit
 
-/// Encapsulates Gherkin feature
-type Feature = {
-    Name : string;
-    Source : string;
-    Assembly : System.Reflection.Assembly;
-    Scenarios : Scenario seq
-    }
+type ScenarioMetadata = {
+    Name: string
+    Description: string
+    Parameters: (string * string)[]
+    Tags: string[]
+}
+
 /// Executable scenario type
-and Scenario = {
+type Scenario = {
     Name:string;
     Description:string;
     Action:Action;
@@ -30,3 +30,20 @@ and Scenario = {
                 |> String.concat ","
             sprintf "%s{%s}" this.Name ps
 
+module Scenario =
+    let fromScenarioMetadata (metadata: ScenarioMetadata) action =
+        {
+            Name = metadata.Name
+            Description = metadata.Description
+            Action = action
+            Parameters = metadata.Parameters
+            Tags = metadata.Tags
+        }
+
+/// Encapsulates Gherkin feature
+type Feature = {
+    Name : string;
+    Source : string;
+    Assembly : System.Reflection.Assembly;
+    Scenarios : Scenario seq
+}

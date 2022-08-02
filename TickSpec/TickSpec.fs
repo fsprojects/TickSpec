@@ -168,7 +168,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         with set providerFactory =
             let mkScenarioContainer () : IInstanceProvider =
                 new ExternalServiceProviderInstanceProvider(providerFactory()) :> _
-            instanceProviderFactory := mkScenarioContainer
+            instanceProviderFactory.Value <- mkScenarioContainer
 
     /// Generate scenarios from specified lines (source undefined)
     member __.GenerateScenarios (lines:string []) =
@@ -181,9 +181,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 |> Seq.map (resolveLine feature scenario)
                 |> Seq.toArray
             let events = chooseInScopeEvents feature scenario
-            let action = generate events valueParsers (scenario.Name, steps) instanceProviderFactory
-            {Name=scenario.Name;Description=getDescription scenario.Steps;
-             Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
+            let scenarioMetadata =
+                {Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags}
+            
+            TickSpec.Action(generate events valueParsers (scenarioMetadata, steps) instanceProviderFactory)
+            |> Scenario.fromScenarioMetadata scenarioMetadata
         )
     member this.GenerateScenarios (reader:TextReader) =
         this.GenerateScenarios(TextReader.readAllLines reader)
@@ -215,20 +217,29 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 events
                 valueParsers
                 (scenario.Name, lines, scenario.Parameters)
-        let createAction scenario =
+        let createAction scenario (scenarioMetadata: ScenarioMetadata) =
             let t = lazy (genType scenario)
             TickSpec.Action(fun () ->
-                let ctor = t.Force().GetConstructor([| typeof<FSharpFunc<unit, IInstanceProvider>> |])
-                let instance = ctor.Invoke([| !instanceProviderFactory |])
+                let ctor = t.Force().GetConstructor([|
+                    typeof<FSharpFunc<unit, IInstanceProvider>>
+                    typeof<ScenarioMetadata>
+                |])
+
+                let instance = ctor.Invoke([|
+                    instanceProviderFactory.Value
+                    scenarioMetadata
+                |])
+
                 let mi = instance.GetType().GetMethod("Run")
                 mi.Invoke(instance,[||]) |> ignore
             )
         let scenarios =
             featureSource.Scenarios
             |> Seq.map (fun scenario ->
-                let action = createAction scenario
-                { Name=scenario.Name;Description=getDescription scenario.Steps;
-                  Action=action;Parameters=scenario.Parameters;Tags=scenario.Tags}
+                let scenarioMetadata =
+                    { Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags }
+                createAction scenario scenarioMetadata
+                |> Scenario.fromScenarioMetadata scenarioMetadata
             )
         let assembly = gen.Assembly
 #else

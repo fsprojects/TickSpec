@@ -159,10 +159,11 @@ let invokeStep
     invoke provider meth args
 
 /// Generate scenario execution function
-let generate events parsers (scenario, lines) (serviceProviderFactory: Ref<unit -> IInstanceProvider>) =
+let generate events parsers (scenario: ScenarioMetadata, lines) (serviceProviderFactory: Ref<unit -> IInstanceProvider>) =
     fun () ->
         /// Type instance provider
-        let provider = (!serviceProviderFactory)()
+        let provider = (serviceProviderFactory.Value)()
+        provider.RegisterInstance (typeof<ScenarioMetadata>, scenario)
 
         try
             let beforeScenarioEvents, afterScenarioEvents, beforeStepEvents, afterStepEvents = events

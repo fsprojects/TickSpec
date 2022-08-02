@@ -15,6 +15,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="ServiceProvider.fs" />
+    <Compile Include="Feature.fs" />
     <Compile Include="FeatureSource.fs" />
     <Compile Include="ScenarioRun.fs" />
     <Compile Include="ScenarioGen.fs" />
@@ -26,7 +27,6 @@
     <Compile Include="LineParser.fs" />
     <Compile Include="BlockParser.fs" />
     <Compile Include="FeatureParser.fs" />
-    <Compile Include="Feature.fs" />
     <Compile Include="TickSpec.fs" />
   </ItemGroup>
 </Project>

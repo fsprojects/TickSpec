@@ -21,6 +21,8 @@
     <EmbeddedResource Include="ComputerHeating.feature" />
     <Compile Include="WalletSteps.fs" />
     <EmbeddedResource Include="Wallet.feature" />
+    <EmbeddedResource Include="ScenarioMetadata.feature" />
+    <Compile Include="ScenarioMetadataSteps.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\TickSpec\TickSpec.fsproj" />
