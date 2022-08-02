@@ -7,6 +7,7 @@ Given I have a table
 When I take a doc string
     """
     First line
+
         Second line
     Third line
     """

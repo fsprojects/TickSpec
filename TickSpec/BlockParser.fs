@@ -230,6 +230,12 @@ let private parseFeatureFile parsedLines =
     | (_,_,FileStart) :: xs -> parseFeatureBlock xs
     | _ -> parsedLines |> raiseParseException "Unexpected call of parser"
 
+type [<RequireQualifiedAccess>] internal ScannedLine =
+    // Scanned line: (lineNumber, lineContent, lineType) of parsed line
+    | Ok of int * string * LineType
+    // Ignored line: lineType of last preceeding parsed non-ignored line
+    | Ignored of LineType
+
 let parseBlocks (lines:string seq) =
     lines
     |> Seq.mapi (fun lineNumber line -> (lineNumber + 1, line))
@@ -238,16 +244,24 @@ let parseBlocks (lines:string seq) =
         if i = -1 then lineNumber, line
         else lineNumber, line.Substring(0, i)
     )
-    |> Seq.filter (fun (_, line) -> line.Trim().Length > 0)
-    |> Seq.scan(fun (_, _, lastParsedLine) (lineNumber, lineContent) ->
+    |> Seq.scan(fun prevLine (lineNumber, lineContent) ->
+        let lastParsedLine =
+            match prevLine with
+            | ScannedLine.Ok (_, _, prevLineType)
+            | ScannedLine.Ignored prevLineType -> prevLineType
         let parsed = parseLine (lastParsedLine, lineContent)
         match parsed with
-        | Some line -> (lineNumber, lineContent, line)
+        | Some line -> (lineNumber, lineContent, line) |> ScannedLine.Ok
+        | None when lineContent.Trim().Length = 0 ->
+            lastParsedLine |> ScannedLine.Ignored
         | None ->
             let e = expectingLine lastParsedLine
             let m = sprintf "Syntax error on line %d %s\r\n%s" lineNumber lineContent e
             ParseException(m, Some lineNumber) |> raise
-        ) (0, "", FileStart)
+        ) (ScannedLine.Ok (0, "", FileStart))
+    |> Seq.choose (function
+        | ScannedLine.Ignored _ -> None
+        | ScannedLine.Ok (lineNumber, lineContent, lineType) -> Some (lineNumber, lineContent, lineType)
+    )
     |> Seq.toList
     |> parseFeatureFile
-

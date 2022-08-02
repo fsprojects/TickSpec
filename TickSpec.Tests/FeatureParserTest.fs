@@ -16,20 +16,29 @@ let private verifyParsing (lines: string[]) (expected: FeatureSource) =
 let private verifyLineParsing (lines: string[]) (expected: LineType list) =
     let lineParsed =
         lines
-        |> Seq.map (fun line ->
+        |> Seq.mapi (fun lineNumber line -> 
             let i = line.IndexOf("#")
-            if i = -1 then line
-            else line.Substring(0, i)
+            if i = -1 then lineNumber, line
+            else lineNumber, line.Substring(0, i)
         )
-        |> Seq.filter (fun line -> line.Trim().Length > 0)
-        |> Seq.scan (fun (_, lastLine) line ->
-            let parsed = parseLine (lastLine, line)
+        |> Seq.scan (fun prevLine (lineNumber, lineContent) ->
+            let lastParsedLine =
+                match prevLine with
+                | ScannedLine.Ok (_, _, prevLineType)
+                | ScannedLine.Ignored prevLineType -> prevLineType
+
+            let parsed = parseLine (lastParsedLine, lineContent)
             match parsed with
-            | Some line -> (lastLine, line)
+            | Some line -> (lineNumber, lineContent, line) |> ScannedLine.Ok
+            | None when lineContent.Trim().Length = 0 -> lastParsedLine |> ScannedLine.Ignored
             | None ->
-                let e = expectingLine lastLine
-                Exception(e) |> raise) (FileStart, FileStart)
-        |> Seq.map (fun (_, line) -> line)
+                let e = expectingLine lastParsedLine
+                Exception(e) |> raise) (ScannedLine.Ok (0, "", FileStart)
+        )
+        |> Seq.choose (function
+            | ScannedLine.Ignored _ -> None
+            | ScannedLine.Ok (_, _, line) -> Some line
+        )
 
     Assert.AreEqual(expected, lineParsed)
 
@@ -323,6 +332,7 @@ let TagsAndExamples_FeatureSource () =
 let featureFileWithItems_expectedDocString =
     StringBuilder()
         .AppendLine("First line")
+        .AppendLine()
         .AppendLine("    Second line")
         .Append("Third line")
         .ToString()
@@ -343,6 +353,7 @@ let FileWithItems_ParseLines () =
         Step (WhenStep "I take a doc string")
         Item (Step (WhenStep "I take a doc string"), MultiLineStringStart 4)
         Item (Step (WhenStep "I take a doc string"), MultiLineString "    First line")
+        Item (Step (WhenStep "I take a doc string"), MultiLineString "")
         Item (Step (WhenStep "I take a doc string"), MultiLineString "        Second line")
         Item (Step (WhenStep "I take a doc string"), MultiLineString "    Third line")
         Item (Step (WhenStep "I take a doc string"), MultiLineStringEnd)
@@ -383,13 +394,13 @@ let FileWithItems_ParseBlocks () =
                     }
                     {
                         Step = ThenStep "I can take a bullet list"
-                        LineNumber = 13
+                        LineNumber = 14
                         LineString = "Then I can take a bullet list"
                         Item = Some (BulletsItem [ "First item"; "Second item" ])
                     }
                     {
                         Step = ThenStep "Even the next step is clear"
-                        LineNumber = 16
+                        LineNumber = 17
                         LineString = "And Even the next step is clear"
                         Item = None
                     }
@@ -427,14 +438,14 @@ let FileWithItems_ParseFeature () =
                         Doc = Some featureFileWithItems_expectedDocString
                     })
                     (ThenStep "I can take a bullet list", {
-                        Number = 13
+                        Number = 14
                         Text = "Then I can take a bullet list"
                         Bullets = Some [| "First item"; "Second item" |]
                         Table = None
                         Doc = None
                     })
                     (ThenStep "Even the next step is clear", {
-                        Number = 16
+                        Number = 17
                         Text = "And Even the next step is clear"
                         Bullets = None
                         Table = None
