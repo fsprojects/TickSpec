@@ -1,6 +1,7 @@
 #### 2.0.3 (To be released)
 * [Feature] Makes `ScenarioInformation` available to step implementations through arguments resolution (issue #49)
 * [Fix] Performance improvements when the used assembly contains many methods (issue #45)
+* [Feature] Add support for functional injection in events (issue #56)
 * [Fix] Keep empty lines in doc strings (issue #60)
 * [Fix] Allow multiple step types on a single method (issue #55)
 * [Fix] Unit test serialization to allow running from IDE easily
