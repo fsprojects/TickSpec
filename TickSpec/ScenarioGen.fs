@@ -334,6 +334,38 @@ let emitArgument
     else
         emitValue gen providerField parsers paramType arg
 
+/// Emit arguments through injection
+let emitInjectionArguments
+        (gen:ILGenerator)
+        (providerField:FieldBuilder)
+        (parameters: ParameterInfo array) =
+    parameters
+    |> Array.iter (fun p -> emitInstance gen providerField p.ParameterType)
+
+let storeMethodResultInProvider
+        (gen:ILGenerator)
+        (providerField:FieldBuilder)
+        (mi:MethodInfo) =
+    if mi.ReturnType <> typeof<System.Void> then
+        gen.Emit(OpCodes.Box,mi.ReturnType)
+        let local0 = gen.DeclareLocal(typeof<Object>).LocalIndex
+        gen.Emit(OpCodes.Stloc, local0)
+
+        if FSharpType.IsTuple mi.ReturnType then
+            let types = FSharpType.GetTupleElements mi.ReturnType
+            for i = 0 to (types.Length - 1) do
+                let t = types.[i]
+                let local1 = gen.DeclareLocal(typeof<Object>).LocalIndex
+
+                gen.Emit(OpCodes.Ldloc, local0)
+                gen.Emit(OpCodes.Ldc_I4, i)
+                gen.EmitCall(OpCodes.Call, typeof<Microsoft.FSharp.Reflection.FSharpValue>.GetMethod("GetTupleField"), null)
+                gen.Emit(OpCodes.Stloc, local1)
+
+                emitRegisterInstanceCall gen t local1 providerField
+        else
+            emitRegisterInstanceCall gen (mi.ReturnType) local0 providerField
+
 /// Defines step method
 let defineStepMethod
         doc
@@ -442,9 +474,9 @@ let defineStepMethod
         let bulletsCount = line.Bullets |> Option.count
         let docCount = line.Doc |> Option.count
         args.Length + tableCount + bulletsCount + docCount
+
     Array.sub ps a (ps.Length - a)
-    |> Array.iter (fun (p:ParameterInfo) ->
-        emitInstance gen providerField p.ParameterType)
+    |> emitInjectionArguments gen providerField
 
     // Emit method invoke
     if mi.IsStatic then
@@ -452,25 +484,7 @@ let defineStepMethod
     else
         gen.Emit(OpCodes.Callvirt, mi)
 
-    if mi.ReturnType <> typeof<System.Void> then
-        gen.Emit(OpCodes.Box,mi.ReturnType)
-        let local0 = gen.DeclareLocal(typeof<Object>).LocalIndex
-        gen.Emit(OpCodes.Stloc, local0)
-
-        if FSharpType.IsTuple mi.ReturnType then
-            let types = FSharpType.GetTupleElements mi.ReturnType
-            for i = 0 to (types.Length - 1) do
-                let t = types.[i]
-                let local1 = gen.DeclareLocal(typeof<Object>).LocalIndex
-
-                gen.Emit(OpCodes.Ldloc, local0)
-                gen.Emit(OpCodes.Ldc_I4, i)
-                gen.EmitCall(OpCodes.Call, typeof<Microsoft.FSharp.Reflection.FSharpValue>.GetMethod("GetTupleField"), null)
-                gen.Emit(OpCodes.Stloc, local1)
-
-                emitRegisterInstanceCall gen t local1 providerField
-        else
-            emitRegisterInstanceCall gen (mi.ReturnType) local0 providerField
+    storeMethodResultInProvider gen providerField mi
 
     // Emit return
     gen.Emit(OpCodes.Ret)
@@ -495,11 +509,16 @@ let defineRunMethod
     // Emit event methods
     let emitEvents =
         Seq.iter (fun (mi:MethodInfo) ->
+            mi.GetParameters()
+            |> emitInjectionArguments gen providerField
+
             if mi.IsStatic then
                 gen.EmitCall(OpCodes.Call, mi, null)
             else
                 emitInstance gen providerField mi.DeclaringType
                 gen.EmitCall(OpCodes.Callvirt, mi, null)
+
+            storeMethodResultInProvider gen providerField mi
         )
 
     beforeScenarioEvents |> emitEvents
