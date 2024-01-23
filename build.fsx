@@ -74,7 +74,8 @@ module Build =
 
     let setParams (defaults: DotNet.BuildOptions) =
         { defaults with 
-            Configuration = DotNet.BuildConfiguration.Release 
+            Configuration = DotNet.BuildConfiguration.Release
+            MSBuildParams = { defaults.MSBuildParams with DisableInternalBinLog = true }
             Common =
                 DotNet.Options.Create()
                 |> DotNet.Options.withCustomParams (Some props) }
@@ -100,6 +101,7 @@ Target.create "Test" (fun _ ->
         { o with
             Configuration = DotNet.Release
             NoBuild = true
+            MSBuildParams = { o.MSBuildParams with DisableInternalBinLog = true }
             Framework = framework
         }
     )
@@ -124,6 +126,7 @@ Target.create "Nuget" (fun _ ->
                 OutputPath = Some Build.nuget
                 NoBuild = false // Not sure why but it seems to be necessary to rebuild it
                 IncludeSymbols = true
+                MSBuildParams = { p.MSBuildParams with DisableInternalBinLog = true }
                 Common =
                     DotNet.Options.Create()
                     |> DotNet.Options.withCustomParams (Some props)
