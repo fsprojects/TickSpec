@@ -17,7 +17,6 @@ let [<AfterStep>] afterStep (previousMessages: LoggerContext) =
     { Messages = "After step" :: previousMessages.Messages  }
 
 let [<AfterScenario>] afterScenario (previousMessages: LoggerContext) =
-    let allMessages =
-        "After scenario" :: previousMessages.Messages
-        |> List.rev
-    allMessages |> List.iter Console.WriteLine
+    "After scenario" :: previousMessages.Messages
+    |> Seq.rev
+    |> Seq.iter Console.WriteLine
