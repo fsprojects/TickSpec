@@ -475,7 +475,8 @@ let defineStepMethod
         let docCount = line.Doc |> Option.count
         args.Length + tableCount + bulletsCount + docCount
 
-    Array.sub ps a (ps.Length - a)
+    ps
+    |> Array.skip a
     |> emitInjectionArguments gen providerField
 
     // Emit method invoke
