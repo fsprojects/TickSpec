@@ -8,6 +8,13 @@ open System.Text.RegularExpressions
 open TickSpec.FeatureParser
 open TickSpec.ScenarioRun
 
+type internal MethodWithScope =
+    // tags * features * scenarios * method
+    string list * string list * string list * MethodInfo
+
+type internal CategorizedMethods =
+    Dictionary<Type, (MethodWithScope * obj) list>
+
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (givens,whens,thens,events,valueParsers) =
     let instanceProviderFactory = ref (fun () -> new InstanceProvider() :> IInstanceProvider)
@@ -44,10 +51,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             let r = Regex.Match(text,pattern)
             if r.Success then Some r else None
         definitions
-        |> List.filter (fun (_,m) -> m |> isMethodInScope feature scenario)
-        |> List.choose (fun (pattern:string,(_,_,_,m):string list * string list * string list * MethodInfo) ->
+        |> Seq.filter (fun (_,m) -> m |> isMethodInScope feature scenario)
+        |> Seq.choose (fun (pattern:string,(_,_,_,m):MethodWithScope) ->
             chooseDefinition pattern |> Option.map (fun r -> r,m)
         )
+        |> Seq.toList
     /// Extract arguments from specified match
     static let extractArgs (r:Match) =
         let args = List<string>()
@@ -56,9 +64,9 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         args.ToArray()
     /// Gets description as scenario lines
     static let getDescription steps =
-            steps
-            |> Seq.map (fun (_,line) -> line.Text)
-            |> String.concat "\r\n"
+        steps
+        |> Seq.map (fun (_,line) -> line.Text)
+        |> String.concat "\r\n"
     /// Chooses definitions for specified step and text
     let matchStep feature scenario = function
         | GivenStep text -> chooseDefinitions feature scenario text givens
@@ -85,10 +93,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     /// Chooses in scope events
     let chooseInScopeEvents feature (scenario:ScenarioSource) =
         let choose xs =
-            xs
-            |> Seq.filter (fun m -> m |> isMethodInScope feature scenario)
-            |> Seq.map (fun (_,_,_,e) -> e)
-            |> Seq.toList
+            [|
+                for _,_,_,e as x in xs do
+                    if isMethodInScope feature scenario x then
+                        yield e
+            |]
         events
         |> fun (ea,eb,ec,ed) -> choose ea, choose eb, choose ec, choose ed
     new () =
@@ -121,46 +130,72 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             )
         StepDefinitions(methods)
     internal new (methods:(string list * string list * string list * MethodInfo) seq) =
-        /// Step methods
-        let givens, whens, thens =
-            methods
-            |> Seq.map (fun ((_,_,_,m) as sm) -> sm, getStepAttributes m)
-            |> Seq.filter (fun (m,ca) -> ca.Length > 0)
-            |> Seq.collect (fun ((_,_,_,m) as sm,ca) ->
-                ca
-                |> Array.map (fun a ->
-                    let p =
-                        match (a :?> StepAttribute).Step with
-                        | null -> m.Name
-                        | step -> step
-                    p,a,sm
-                )
-            )
-            |> Seq.fold (fun (gs,ws,ts) (p,a,m) ->
-                match a with
-                | :? GivenAttribute -> ((p,m)::gs,ws,ts)
-                | :? WhenAttribute -> (gs,(p,m)::ws,ts)
-                | :? ThenAttribute -> (gs,ws,(p,m)::ts)
-                | _ -> invalidOp "Unhandled StepAttribute"
-            ) ([],[],[])
+        let categorizedMethods =
+            let attributeMap = Dictionary<Type, (MethodWithScope * obj) list>()
 
-        let filter (t:Type) (elements:(string list * string list * string list * MethodInfo) seq) =
-            elements
-            |> Seq.filter (fun (_,_,_,m) -> null <> Attribute.GetCustomAttribute(m,t))
-            |> Seq.toList
+            let attributes = [|
+                typeof<GivenAttribute>; typeof<WhenAttribute>; typeof<ThenAttribute>
+                typeof<BeforeScenarioAttribute>; typeof<AfterScenarioAttribute>
+                typeof<BeforeStepAttribute>; typeof<AfterStepAttribute>
+                typeof<ParserAttribute>
+            |]
+
+            // Initialize the attribute map
+            attributes |> Array.iter (fun attrType -> attributeMap.[attrType] <- List.empty)
+
+            // Iterate through all methods
+            for method in methods do
+                let (_,_,_,m) = method
+                let methodAttributes = m.GetCustomAttributes(true)
+
+                // Get all attributes of the method
+                for attr in methodAttributes do
+                    let usedType = attr.GetType()
+                    let correspondingAttrType =
+                        attributes
+                        |> Array.tryFind (fun x -> x.IsAssignableFrom(usedType))
+
+                    match correspondingAttrType with
+                    // In case it is one of the ones we care about, we add it to the map
+                    | Some attrType ->
+                        let existingPairs = attributeMap.[attrType]
+                        attributeMap.[attrType] <- (method, attr)::existingPairs
+                    | None -> ()
+
+            attributeMap
+
+        /// Step methods
+        let extractStepAttribute stepAttribute =
+            categorizedMethods.[stepAttribute]
+            |> Seq.map (fun ((_,_,_,m) as method, attr) ->
+                let p =
+                    match (attr :?> StepAttribute).Step with
+                    | null -> m.Name
+                    | step -> step
+                p,method
+            )
+            |> Array.ofSeq
+
+        let givens = typeof<GivenAttribute> |> extractStepAttribute
+        let whens = typeof<WhenAttribute> |> extractStepAttribute
+        let thens = typeof<ThenAttribute> |> extractStepAttribute
 
         /// Step events
-        let events = methods |> filter typeof<EventAttribute>
-        let beforeScenario = events |> filter typeof<BeforeScenarioAttribute>
-        let afterScenario = events |> filter typeof<AfterScenarioAttribute>
-        let beforeStep = events |> filter typeof<BeforeStepAttribute>
-        let afterStep = events |> filter typeof<AfterStepAttribute>
+        let filterEvents eventAttribute =
+            categorizedMethods.[eventAttribute]
+            |> Seq.map fst
+            |> Array.ofSeq
+
+        let beforeScenario = typeof<BeforeScenarioAttribute> |> filterEvents
+        let afterScenario = typeof<AfterScenarioAttribute> |> filterEvents
+        let beforeStep = typeof<BeforeStepAttribute> |> filterEvents
+        let afterStep = typeof<AfterStepAttribute> |> filterEvents
         let events = beforeScenario, afterScenario, beforeStep, afterStep
+
         /// Parser methods
         let valueParsers =
-            methods
-            |> filter typeof<ParserAttribute>
-            |> Seq.map (fun (_,_,_,m) -> m.ReturnType, m)
+            categorizedMethods.[typeof<ParserAttribute>]
+            |> Seq.map (fun ((_,_,_,m),_) -> m.ReturnType, m)
             |> Dict.ofSeq
         StepDefinitions(givens,whens,thens,events,valueParsers)
 
