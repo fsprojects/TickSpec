@@ -88,6 +88,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             xs
             |> Seq.filter (fun m -> m |> isMethodInScope feature scenario)
             |> Seq.map (fun (_,_,_,e) -> e)
+            |> Seq.toList
         events
         |> fun (ea,eb,ec,ed) -> choose ea, choose eb, choose ec, choose ed
     new () =
@@ -144,7 +145,10 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             ) ([],[],[])
 
         let filter (t:Type) (elements:(string list * string list * string list * MethodInfo) seq) =
-            elements |> Seq.filter (fun (_,_,_,m) -> null <> Attribute.GetCustomAttribute(m,t))
+            elements
+            |> Seq.filter (fun (_,_,_,m) -> null <> Attribute.GetCustomAttribute(m,t))
+            |> Seq.toList
+
         /// Step events
         let events = methods |> filter typeof<EventAttribute>
         let beforeScenario = events |> filter typeof<BeforeScenarioAttribute>

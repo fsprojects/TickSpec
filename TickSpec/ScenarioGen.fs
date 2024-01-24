@@ -481,11 +481,11 @@ let defineStepMethod
 let defineRunMethod
     (scenarioBuilder:TypeBuilder)
     (providerField:FieldBuilder)
-    (beforeScenarioEvents:MethodInfo seq,
-     afterScenarioEvents:MethodInfo seq,
-     beforeStepEvents:MethodInfo seq,
-     afterStepEvents:MethodInfo seq)
-    (stepMethods:seq<MethodBuilder>) =
+    (beforeScenarioEvents:MethodInfo list,
+     afterScenarioEvents:MethodInfo list,
+     beforeStepEvents:MethodInfo list,
+     afterStepEvents:MethodInfo list)
+    (stepMethods:MethodBuilder seq) =
     /// Run method to execute all scenario steps
     let runMethod =
         scenarioBuilder.DefineMethod("Run",
