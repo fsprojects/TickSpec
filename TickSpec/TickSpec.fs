@@ -182,15 +182,14 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
 
         /// Step methods
         let extractStepAttribute stepAttribute =
-            categorizedMethods.[stepAttribute]
-            |> Seq.map (fun ((_,_,_,m) as method, attr) ->
-                let p =
-                    match (attr :?> StepAttribute).Step with
-                    | null -> m.Name
-                    | step -> step
-                p,method
-            )
-            |> Array.ofSeq
+            [| 
+                for _,_,_,m as method, attr in categorizedMethods[stepAttribute] ->
+                    let stepName =
+                        match (attr :?> StepAttribute).Step with
+                        | null -> m.Name
+                        | step -> step
+                    stepName, method
+            |]
 
         let givens = typeof<GivenAttribute> |> extractStepAttribute
         let whens = typeof<WhenAttribute> |> extractStepAttribute
