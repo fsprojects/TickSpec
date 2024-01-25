@@ -117,12 +117,20 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         StepDefinitions(methods)
     internal new (methods:MethodInfo seq) =
         let categorizedMethods =
-            let getScope attributes =
+            let getScope
+                    attributes
+                    (parentTags: string list)
+                    (parentFeatures: string list)
+                    (parentScenarios: string list) =
+                let add x s = if s |> String.IsNullOrEmpty |> not then s::x else x
+
                 attributes
-                |> Seq.cast
-                |> Seq.fold (fun (tags,features,scenarios) (x:StepScopeAttribute) ->
-                    x.Tag::tags, x.Feature::features, x.Scenario::scenarios
-                ) ([],[],[])
+                |> Seq.cast<StepScopeAttribute>
+                |> Seq.fold (fun (tags, features, scenarios) attr ->
+                    add tags attr.Tag,
+                    add features attr.Feature,
+                    add scenarios attr.Scenario
+                ) (parentTags, parentFeatures, parentScenarios)
             
             let attributeMap = Dictionary<Type, (MethodWithScope * obj) list>()
             let parentScope = Dictionary<Type, MethodScope>()
@@ -156,15 +164,10 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                             let parentType = mi.DeclaringType
                             if parentScope.ContainsKey parentType |> not then
                                 let parentScopeAttribute = parentType.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-                                parentScope.[parentType] <- getScope parentScopeAttribute
-                            let tags', features', scenarios' = parentScope.[parentType]
+                                parentScope.[parentType] <- getScope parentScopeAttribute List.empty List.empty List.empty
+                            let parentTags, parentFeatures, parentScenarios = parentScope.[parentType]
                             let methodScopeAttribute = mi.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-                            let tags, features, scenarios = getScope methodScopeAttribute
-                            methodScope.[mi] <- (
-                                tags@tags' |> List.filter (not << String.IsNullOrEmpty),
-                                features@features' |> List.filter (not << String.IsNullOrEmpty),
-                                scenarios@scenarios' |> List.filter (not << String.IsNullOrEmpty)
-                            )
+                            methodScope.[mi] <- getScope methodScopeAttribute parentTags parentFeatures parentScenarios
 
                         let tags, features, scenarios = methodScope.[mi]
 
