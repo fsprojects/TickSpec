@@ -12,6 +12,10 @@ type internal MethodWithScope =
     // tags * features * scenarios * method
     string list * string list * string list * MethodInfo
 
+type internal MethodScope =
+    // tags * features * scenarios
+    string list * string list * string list
+
 type internal CategorizedMethods =
     Dictionary<Type, (MethodWithScope * obj) list>
 
@@ -107,31 +111,22 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         StepDefinitions(assembly.GetTypes())
     /// Constructs instance by reflecting against specified types
     new (types:Type[]) =
-        let getScope attributes =
-            attributes
-            |> Seq.cast
-            |> Seq.fold (fun (tags,features,scenarios) (x:StepScopeAttribute) ->
-                x.Tag::tags, x.Feature::features, x.Scenario::scenarios
-            ) ([],[],[])
         let methods =
             types
-            |> Seq.collect (fun t ->
-                let attributes = t.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-                let tags, features, scenarios = getScope attributes
-                t.GetMethods()
-                |> Seq.map (fun m ->
-                    let attributes = m.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-                    let tags', features', scenarios' = getScope attributes
-                    tags@tags' |> List.filter (not << String.IsNullOrEmpty),
-                        features@features' |> List.filter (not << String.IsNullOrEmpty),
-                            scenarios@scenarios' |> List.filter (not << String.IsNullOrEmpty),
-                                m
-                )
-            )
+            |> Seq.collect (fun t -> t.GetMethods())
         StepDefinitions(methods)
-    internal new (methods:(string list * string list * string list * MethodInfo) seq) =
+    internal new (methods:MethodInfo seq) =
         let categorizedMethods =
+            let getScope attributes =
+                attributes
+                |> Seq.cast
+                |> Seq.fold (fun (tags,features,scenarios) (x:StepScopeAttribute) ->
+                    x.Tag::tags, x.Feature::features, x.Scenario::scenarios
+                ) ([],[],[])
+            
             let attributeMap = Dictionary<Type, (MethodWithScope * obj) list>()
+            let parentScope = Dictionary<Type, MethodScope>()
+            let methodScope = Dictionary<MethodInfo, MethodScope>()
 
             let attributes = [|
                 typeof<GivenAttribute>; typeof<WhenAttribute>; typeof<ThenAttribute>
@@ -144,12 +139,10 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             attributes |> Array.iter (fun attrType -> attributeMap.[attrType] <- List.empty)
 
             // Iterate through all methods
-            for method in methods do
-                let (_,_,_,m) = method
-                let methodAttributes = m.GetCustomAttributes(true)
-
+            methods |> Seq.iter (fun mi ->
                 // Get all attributes of the method
-                for attr in methodAttributes do
+                mi.GetCustomAttributes(true)
+                |> Array.iter (fun attr ->
                     let usedType = attr.GetType()
                     let correspondingAttrType =
                         attributes
@@ -158,9 +151,28 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                     match correspondingAttrType with
                     // In case it is one of the ones we care about, we add it to the map
                     | Some attrType ->
+                        // We use caching to not repeatedly get the scope for methods or its declaring types
+                        if methodScope.ContainsKey mi |> not then
+                            let parentType = mi.DeclaringType
+                            if parentScope.ContainsKey parentType |> not then
+                                let parentScopeAttribute = parentType.GetCustomAttributes(typeof<StepScopeAttribute>,true)
+                                parentScope.[parentType] <- getScope parentScopeAttribute
+                            let tags', features', scenarios' = parentScope.[parentType]
+                            let methodScopeAttribute = mi.GetCustomAttributes(typeof<StepScopeAttribute>,true)
+                            let tags, features, scenarios = getScope methodScopeAttribute
+                            methodScope.[mi] <- (
+                                tags@tags' |> List.filter (not << String.IsNullOrEmpty),
+                                features@features' |> List.filter (not << String.IsNullOrEmpty),
+                                scenarios@scenarios' |> List.filter (not << String.IsNullOrEmpty)
+                            )
+
+                        let tags, features, scenarios = methodScope.[mi]
+
                         let existingPairs = attributeMap.[attrType]
-                        attributeMap.[attrType] <- (method, attr)::existingPairs
+                        attributeMap.[attrType] <- ((tags, features, scenarios, mi), attr)::existingPairs
                     | None -> ()
+                )
+            )
 
             attributeMap
 
