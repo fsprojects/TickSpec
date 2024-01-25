@@ -18,12 +18,12 @@ let getInstance (provider:IInstanceProvider) (m:MethodInfo) =
 
 /// Invokes specified method with specified parameters
 let invoke (provider:IInstanceProvider) (m: MethodInfo) (ps: obj array) =
-    let injectionArgs =        
-        m.GetParameters()
-        |> Array.skip ps.Length
-        |> Array.map (fun (p:ParameterInfo) -> provider.GetService(p.ParameterType))
+    let args = [|
+        yield! ps
 
-    let args = Array.append ps injectionArgs
+        for p in m.GetParameters() |> Seq.skip ps.Length do
+            yield provider.GetService p.ParameterType
+    |]
 
     let instance = getInstance provider m
     let ret = m.Invoke(instance, args)
