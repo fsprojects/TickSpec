@@ -157,23 +157,24 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                         |> Array.tryFind (fun x -> x.IsAssignableFrom(usedType))
 
                     match correspondingAttrType with
+                    | None -> ()
                     // In case it is one of the ones we care about, we add it to the map
                     | Some attrType ->
-                        // We use caching to not repeatedly get the scope for methods or its declaring types
-                        if methodScope.ContainsKey mi |> not then
-                            let parentType = mi.DeclaringType
-                            if parentScope.ContainsKey parentType |> not then
-                                let parentScopeAttribute = parentType.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-                                parentScope.[parentType] <- getScope parentScopeAttribute List.empty List.empty List.empty
-                            let parentTags, parentFeatures, parentScenarios = parentScope.[parentType]
-                            let methodScopeAttribute = mi.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-                            methodScope.[mi] <- getScope methodScopeAttribute parentTags parentFeatures parentScenarios
+                    // We use caching to not repeatedly get the scope for methods or its declaring types
+                    if methodScope.ContainsKey mi |> not then
+                        let parentType = mi.DeclaringType
+                        if parentScope.ContainsKey parentType |> not then
+                            let parentScopeAttribute =
+                                parentType.GetCustomAttributes(typeof<StepScopeAttribute>,true)
+                            parentScope.[parentType] <- getScope parentScopeAttribute List.empty List.empty List.empty
+                        let parentTags, parentFeatures, parentScenarios = parentScope.[parentType]
+                        let methodScopeAttribute = mi.GetCustomAttributes(typeof<StepScopeAttribute>,true)
+                        methodScope.[mi] <- getScope methodScopeAttribute parentTags parentFeatures parentScenarios
 
-                        let tags, features, scenarios = methodScope.[mi]
+                    let tags, features, scenarios = methodScope.[mi]
 
-                        let existingPairs = attributeMap.[attrType]
-                        attributeMap.[attrType] <- ((tags, features, scenarios, mi), attr)::existingPairs
-                    | None -> ()
+                    let existingPairs = attributeMap.[attrType]
+                    attributeMap.[attrType] <- ((tags, features, scenarios, mi), attr)::existingPairs
                 )
             )
 
