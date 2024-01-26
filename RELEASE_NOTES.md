@@ -1,4 +1,4 @@
-#### 2.0.3 (To be released)
+#### 2.0.3 (Released 2024/01/26)
 * [Feature] Makes `ScenarioInformation` available to step implementations through arguments resolution (issue #49)
 * [Fix] Performance improvements when the used assembly contains many methods (issue #45)
 * [Feature] Add support for functional injection in events (issue #56)
