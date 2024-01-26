@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="4.2.3" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(net4))' " />
     <PackageReference Include="FSharp.Core" Version="4.3.4" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(net5))' " />
+    <PackageReference Include="FSharp.Core" Version="6.0.7" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(net6))' " />
     <PackageReference Include="FSharp.Core" Version="4.3.4" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(netstandard))' " />
   </ItemGroup>
   <PropertyGroup>
