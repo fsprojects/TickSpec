@@ -8,6 +8,17 @@ open System.Text.RegularExpressions
 open TickSpec.FeatureParser
 open TickSpec.ScenarioRun
 
+type internal MethodWithScope =
+    // tags * features * scenarios * method
+    string list * string list * string list * MethodInfo
+
+type internal MethodScope =
+    // tags * features * scenarios
+    string list * string list * string list
+
+type internal CategorizedMethods =
+    Dictionary<Type, (MethodWithScope * obj) list>
+
 /// Encapsulates step definitions for execution against features
 type StepDefinitions (givens,whens,thens,events,valueParsers) =
     let instanceProviderFactory = ref (fun () -> new InstanceProvider() :> IInstanceProvider)
@@ -44,10 +55,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             let r = Regex.Match(text,pattern)
             if r.Success then Some r else None
         definitions
-        |> List.filter (fun (_,m) -> m |> isMethodInScope feature scenario)
-        |> List.choose (fun (pattern:string,(_,_,_,m):string list * string list * string list * MethodInfo) ->
+        |> Seq.filter (fun (_,m) -> m |> isMethodInScope feature scenario)
+        |> Seq.choose (fun (pattern:string,(_,_,_,m):MethodWithScope) ->
             chooseDefinition pattern |> Option.map (fun r -> r,m)
         )
+        |> Seq.toList
     /// Extract arguments from specified match
     static let extractArgs (r:Match) =
         let args = List<string>()
@@ -56,9 +68,9 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         args.ToArray()
     /// Gets description as scenario lines
     static let getDescription steps =
-            steps
-            |> Seq.map (fun (_,line) -> line.Text)
-            |> String.concat "\r\n"
+        steps
+        |> Seq.map (fun (_,line) -> line.Text)
+        |> String.concat "\r\n"
     /// Chooses definitions for specified step and text
     let matchStep feature scenario = function
         | GivenStep text -> chooseDefinitions feature scenario text givens
@@ -85,9 +97,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     /// Chooses in scope events
     let chooseInScopeEvents feature (scenario:ScenarioSource) =
         let choose xs =
-            xs
-            |> Seq.filter (fun m -> m |> isMethodInScope feature scenario)
-            |> Seq.map (fun (_,_,_,e) -> e)
+            [|
+                for _,_,_,e as x in xs do
+                    if isMethodInScope feature scenario x then
+                        yield e
+            |]
         events
         |> fun (ea,eb,ec,ed) -> choose ea, choose eb, choose ec, choose ed
     new () =
@@ -97,66 +111,106 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
         StepDefinitions(assembly.GetTypes())
     /// Constructs instance by reflecting against specified types
     new (types:Type[]) =
-        let getScope attributes =
-            attributes
-            |> Seq.cast
-            |> Seq.fold (fun (tags,features,scenarios) (x:StepScopeAttribute) ->
-                x.Tag::tags, x.Feature::features, x.Scenario::scenarios
-            ) ([],[],[])
         let methods =
             types
-            |> Seq.collect (fun t ->
-                let attributes = t.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-                let tags, features, scenarios = getScope attributes
-                t.GetMethods()
-                |> Seq.map (fun m ->
-                    let attributes = m.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-                    let tags', features', scenarios' = getScope attributes
-                    tags@tags' |> List.filter (not << String.IsNullOrEmpty),
-                        features@features' |> List.filter (not << String.IsNullOrEmpty),
-                            scenarios@scenarios' |> List.filter (not << String.IsNullOrEmpty),
-                                m
+            |> Seq.collect (fun t -> t.GetMethods())
+        StepDefinitions(methods)
+    internal new (methods:MethodInfo seq) =
+        let categorizedMethods =
+            let getScope
+                    attributes
+                    (parentTags: string list)
+                    (parentFeatures: string list)
+                    (parentScenarios: string list) =
+                let add x s = if s |> String.IsNullOrEmpty |> not then s::x else x
+
+                attributes
+                |> Seq.cast<StepScopeAttribute>
+                |> Seq.fold (fun (tags, features, scenarios) attr ->
+                    add tags attr.Tag,
+                    add features attr.Feature,
+                    add scenarios attr.Scenario
+                ) (parentTags, parentFeatures, parentScenarios)
+            
+            let attributeMap = Dictionary<Type, (MethodWithScope * obj) list>()
+            let parentScope = Dictionary<Type, MethodScope>()
+            let methodScope = Dictionary<MethodInfo, MethodScope>()
+
+            let attributes = [|
+                typeof<GivenAttribute>; typeof<WhenAttribute>; typeof<ThenAttribute>
+                typeof<BeforeScenarioAttribute>; typeof<AfterScenarioAttribute>
+                typeof<BeforeStepAttribute>; typeof<AfterStepAttribute>
+                typeof<ParserAttribute>
+            |]
+
+            // Initialize the attribute map
+            attributes |> Array.iter (fun attrType -> attributeMap.[attrType] <- List.empty)
+
+            // Iterate through all methods
+            methods |> Seq.iter (fun mi ->
+                // Get all attributes of the method
+                mi.GetCustomAttributes(true)
+                |> Array.iter (fun attr ->
+                    let usedType = attr.GetType()
+                    let correspondingAttrType =
+                        attributes
+                        |> Array.tryFind (fun x -> x.IsAssignableFrom(usedType))
+
+                    match correspondingAttrType with
+                    | None -> ()
+                    // In case it is one of the ones we care about, we add it to the map
+                    | Some attrType ->
+                    // We use caching to not repeatedly get the scope for methods or its declaring types
+                    if methodScope.ContainsKey mi |> not then
+                        let parentType = mi.DeclaringType
+                        if parentScope.ContainsKey parentType |> not then
+                            let parentScopeAttribute =
+                                parentType.GetCustomAttributes(typeof<StepScopeAttribute>,true)
+                            parentScope.[parentType] <- getScope parentScopeAttribute List.empty List.empty List.empty
+                        let parentTags, parentFeatures, parentScenarios = parentScope.[parentType]
+                        let methodScopeAttribute = mi.GetCustomAttributes(typeof<StepScopeAttribute>,true)
+                        methodScope.[mi] <- getScope methodScopeAttribute parentTags parentFeatures parentScenarios
+
+                    let tags, features, scenarios = methodScope.[mi]
+
+                    let existingPairs = attributeMap.[attrType]
+                    attributeMap.[attrType] <- ((tags, features, scenarios, mi), attr)::existingPairs
                 )
             )
-        StepDefinitions(methods)
-    internal new (methods:(string list * string list * string list * MethodInfo) seq) =
+
+            attributeMap
+
         /// Step methods
-        let givens, whens, thens =
-            methods
-            |> Seq.map (fun ((_,_,_,m) as sm) -> sm, getStepAttributes m)
-            |> Seq.filter (fun (m,ca) -> ca.Length > 0)
-            |> Seq.collect (fun ((_,_,_,m) as sm,ca) ->
-                ca
-                |> Array.map (fun a ->
-                    let p =
-                        match (a :?> StepAttribute).Step with
+        let extractStepAttribute stepAttribute =
+            [| 
+                for _,_,_,m as method, attr in categorizedMethods[stepAttribute] ->
+                    let stepName =
+                        match (attr :?> StepAttribute).Step with
                         | null -> m.Name
                         | step -> step
-                    p,a,sm
-                )
-            )
-            |> Seq.fold (fun (gs,ws,ts) (p,a,m) ->
-                match a with
-                | :? GivenAttribute -> ((p,m)::gs,ws,ts)
-                | :? WhenAttribute -> (gs,(p,m)::ws,ts)
-                | :? ThenAttribute -> (gs,ws,(p,m)::ts)
-                | _ -> invalidOp "Unhandled StepAttribute"
-            ) ([],[],[])
+                    stepName, method
+            |]
 
-        let filter (t:Type) (elements:(string list * string list * string list * MethodInfo) seq) =
-            elements |> Seq.filter (fun (_,_,_,m) -> null <> Attribute.GetCustomAttribute(m,t))
+        let givens = typeof<GivenAttribute> |> extractStepAttribute
+        let whens = typeof<WhenAttribute> |> extractStepAttribute
+        let thens = typeof<ThenAttribute> |> extractStepAttribute
+
         /// Step events
-        let events = methods |> filter typeof<EventAttribute>
-        let beforeScenario = events |> filter typeof<BeforeScenarioAttribute>
-        let afterScenario = events |> filter typeof<AfterScenarioAttribute>
-        let beforeStep = events |> filter typeof<BeforeStepAttribute>
-        let afterStep = events |> filter typeof<AfterStepAttribute>
+        let filterEvents eventAttribute =
+            categorizedMethods.[eventAttribute]
+            |> Seq.map fst
+            |> Array.ofSeq
+
+        let beforeScenario = typeof<BeforeScenarioAttribute> |> filterEvents
+        let afterScenario = typeof<AfterScenarioAttribute> |> filterEvents
+        let beforeStep = typeof<BeforeStepAttribute> |> filterEvents
+        let afterStep = typeof<AfterStepAttribute> |> filterEvents
         let events = beforeScenario, afterScenario, beforeStep, afterStep
+
         /// Parser methods
         let valueParsers =
-            methods
-            |> filter typeof<ParserAttribute>
-            |> Seq.map (fun (_,_,_,m) -> m.ReturnType, m)
+            categorizedMethods.[typeof<ParserAttribute>]
+            |> Seq.map (fun ((_,_,_,m),_) -> m.ReturnType, m)
             |> Dict.ofSeq
         StepDefinitions(givens,whens,thens,events,valueParsers)
 

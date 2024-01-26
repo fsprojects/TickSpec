@@ -481,11 +481,8 @@ let defineStepMethod
 let defineRunMethod
     (scenarioBuilder:TypeBuilder)
     (providerField:FieldBuilder)
-    (beforeScenarioEvents:MethodInfo seq,
-     afterScenarioEvents:MethodInfo seq,
-     beforeStepEvents:MethodInfo seq,
-     afterStepEvents:MethodInfo seq)
-    (stepMethods:seq<MethodBuilder>) =
+    (beforeScenarioEvents,afterScenarioEvents,beforeStepEvents,afterStepEvents)
+    (stepMethods:MethodBuilder seq) =
     /// Run method to execute all scenario steps
     let runMethod =
         scenarioBuilder.DefineMethod("Run",
@@ -496,8 +493,8 @@ let defineRunMethod
     let gen = runMethod.GetILGenerator()
 
     // Emit event methods
-    let emitEvents (ms:MethodInfo seq) =
-        ms |> Seq.iter (fun mi ->
+    let emitEvents =
+        Seq.iter (fun (mi:MethodInfo) ->
             if mi.IsStatic then
                 gen.EmitCall(OpCodes.Call, mi, null)
             else
