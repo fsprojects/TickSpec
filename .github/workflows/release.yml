@@ -24,5 +24,5 @@ jobs:
       run: dotnet fake run build.fsx -t "PublishNuget"
       env:
         BUILD_NUMBER: ${{github.run_number}}
-        NUGET_VERSION: ${{github.events.inputs.version}}
+        NUGET_VERSION: ${{github.event.inputs.version}}
         NUGET_KEY: ${{secrets.NUGET_KEY}}
