@@ -17,9 +17,16 @@ let getInstance (provider:IInstanceProvider) (m:MethodInfo) =
     else provider.GetService m.DeclaringType
 
 /// Invokes specified method with specified parameters
-let invoke (provider:IInstanceProvider) (m:MethodInfo) ps =
+let invoke (provider:IInstanceProvider) (m: MethodInfo) (ps: obj array) =
+    let args = [|
+        yield! ps
+
+        for p in m.GetParameters() |> Seq.skip ps.Length do
+            yield provider.GetService p.ParameterType
+    |]
+
     let instance = getInstance provider m
-    let ret = m.Invoke(instance,ps)
+    let ret = m.Invoke(instance, args)
     if m.ReturnType <> typeof<System.Void> then
         if FSharpType.IsTuple m.ReturnType then
             let types = FSharpType.GetTupleElements m.ReturnType
@@ -148,15 +155,9 @@ let invokeStep
             else failwithf "Expected a Table or array argument at position %d" args.Length
         | None,None,Some doc -> [|box doc|]
         | _,_,_ -> [||]
-    let args =
-        let stArgs = Array.append args tail
-        let injectionArgs = 
-            let pars = meth.GetParameters()
-            let a = stArgs.Length
-            Array.sub pars a (pars.Length - a)
-            |> Array.map (fun (p:ParameterInfo) -> provider.GetService(p.ParameterType))
-        Array.append stArgs injectionArgs
-    invoke provider meth args
+
+    Array.append args tail
+    |> invoke provider meth
 
 /// Generate scenario execution function
 let generate events parsers (scenario: ScenarioMetadata, lines) (serviceProviderFactory: Ref<unit -> IInstanceProvider>) =

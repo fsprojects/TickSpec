@@ -5,6 +5,7 @@
     <TargetFrameworks>net6.0;net452</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Logger.fs" />
     <Compile Include="NunitWiring.fs" />
     <Compile Include="StockItem.fs" />
     <EmbeddedResource Include="Stock.feature" />
