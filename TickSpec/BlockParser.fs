@@ -20,6 +20,7 @@ type internal FeatureBlock =
         Background: StepBlock list
         Scenarios: ScenarioBlock list
         SharedExamples: ExampleBlock list
+        Rules: RuleBlock list
     }
 and internal ScenarioBlock =
     {
@@ -49,6 +50,13 @@ and internal ExampleBlock =
         Tags: string list
         Table: TableBlock
         LineNumber: int
+    }
+and internal RuleBlock =
+    {
+        Name: string
+        Tags: string list
+        Background: StepBlock list
+        Scenarios: ScenarioBlock list
     }
 
 let private parseTags lines =
@@ -194,8 +202,39 @@ let private parseScenarios lines =
         | None -> scenarios, lines
 
     let scenarios, lines = parseScenariosInternal [] lines
-    if scenarios = [] then lines |> raiseParseException "At least one scenario is expected"
     scenarios |> List.rev, lines
+
+let private parseRule origLines =
+    let tags, lines = parseTags origLines
+
+    let ruleName, lines =
+        match lines with
+        | (_,_,Rule name) :: xs -> Some name, xs
+        | _ -> None, lines
+
+    match ruleName with
+    | Some name ->
+        let background, lines = parseBackground lines
+        let scenarios, lines = parseScenarios lines
+        if scenarios = [] then lines |> raiseParseException "Rule must contain at least one scenario"
+
+        Some {
+            Name = name
+            Tags = tags
+            Background = background
+            Scenarios = scenarios
+        }, lines
+    | None -> None, origLines
+
+let private parseRules lines =
+    let rec parseRulesInternal rules lines =
+        let parsedRule, lines = parseRule lines
+        match parsedRule with
+        | Some rule -> parseRulesInternal (rule :: rules) lines
+        | None -> rules, lines
+
+    let rules, lines = parseRulesInternal [] lines
+    rules |> List.rev, lines
 
 let private parseFeatureBlock lines =
     let tags, lines = parseTags lines
@@ -212,8 +251,18 @@ let private parseFeatureBlock lines =
 
     let lines = skipDescription lines
     let background, lines = parseBackground lines
-    let scenarios, lines = parseScenarios lines
+
+    // Parse direct scenarios (before rules)
+    let directScenarios, lines = parseScenarios lines
+
+    // Parse rules (each validates it has at least one scenario)
+    let rules, lines = parseRules lines
+
     let examples, lines = parseSharedExamples lines
+
+    // If no rules, require at least one direct scenario
+    if rules = [] && directScenarios = [] then
+        lines |> raiseParseException "At least one scenario is expected"
 
     if lines <> [] then lines |> raiseParseException "File continues unexpectedly"
 
@@ -221,8 +270,9 @@ let private parseFeatureBlock lines =
         Name = featureName
         Tags = tags
         Background = background
-        Scenarios = scenarios
+        Scenarios = directScenarios
         SharedExamples = examples
+        Rules = rules
     }
 
 let private parseFeatureFile parsedLines =

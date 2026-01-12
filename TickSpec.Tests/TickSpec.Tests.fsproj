@@ -8,6 +8,7 @@
     <EmbeddedResource Include="WithItems.feature" />
     <EmbeddedResource Include="TagsAndExamples.feature" />
     <EmbeddedResource Include="PlaceholdersInItems.feature" />
+    <EmbeddedResource Include="RuleKeyword.feature" />
     <Compile Include="FeatureParserTest.fs" />
   </ItemGroup>
   <ItemGroup>

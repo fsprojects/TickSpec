@@ -29,9 +29,15 @@ type FeatureFixture () =
                         scenarioName.Replace("<" + fst parameter + ">", snd parameter)
                     parameters
                     |> Seq.fold replaceParameterInScenarioName scenarioName
-                (new TestCaseData(scenario))
-                    .SetName(enhanceScenarioName scenario.Parameters scenario.Name)
-                    .SetProperty("Feature", feature.Name.Substring(9))
+                let testCaseData =
+                    (new TestCaseData(scenario))
+                        .SetName(enhanceScenarioName scenario.Parameters scenario.Name)
+                        .SetProperty("Feature", feature.Name.Substring(9))
+                let testCaseData =
+                    match scenario.Rule with
+                    | Some rule -> testCaseData.SetProperty("Rule", rule)
+                    | None -> testCaseData
+                testCaseData
                 |> Seq.foldBack (fun (tag:string) data -> data.SetProperty("Tag", tag)) scenario.Tags
             feature.Scenarios
             |> Seq.map (createTestCaseData feature)

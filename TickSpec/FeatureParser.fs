@@ -110,11 +110,13 @@ let parseFeature (lines:string[]) =
 
     let parsedFeatureBlocks = parseBlocks lines
     let sharedExamples = parsedFeatureBlocks.SharedExamples
-    let background = parsedFeatureBlocks.Background
+    let featureBackground = parsedFeatureBlocks.Background
+    let featureTags = parsedFeatureBlocks.Tags
 
-    let scenarios =
-        parsedFeatureBlocks.Scenarios
-        |> Seq.groupBy (fun s -> s.Name)
+    // Process scenarios with optional rule context
+    let processScenarios ruleName ruleBackground ruleTags (scenarios: ScenarioBlock seq) =
+        scenarios
+        |> Seq.groupBy (fun (s: ScenarioBlock) -> s.Name)
         |> Seq.collect (fun (_,scenarios) ->
             if scenarios |> Seq.isLengthExactly 1 then
                 scenarios
@@ -122,9 +124,12 @@ let parseFeature (lines:string[]) =
                 scenarios |> Seq.mapi (fun i s ->
                     let newName = sprintf "%s~%d" s.Name (i+1)
                     { s with Name = newName }))
-        |> Seq.collect (fun scenario ->
+        |> Seq.collect (fun (scenario: ScenarioBlock) ->
             let examples = scenario.Examples @ sharedExamples
-            let baseTags = parsedFeatureBlocks.Tags @ scenario.Tags
+            let baseTags = featureTags @ ruleTags @ scenario.Tags
+
+            // Combined background: feature background + rule background
+            let combinedBackground = Seq.append featureBackground ruleBackground
 
             let exampleCombinations = computeCombinations examples |> Seq.toList
             let nameFunc =
@@ -137,12 +142,25 @@ let parseFeature (lines:string[]) =
             |> List.mapi (fun i (tags, combination) ->
                 let name = nameFunc i
                 let steps =
-                    Seq.append background scenario.Steps
+                    Seq.append combinedBackground scenario.Steps
                     |> Seq.map (createStep combination)
                     |> Seq.toArray
 
-                { Name=name; Tags=baseTags @ tags |> Seq.distinct |> Seq.toArray; Steps=steps; Parameters=combination |> List.toArray }
+                { Name=name; Tags=baseTags @ tags |> Seq.distinct |> Seq.toArray; Steps=steps; Parameters=combination |> List.toArray; Rule=ruleName }
             )
         )
 
-    { Name = parsedFeatureBlocks.Name; Scenarios = scenarios |> Seq.toArray }
+    // Process direct scenarios (no rule)
+    let directScenarios =
+        processScenarios None Seq.empty [] parsedFeatureBlocks.Scenarios
+
+    // Process scenarios within rules
+    let ruleScenarios =
+        parsedFeatureBlocks.Rules
+        |> Seq.collect (fun rule ->
+            processScenarios (Some rule.Name) rule.Background rule.Tags rule.Scenarios
+        )
+
+    let allScenarios = Seq.append directScenarios ruleScenarios
+
+    { Name = parsedFeatureBlocks.Name; Scenarios = allScenarios |> Seq.toArray }

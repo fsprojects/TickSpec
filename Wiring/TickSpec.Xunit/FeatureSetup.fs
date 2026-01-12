@@ -11,22 +11,30 @@ type XunitSerializableScenario =
     val mutable Name: string
     val mutable Parameters: (string*string)[]
     val mutable Tags: string[]
-    new (featureName: string, name: string, parameters: (string*string)[], tags: string[]) = { FeatureName = featureName; Name = name; Parameters = parameters; Tags = tags }
-    new () = XunitSerializableScenario("", "", Array.empty, Array.empty)
-    
+    val mutable Rule: string option
+    new (featureName: string, name: string, parameters: (string*string)[], tags: string[], rule: string option) = { FeatureName = featureName; Name = name; Parameters = parameters; Tags = tags; Rule = rule }
+    new () = XunitSerializableScenario("", "", Array.empty, Array.empty, None)
+
     override this.ToString() =
-        if this.Parameters.Length = 0 && this.Tags.Length = 0 then this.Name
+        let baseName =
+            match this.Rule with
+            | Some rule -> sprintf "[%s] %s" rule this.Name
+            | None -> this.Name
+        if this.Parameters.Length = 0 && this.Tags.Length = 0 then baseName
         else
             let parameters =  this.Parameters |> Seq.map (fun (k,v) -> sprintf "%s=%s" k v) |> String.concat ","
             let tags =  this.Tags |> String.concat ","
-            sprintf "%s<%s>{%s}" this.Name tags parameters
+            sprintf "%s<%s>{%s}" baseName tags parameters
 
     interface IXunitSerializable with
         member this.Serialize (info:IXunitSerializationInfo) =
             info.AddValue("FeatureName", this.FeatureName)
             info.AddValue("Name", this.Name)
-            info.AddValue("Parameters", [| for k, v in this.Parameters -> sprintf "%s=%s" k v |])       
+            info.AddValue("Parameters", [| for k, v in this.Parameters -> sprintf "%s=%s" k v |])
             info.AddValue("Tags", this.Tags)
+            match this.Rule with
+            | Some rule -> info.AddValue("Rule", rule)
+            | None -> ()
 
         member this.Deserialize(info:IXunitSerializationInfo) =
             let featureName = info.GetValue<string>("FeatureName")
@@ -37,10 +45,14 @@ type XunitSerializableScenario =
                     let kva = kv.Split([|'='|], 2)  // max 2 substrings as the value itself may contain '='
                     kva.[0], kva.[1])
             let tags = info.GetValue<string[]>("Tags")
+            let rule =
+                let ruleValue = info.GetValue<string>("Rule")
+                if isNull ruleValue then None else Some ruleValue
             this.FeatureName <- featureName
             this.Name <- name
             this.Parameters <- parameters
             this.Tags <- tags
+            this.Rule <- rule
             
 /// Represents a set of Step Definitions available within a given Assembly
 type AssemblyStepDefinitionsSource(assembly : System.Reflection.Assembly) =
@@ -59,7 +71,7 @@ type AssemblyStepDefinitionsSource(assembly : System.Reflection.Assembly) =
         
         scenarios
         |> Seq.map (fun s ->
-            XunitSerializableScenario (resourceName, s.Name, s.Parameters, s.Tags))
+            XunitSerializableScenario (resourceName, s.Name, s.Parameters, s.Tags, s.Rule))
 
     /// Executes the scenario
     member __.RunScenario(scenario: XunitSerializableScenario) =
