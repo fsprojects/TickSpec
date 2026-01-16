@@ -18,5 +18,6 @@
     <PackageReference Include="Fake.Core.ReleaseNotes" Version="6.1.4" />
     <PackageReference Include="Fake.DotNet.AssemblyInfoFile" Version="6.1.4" />
     <PackageReference Include="Fake.Api.GitHub" Version="6.1.4" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 </Project>
