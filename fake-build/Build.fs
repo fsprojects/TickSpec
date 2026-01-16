@@ -162,5 +162,5 @@ let dependencies = [
 
 [<EntryPoint>]
 let main args =
-    Target.runOrDefaultWithArguments ("Test")
+    Target.runOrDefaultWithArguments "Test" args
     0
