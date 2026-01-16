@@ -25,10 +25,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ matrix.dotnet }}
-    - name: Install local tools
-      run: dotnet tool restore
     - name: Build & Tests
-      run: dotnet fake run build.fsx -t "Test"
+      run: dotnet run --project ./fake-build/Build.fsproj -- -t Test
       env:
         BUILD_NUMBER: ${{github.run_number}}
     - name: Upload NuGet Packages

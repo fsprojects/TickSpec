@@ -1,17 +1,3 @@
-#r "paket:
-    source https://api.nuget.org/v3/index.json
-    framework: net6.0
-    nuget Fake.Core.Target
-    nuget Fake.IO.FileSystem
-    nuget Fake.DotNet.Cli
-    nuget Fake.Tools.Git
-    nuget Fake.DotNet.MSBuild
-    nuget Fake.Core.ReleaseNotes 
-    nuget Fake.DotNet.AssemblyInfoFile
-    nuget Fake.Api.GitHub //"
-
-#load "./.fake/build.fsx/intellisense.fsx"
-
 open Fake.Core
 open Fake.Core.TargetOperators
 open Fake.IO
@@ -19,16 +5,20 @@ open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.DotNet
 
-CoreTracing.ensureConsoleListener()
+let initializeContext () =
+    let execContext = Context.FakeExecutionContext.Create false "build.fsx" []
+    Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
 
-module GitHubActions = 
+initializeContext ()
+
+module GitHubActions =
     let BuildNumber = Environment.environVarOrNone "BUILD_NUMBER"
     let NugetVersion = Environment.environVarOrNone "NUGET_VERSION"
     let NugetKey = Environment.environVarOrNone "NUGET_KEY"
 
     let detect() = BuildNumber |> Option.isSome
 
-module Xml = 
+module Xml =
     open System.Xml.Linq
     let load x = XDocument.Load(x:string)
     let xns x = (x:XDocument).Root.Name.Namespace
@@ -36,31 +26,31 @@ module Xml =
     let descendants n x = (x:XDocument).Descendants(n)
     let value x = (x:XElement).Value
 
-module Analysis = 
+module Analysis =
     let projectReferencing packageName project =
         let projDoc = Xml.load project
         let ns = projDoc |> Xml.xns
         let packageRefName = ns |> Xml.xn2 "PackageReference"
         let includeName = ns |> Xml.xn2 "Include"
-        let pRefs = 
-            projDoc 
+        let pRefs =
+            projDoc
             |> Xml.descendants packageRefName
             |> Seq.filter (fun x -> not (isNull (x.Attribute(includeName))))
             |> Seq.map (fun x -> x.Attribute(includeName).Value)
-        
+
         if pRefs |> Seq.contains packageName then Some project
         else None
 
-module ReleaseNotes = 
-    let TickSpec = ReleaseNotes.load (__SOURCE_DIRECTORY__ </> "RELEASE_NOTES.md")
+module ReleaseNotes =
+    let TickSpec = ReleaseNotes.load (__SOURCE_DIRECTORY__ </> ".." </> "RELEASE_NOTES.md")
 
-module Build = 
-    let rootDir = __SOURCE_DIRECTORY__
+module Build =
+    let rootDir = __SOURCE_DIRECTORY__ </> ".."
     let nuget = rootDir </> "packed_nugets"
 
     let private fileVersion =
-        GitHubActions.BuildNumber 
-        |> Option.defaultValue "0" 
+        GitHubActions.BuildNumber
+        |> Option.defaultValue "0"
         |> sprintf "%s.%s" ReleaseNotes.TickSpec.AssemblyVersion
 
     let private continuousBuild =
@@ -73,14 +63,14 @@ module Build =
             sprintf "/p:Version=%s /p:AssemblyVersion=%s %s" ReleaseNotes.TickSpec.AssemblyVersion fileVersion continuousBuild
 
     let setParams (defaults: DotNet.BuildOptions) =
-        { defaults with 
+        { defaults with
             Configuration = DotNet.BuildConfiguration.Release
             MSBuildParams = { defaults.MSBuildParams with DisableInternalBinLog = true }
             Common =
                 DotNet.Options.Create()
                 |> DotNet.Options.withCustomParams (Some props) }
 
-let Sln = "./TickSpec.sln"
+let Sln = Path.combine Build.rootDir "TickSpec.sln"
 
 Target.create "Clean" (fun _ ->
     Shell.cleanDirs [Build.nuget]
@@ -109,7 +99,7 @@ Target.create "Test" (fun _ ->
 
 Target.create "Nuget" (fun _ ->
     if Environment.isWindows then
-        let props = 
+        let props =
             let notes =
                 String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
                 |> (fun x -> x.Replace(",", "%2c"))
@@ -134,7 +124,7 @@ Target.create "Nuget" (fun _ ->
             } )
             Sln
     else
-        Trace.tracef "--- Skipping Nuget target as the build is not running on Windows ---"   
+        Trace.tracef "--- Skipping Nuget target as the build is not running on Windows ---"
 )
 
 Target.create "PublishNuget" (fun _ ->
@@ -144,14 +134,14 @@ Target.create "PublishNuget" (fun _ ->
         | None -> ()
 
         let publishNugets () =
-            let key = 
+            let key =
                 match GitHubActions.NugetKey with
                 | Some x -> x
-                | None -> failwith "To publish nuget, it is needed to set NUGET_KEY environment variable"        
+                | None -> failwith "To publish nuget, it is needed to set NUGET_KEY environment variable"
 
             let publishNuget nuget =
                 DotNet.exec id "nuget" (sprintf "push %s -k %s -s https://api.nuget.org/v3/index.json" nuget key)
-        
+
             !! (Build.nuget </> "*.nupkg")
             -- (Build.nuget </> "*.symbols.nupkg")
             |> Seq.map publishNuget
@@ -162,16 +152,15 @@ Target.create "PublishNuget" (fun _ ->
             publishNugets () |> Seq.iter (fun x -> if not x.OK then failwithf "Nuget publish failed with %A" x)
         | Some t -> failwithf "Unexpected tag %s" t
     else
-        Trace.tracef "--- Skipping PublishNuget target as the build is not running on Windows ---"   
+        Trace.tracef "--- Skipping PublishNuget target as the build is not running on Windows ---"
 )
 
-Target.create "All" ignore
+let dependencies = [
+    "Clean" ==> "Build" ==> "Nuget" ==> "Test"
+    "Test" ==> "PublishNuget"
+]
 
-"Clean"
-    ==> "Build"
-    ==> "Nuget"
-    ==> "Test"
-    ==> "PublishNuget"
-    ==> "All"
-
-Target.runOrDefault "All"
+[<EntryPoint>]
+let main args =
+    Target.runOrDefaultWithArguments ("Test")
+    0

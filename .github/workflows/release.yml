@@ -17,11 +17,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
-    - name: Install local tools
-      run: dotnet tool restore
     - name: Build, Tests & Release
       if: github.ref == 'refs/heads/master'
-      run: dotnet fake run build.fsx -t "PublishNuget"
+      run: dotnet run --project ./fake-build/Build.fsproj -- -t PublishNuget
       env:
         BUILD_NUMBER: ${{github.run_number}}
         NUGET_VERSION: ${{github.event.inputs.version}}
