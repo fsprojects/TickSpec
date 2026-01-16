@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../../../netfx.props" />
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net452</TargetFrameworks>
+    <TargetFrameworks>net9.0;net452</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Logger.fs" />
