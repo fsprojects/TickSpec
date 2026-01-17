@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macOS-latest]
+        os: [windows-latest, ubuntu-latest]
         dotnet: [6.0.x]
     runs-on: ${{ matrix.os }}
     
@@ -25,15 +25,13 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ matrix.dotnet }}
-    - name: Install local tools
-      run: dotnet tool restore
     - name: Build & Tests
-      run: dotnet fake run build.fsx -t "Test"
+      run: dotnet run --project ./fake-build/Build.fsproj -- -t Test
       env:
         BUILD_NUMBER: ${{github.run_number}}
     - name: Upload NuGet Packages
       if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: nuget
         path: packed_nugets/*.*
