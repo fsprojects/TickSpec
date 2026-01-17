@@ -236,8 +236,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 |> Seq.toArray
             let events = chooseInScopeEvents feature scenario
             let scenarioMetadata =
-                {Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags}
-            
+                {Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags;Rule=scenario.Rule}
+
             TickSpec.Action(generate events valueParsers (scenarioMetadata, steps) instanceProviderFactory)
             |> Scenario.fromScenarioMetadata scenarioMetadata
         )
@@ -291,7 +291,7 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
             featureSource.Scenarios
             |> Seq.map (fun scenario ->
                 let scenarioMetadata =
-                    { Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags }
+                    { Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags;Rule=scenario.Rule }
                 createAction scenario scenarioMetadata
                 |> Scenario.fromScenarioMetadata scenarioMetadata
             )

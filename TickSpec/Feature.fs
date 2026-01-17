@@ -10,6 +10,7 @@ type ScenarioMetadata = {
     Description: string
     Parameters: (string * string)[]
     Tags: string[]
+    Rule: string option
 }
 
 /// Executable scenario type
@@ -19,6 +20,7 @@ type Scenario = {
     Action:Action;
     Parameters:(string * string)[]
     Tags:string[]
+    Rule:string option
     }
     with
     override this.ToString() =
@@ -38,6 +40,7 @@ module Scenario =
             Action = action
             Parameters = metadata.Parameters
             Tags = metadata.Tags
+            Rule = metadata.Rule
         }
 
 /// Encapsulates Gherkin feature

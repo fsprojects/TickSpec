@@ -25,6 +25,8 @@ type internal LineType =
     | Background
     /// A start of scenario
     | Scenario of string
+    /// A start of rule
+    | Rule of string
     /// A start of shared examples
     | SharedExamples
     /// A start of examples
@@ -62,6 +64,9 @@ let (|ScenarioLine|_|) (s:string) =
 let (|BackgroundLine|_|) s =
     tryRegex s "^\s*Background(.*)"
     |> Option.map (fun t -> BackgroundLine)
+let (|RuleLine|_|) s =
+    tryRegex s "^\s*Rule:\s*(.*)"
+    |> Option.map (function Trim t -> RuleLine t)
 let (|GivenLine|_|) s =
     tryRegex s "^\s*Given\s(.*)"
     |> Option.map (function Trim t -> GivenLine t)
@@ -117,9 +122,20 @@ let parseLine = function
         -> TagLine tags |> Some
     | FeatureName _, BackgroundLine
     | FeatureDescription _, BackgroundLine
+    | Rule _, BackgroundLine
         -> Background |> Some
+    | FeatureName _, RuleLine text
+    | FeatureDescription _, RuleLine text
+    | Item(Step(_), TableRow _), RuleLine text
+    | Item(Examples, TableRow _), RuleLine text
+    | Item(_, BulletPoint _), RuleLine text
+    | Step(_), RuleLine text
+    | TagLine _, RuleLine text
+    | Item(_, MultiLineStringEnd), RuleLine text
+        -> Rule text |> Some
     | FeatureName _, ScenarioLine text
     | FeatureDescription _, ScenarioLine text
+    | Rule _, ScenarioLine text
     | Item(Step(_), TableRow _), ScenarioLine text
     | Item(Examples, TableRow _), ScenarioLine text
     | Item(_, BulletPoint _), ScenarioLine text
@@ -179,6 +195,7 @@ let parseLine = function
 let expectingLine = function
     | FileStart -> "Expecting feature definition in the beginning of file"
     | Scenario _ | Background -> "Expecting steps"
+    | Rule _ -> "Expecting background or scenarios within rule"
     | Examples | SharedExamples -> "Expecting table row"
     | Step(_) -> "Expecting another step, table row, bullet, examples or end of scenario"
     | Item(Step(_), TableRow _) -> "Expecting another table row, next step, examples or end of scenario"

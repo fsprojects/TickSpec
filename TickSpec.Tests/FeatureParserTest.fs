@@ -148,6 +148,7 @@ let TagsAndExamples_ParseBlocks () =
                 LineNumber = 23
             }
         ]
+        Rules = []
     }
 
 [<Test>]
@@ -185,6 +186,7 @@ let TagsAndExamples_FeatureSource () =
                     })
                 |]
                 Parameters = [|("page","index.html");("server","smoke")|]
+                Rule = None
             }
             {
                 Name = "Scenario Outline: Tags and Examples (2)"
@@ -213,6 +215,7 @@ let TagsAndExamples_FeatureSource () =
                     })
                 |]
                 Parameters = [|("page","default.html");("server","smoke")|]
+                Rule = None
             }
             {
                 Name = "Scenario Outline: Tags and Examples (3)"
@@ -241,6 +244,7 @@ let TagsAndExamples_FeatureSource () =
                     })
                 |]
                 Parameters = [|("page","index.html");("server","testing")|]
+                Rule = None
             }
             {
                 Name = "Scenario Outline: Tags and Examples (4)"
@@ -269,6 +273,7 @@ let TagsAndExamples_FeatureSource () =
                     })
                 |]
                 Parameters = [|("page","default.html");("server","testing")|]
+                Rule = None
             }
             {
                 Name = "Scenario Outline: Tags and Examples (5)"
@@ -297,6 +302,7 @@ let TagsAndExamples_FeatureSource () =
                     })
                 |]
                 Parameters = [|("page","index.html");("server","production")|]
+                Rule = None
             }
             {
                 Name = "Scenario Outline: Tags and Examples (6)"
@@ -325,6 +331,7 @@ let TagsAndExamples_FeatureSource () =
                     })
                 |]
                 Parameters = [|("page","default.html");("server","production")|]
+                Rule = None
             }
         |]
     }
@@ -409,6 +416,7 @@ let FileWithItems_ParseBlocks () =
             }
         ]
         SharedExamples = []
+        Rules = []
     }
 
 [<Test>]
@@ -453,6 +461,7 @@ let FileWithItems_ParseFeature () =
                     })
                 |]
                 Parameters = [||]
+                Rule = None
             }
         |]
     }
@@ -499,6 +508,7 @@ let PlaceholdersInItems_ParseFeature () =
                     })
                 |]
                 Parameters = [|("Placeholder1", "Value1")|]
+                Rule = None
             }
             {
                 Name = "Scenario Outline: Placeholders in items test scenario (2)"
@@ -527,7 +537,71 @@ let PlaceholdersInItems_ParseFeature () =
                     })
                 |]
                 Parameters = [|("Placeholder1", "Value2")|]
+                Rule = None
             }
 
         |]
-    }        
+    }
+
+[<Test>]
+let RuleKeyword_ParseFeature () =
+    let featureSource =
+        "TickSpec.Tests.RuleKeyword.feature"
+        |> loadFeatureFile
+        |> FeatureParser.parseFeature
+
+    // Verify feature name
+    Assert.AreEqual("Rule keyword support", featureSource.Name)
+
+    // Verify we have 4 scenarios total
+    Assert.AreEqual(4, featureSource.Scenarios.Length)
+
+    // Verify direct scenario (no rule)
+    let directScenario = featureSource.Scenarios.[0]
+    Assert.AreEqual("Scenario: Direct scenario without rule", directScenario.Name)
+    Assert.AreEqual(None, directScenario.Rule)
+    // Should have feature background + scenario steps (3 steps total)
+    Assert.AreEqual(3, directScenario.Steps.Length)
+
+    // Verify first rule scenarios
+    let firstRuleScenario1 = featureSource.Scenarios.[1]
+    Assert.AreEqual("Scenario: Scenario in first rule", firstRuleScenario1.Name)
+    Assert.AreEqual(Some "First business rule", firstRuleScenario1.Rule)
+    // Should have feature background + rule background + scenario steps (4 steps total)
+    Assert.AreEqual(4, firstRuleScenario1.Steps.Length)
+
+    let firstRuleScenario2 = featureSource.Scenarios.[2]
+    Assert.AreEqual("Scenario: Another scenario in first rule", firstRuleScenario2.Name)
+    Assert.AreEqual(Some "First business rule", firstRuleScenario2.Rule)
+
+    // Verify second rule scenario
+    let secondRuleScenario = featureSource.Scenarios.[3]
+    Assert.AreEqual("Scenario: Scenario in second rule", secondRuleScenario.Name)
+    Assert.AreEqual(Some "Second business rule", secondRuleScenario.Rule)
+    // Should have feature background + scenario steps (no rule background, 3 steps total)
+    Assert.AreEqual(3, secondRuleScenario.Steps.Length)
+
+[<Test>]
+let RuleKeyword_ParseBlocks () =
+    let featureBlock =
+        "TickSpec.Tests.RuleKeyword.feature"
+        |> loadFeatureFile
+        |> parseBlocks
+
+    // Verify feature structure
+    Assert.AreEqual("Rule keyword support", featureBlock.Name)
+    Assert.AreEqual(1, featureBlock.Background.Length)  // Feature-level background
+    Assert.AreEqual(1, featureBlock.Scenarios.Length)   // Direct scenario
+    Assert.AreEqual(2, featureBlock.Rules.Length)       // Two rules
+
+    // Verify first rule
+    let firstRule = featureBlock.Rules.[0]
+    Assert.AreEqual("First business rule", firstRule.Name)
+    Assert.AreEqual(1, firstRule.Background.Length)     // Rule-level background
+    Assert.AreEqual(2, firstRule.Scenarios.Length)      // Two scenarios in first rule
+
+    // Verify second rule
+    let secondRule = featureBlock.Rules.[1]
+    Assert.AreEqual("Second business rule", secondRule.Name)
+    Assert.AreEqual(0, secondRule.Background.Length)    // No rule-level background
+    Assert.AreEqual(1, secondRule.Scenarios.Length)     // One scenario in second rule

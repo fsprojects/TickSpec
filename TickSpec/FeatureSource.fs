@@ -11,6 +11,7 @@ and ScenarioSource =
         Tags: string[];
         Steps: StepSource [];
         Parameters: (string * string) []
+        Rule: string option
     }
     with
     override this.ToString() = this.Name
