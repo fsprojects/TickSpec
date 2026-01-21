@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) Microsoft Corporation.  All Rights Reserved.  See License.txt in the project root for license information. -->
 <Project>
-  <PropertyGroup>
-    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
-    <DisableImplicitSystemValueTupleReference>true</DisableImplicitSystemValueTupleReference>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="FSharp.Core" Version="4.2.3" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(net4))' " />
-    <PackageReference Include="FSharp.Core" Version="4.3.4" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(net5))' " />
-    <PackageReference Include="FSharp.Core" Version="4.3.4" Condition=" '$(ProjectExt)'=='.fsproj' AND '$(TargetFramework.StartsWith(netstandard))' " />
-  </ItemGroup>
-  <PropertyGroup>
+    <PropertyGroup>
     <Authors>Phillip Trelford, Ruben Bartelink, Milos Chaloupka</Authors>
     <Copyright>Copyright © 2010-21 Phillip Trelford, Ruben Bartelink, Milos Chaloupka</Copyright>
     <PackageProjectUrl>https://github.com/fsprojects/TickSpec</PackageProjectUrl>
@@ -29,7 +20,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>  
     <None Include="$(MSBuildThisFileDirectory)/LICENSE.txt" Pack="true" PackagePath="LICENSE.txt"/>

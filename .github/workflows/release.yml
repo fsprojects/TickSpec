@@ -12,11 +12,11 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 9.0.x
     - name: Build, Tests & Release
       if: github.ref == 'refs/heads/master'
       run: dotnet run --project ./fake-build/Build.fsproj -- -t PublishNuget
