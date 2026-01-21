@@ -1,3 +1,6 @@
+#### 2.0.4 (Released 2026/01/20)
+* [Feature] Add support for Gherkin Rule keyword (issue #74) by @onurgumus
+
 #### 2.0.3 (Released 2024/01/26)
 * [Feature] Makes `ScenarioInformation` available to step implementations through arguments resolution (issue #49)
 * [Fix] Performance improvements when the used assembly contains many methods (issue #45)
