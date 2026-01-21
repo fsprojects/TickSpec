@@ -5,11 +5,9 @@ open Fake.IO.FileSystemOperators
 open Fake.IO.Globbing.Operators
 open Fake.DotNet
 
-let initializeContext () =
-    let execContext = Context.FakeExecutionContext.Create false "build.fsx" []
+let initializeContext args =
+    let execContext = Context.FakeExecutionContext.Create false "build.fsx" (Array.toList args)
     Context.setExecutionContext (Context.RuntimeContext.Fake execContext)
-
-initializeContext ()
 
 module GitHubActions =
     let BuildNumber = Environment.environVarOrNone "BUILD_NUMBER"
@@ -72,95 +70,95 @@ module Build =
 
 let Sln = Path.combine Build.rootDir "TickSpec.sln"
 
-Target.create "Clean" (fun _ ->
-    Shell.cleanDirs [Build.nuget]
-    DotNet.exec id "clean" "" |> ignore
-)
-
-Target.create "Build" (fun _ ->
-    Sln |> DotNet.build Build.setParams
-)
-
-Target.create "Test" (fun _ ->
-    // Xunit seems to be failing under Linux with net452 runner, let's just skip it
-    // the .NET 4 tests all together there
-    let framework = if Environment.isWindows then None else Some "net6.0"
-
-    Sln
-    |> DotNet.test (fun o ->
-        { o with
-            Configuration = DotNet.Release
-            NoBuild = true
-            MSBuildParams = { o.MSBuildParams with DisableInternalBinLog = true }
-            Framework = framework
-        }
+let createTargets () =
+    Target.create "Clean" (fun _ ->
+        Shell.cleanDirs [Build.nuget]
+        DotNet.exec id "clean" "" |> ignore
     )
-)
 
-Target.create "Nuget" (fun _ ->
-    if Environment.isWindows then
-        let props =
-            let notes =
-                String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
-                |> (fun x -> x.Replace(",", "%2c"))
+    Target.create "Build" (fun _ ->
+        Sln |> DotNet.build Build.setParams
+    )
 
-            sprintf
-                "%s /p:PackageReleaseNotes=\"%s\";PackageVersion=\"%s\""
-                Build.props
-                notes
-                ReleaseNotes.TickSpec.NugetVersion
+    Target.create "Test" (fun _ ->
+        // Xunit seems to be failing under Linux with net452 runner, let's just skip it
+        // the .NET 4 tests all together there
+        let framework = if Environment.isWindows then None else Some "net6.0"
 
-        DotNet.pack (fun p ->
-            { p with
+        Sln
+        |> DotNet.test (fun o ->
+            { o with
                 Configuration = DotNet.Release
-                OutputPath = Some Build.nuget
-                NoBuild = false // Not sure why but it seems to be necessary to rebuild it
-                IncludeSymbols = true
-                MSBuildParams = { p.MSBuildParams with DisableInternalBinLog = true }
-                Common =
-                    DotNet.Options.Create()
-                    |> DotNet.Options.withCustomParams (Some props)
-                    |> DotNet.Options.withVerbosity (Some DotNet.Verbosity.Minimal)
-            } )
-            Sln
-    else
-        Trace.tracef "--- Skipping Nuget target as the build is not running on Windows ---"
-)
+                NoBuild = true
+                MSBuildParams = { o.MSBuildParams with DisableInternalBinLog = true }
+                Framework = framework
+            }
+        )
+    )
 
-Target.create "PublishNuget" (fun _ ->
-    if Environment.isWindows then
-        match GitHubActions.NugetKey with
-        | Some k -> TraceSecrets.register k "<NUGET_KEY>"
-        | None -> ()
+    Target.create "Nuget" (fun _ ->
+        if Environment.isWindows then
+            let props =
+                let notes =
+                    String.concat System.Environment.NewLine ReleaseNotes.TickSpec.Notes
+                    |> (fun x -> x.Replace(",", "%2c"))
 
-        let publishNugets () =
-            let key =
-                match GitHubActions.NugetKey with
-                | Some x -> x
-                | None -> failwith "To publish nuget, it is needed to set NUGET_KEY environment variable"
+                sprintf
+                    "%s /p:PackageReleaseNotes=\"%s\";PackageVersion=\"%s\""
+                    Build.props
+                    notes
+                    ReleaseNotes.TickSpec.NugetVersion
 
-            let publishNuget nuget =
-                DotNet.exec id "nuget" (sprintf "push %s -k %s -s https://api.nuget.org/v3/index.json" nuget key)
+            DotNet.pack (fun p ->
+                { p with
+                    Configuration = DotNet.Release
+                    OutputPath = Some Build.nuget
+                    NoBuild = false // Not sure why but it seems to be necessary to rebuild it
+                    IncludeSymbols = true
+                    MSBuildParams = { p.MSBuildParams with DisableInternalBinLog = true }
+                    Common =
+                        DotNet.Options.Create()
+                        |> DotNet.Options.withCustomParams (Some props)
+                        |> DotNet.Options.withVerbosity (Some DotNet.Verbosity.Minimal)
+                } )
+                Sln
+        else
+            Trace.tracef "--- Skipping Nuget target as the build is not running on Windows ---"
+    )
 
-            !! (Build.nuget </> "*.nupkg")
-            -- (Build.nuget </> "*.symbols.nupkg")
-            |> Seq.map publishNuget
+    Target.create "PublishNuget" (fun _ ->
+        if Environment.isWindows then
+            match GitHubActions.NugetKey with
+            | Some k -> TraceSecrets.register k "<NUGET_KEY>"
+            | None -> ()
 
-        match GitHubActions.NugetVersion with
-        | None -> ()
-        | Some t when t = ReleaseNotes.TickSpec.NugetVersion ->
-            publishNugets () |> Seq.iter (fun x -> if not x.OK then failwithf "Nuget publish failed with %A" x)
-        | Some t -> failwithf "Unexpected tag %s" t
-    else
-        Trace.tracef "--- Skipping PublishNuget target as the build is not running on Windows ---"
-)
+            let publishNugets () =
+                let key =
+                    match GitHubActions.NugetKey with
+                    | Some x -> x
+                    | None -> failwith "To publish nuget, it is needed to set NUGET_KEY environment variable"
 
-let dependencies = [
-    "Clean" ==> "Build" ==> "Nuget" ==> "Test"
-    "Test" ==> "PublishNuget"
-]
+                let publishNuget nuget =
+                    DotNet.exec id "nuget" (sprintf "push %s -k %s -s https://api.nuget.org/v3/index.json" nuget key)
+
+                !! (Build.nuget </> "*.nupkg")
+                -- (Build.nuget </> "*.symbols.nupkg")
+                |> Seq.map publishNuget
+
+            match GitHubActions.NugetVersion with
+            | None -> ()
+            | Some t when t = ReleaseNotes.TickSpec.NugetVersion ->
+                publishNugets () |> Seq.iter (fun x -> if not x.OK then failwithf "Nuget publish failed with %A" x)
+            | Some t -> failwithf "Unexpected tag %s" t
+        else
+            Trace.tracef "--- Skipping PublishNuget target as the build is not running on Windows ---"
+    )
+
+    "Clean" ==> "Build" ==> "Nuget" ==> "Test" ==> "PublishNuget" |> ignore
 
 [<EntryPoint>]
 let main args =
-    Target.runOrDefaultWithArguments ("Test")
+    initializeContext args
+    createTargets ()
+    Target.runOrDefaultWithArguments "Test"
     0
