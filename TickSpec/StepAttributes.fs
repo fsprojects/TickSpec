@@ -12,21 +12,21 @@ type StepAttribute internal (step:string) =
 type GivenAttribute(step:string) =
     inherit StepAttribute (step)
     new () = GivenAttribute(null)
-    new (format,[<ParamArray>] args) =
+    new (format:string,[<ParamArray>] args:obj[]) =
         GivenAttribute(String.Format(format,args))
 /// Method annotation for when step
 [<AttributeUsage(AttributeTargets.Method,AllowMultiple=true)>]
 type WhenAttribute(step) =
     inherit StepAttribute (step)
     new () = WhenAttribute(null)
-    new (format,[<ParamArray>] args) =
+    new (format:string,[<ParamArray>] args:obj[]) =
         WhenAttribute(String.Format(format,args))
 /// Method annotation for then step
 [<AttributeUsage(AttributeTargets.Method,AllowMultiple=true)>]
 type ThenAttribute(step) =
     inherit StepAttribute(step)
     new () = ThenAttribute(null)
-    new (format,[<ParamArray>] args) =
+    new (format:string,[<ParamArray>] args:obj[]) =
         ThenAttribute(String.Format(format,args))
 
 /// Method annotation for parsers of string -> 'a
