@@ -605,3 +605,62 @@ let RuleKeyword_ParseBlocks () =
     Assert.AreEqual("Second business rule", secondRule.Name)
     Assert.AreEqual(0, secondRule.Background.Length)    // No rule-level background
     Assert.AreEqual(1, secondRule.Scenarios.Length)     // One scenario in second rule
+
+[<Test>]
+let EscapedPipe_ParseLines () =
+    "TickSpec.Tests.EscapedPipe.feature"
+    |> loadFeatureFile
+    |> verifyLineParsing <|
+    [
+        FileStart
+        FeatureName "Escaped pipe in table cells"
+        Scenario "Scenario Outline: Values with escaped pipes are parsed correctly"
+        Step (GivenStep "a value <value>")
+        Step (ThenStep "the value is <expected>")
+        Examples
+        Item (Examples, TableRow [ "value"; "expected" ])
+        Item (Examples, TableRow [ "no pipe"; "no pipe" ])
+        Item (Examples, TableRow [ "before|after"; "before|after" ])
+        Item (Examples, TableRow [ "|leading"; "|leading" ])
+        Item (Examples, TableRow [ "trailing|"; "trailing|" ])
+        Item (Examples, TableRow [ "a|b|c"; "a|b|c" ])
+        Scenario "Scenario: Step table with escaped pipes"
+        Step (GivenStep "a table with escaped pipes")
+        Item (Step (GivenStep "a table with escaped pipes"), TableRow [ "col1"; "col2" ])
+        Item (Step (GivenStep "a table with escaped pipes"), TableRow [ "hello|world"; "normal" ])
+        Item (Step (GivenStep "a table with escaped pipes"), TableRow [ "a|b|c"; "x" ])
+        Step (ThenStep "the table cell 0,0 is hello|world")
+        Step (ThenStep "the table cell 0,1 is normal")
+        Step (ThenStep "the table cell 1,0 is a|b|c")
+    ]
+
+[<Test>]
+let EscapedPipe_ParseFeature () =
+    let featureSource =
+        "TickSpec.Tests.EscapedPipe.feature"
+        |> loadFeatureFile
+        |> FeatureParser.parseFeature
+
+    Assert.AreEqual("Escaped pipe in table cells", featureSource.Name)
+    Assert.AreEqual(6, featureSource.Scenarios.Length)
+
+    // Verify the outline scenario with escaped pipes produces correct parameter values
+    let scenario3 = featureSource.Scenarios.[2]
+    let parameters = scenario3.Parameters |> dict
+    Assert.AreEqual("before|after", parameters.["value"])
+    Assert.AreEqual("before|after", parameters.["expected"])
+
+    let scenario5 = featureSource.Scenarios.[4]
+    let parameters5 = scenario5.Parameters |> dict
+    Assert.AreEqual("a|b|c", parameters5.["value"])
+    Assert.AreEqual("a|b|c", parameters5.["expected"])
+
+    // Verify step table with escaped pipes
+    let tableScenario = featureSource.Scenarios.[5]
+    let tableStep = tableScenario.Steps.[0] |> fst
+    Assert.AreEqual(GivenStep "a table with escaped pipes", tableStep)
+    let table = (tableScenario.Steps.[0] |> snd).Table.Value
+    Assert.AreEqual([| "col1"; "col2" |], table.Header)
+    Assert.AreEqual("hello|world", table.Rows.[0].[0])
+    Assert.AreEqual("normal", table.Rows.[0].[1])
+    Assert.AreEqual("a|b|c", table.Rows.[1].[0])
