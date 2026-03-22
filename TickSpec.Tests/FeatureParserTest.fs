@@ -644,16 +644,17 @@ let EscapedPipe_ParseFeature () =
     Assert.AreEqual("Escaped pipe in table cells", featureSource.Name)
     Assert.AreEqual(6, featureSource.Scenarios.Length)
 
-    // Verify the outline scenario with escaped pipes produces correct parameter values
-    let scenario3 = featureSource.Scenarios.[2]
-    let parameters = scenario3.Parameters |> dict
-    Assert.AreEqual("before|after", parameters.["value"])
-    Assert.AreEqual("before|after", parameters.["expected"])
+    // Verify the outline scenarios with escaped pipes produce correct parameter values
+    // Row order: 0=no pipe, 1=before|after, 2=|leading, 3=trailing|, 4=a|b|c
+    let scenario1 = featureSource.Scenarios.[1]
+    let params1 = scenario1.Parameters |> dict
+    Assert.AreEqual("before|after", params1.["value"])
+    Assert.AreEqual("before|after", params1.["expected"])
 
-    let scenario5 = featureSource.Scenarios.[4]
-    let parameters5 = scenario5.Parameters |> dict
-    Assert.AreEqual("a|b|c", parameters5.["value"])
-    Assert.AreEqual("a|b|c", parameters5.["expected"])
+    let scenario4 = featureSource.Scenarios.[4]
+    let params4 = scenario4.Parameters |> dict
+    Assert.AreEqual("a|b|c", params4.["value"])
+    Assert.AreEqual("a|b|c", params4.["expected"])
 
     // Verify step table with escaped pipes
     let tableScenario = featureSource.Scenarios.[5]
