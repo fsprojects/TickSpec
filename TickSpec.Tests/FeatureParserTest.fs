@@ -607,13 +607,15 @@ let RuleKeyword_ParseBlocks () =
     Assert.AreEqual(1, secondRule.Scenarios.Length)     // One scenario in second rule
 
 [<Test>]
-let EscapedPipe_ParseLines () =
+let EscapedCharacters_ParseLines () =
     "TickSpec.Tests.EscapedPipe.feature"
     |> loadFeatureFile
     |> verifyLineParsing <|
     [
         FileStart
-        FeatureName "Escaped pipe in table cells"
+        FeatureName "Escaped characters in table cells"
+
+        // Scenario Outline: escaped pipes
         Scenario "Scenario Outline: Values with escaped pipes are parsed correctly"
         Step (GivenStep "a value <value>")
         Step (ThenStep "the value is <expected>")
@@ -624,6 +626,24 @@ let EscapedPipe_ParseLines () =
         Item (Examples, TableRow [ "|leading"; "|leading" ])
         Item (Examples, TableRow [ "trailing|"; "trailing|" ])
         Item (Examples, TableRow [ "a|b|c"; "a|b|c" ])
+
+        // Scenario Outline: escaped backslashes
+        Scenario "Scenario Outline: Values with escaped backslashes are parsed correctly"
+        Step (GivenStep "a value <value>")
+        Step (ThenStep "the value is <expected>")
+        Examples
+        Item (Examples, TableRow [ "value"; "expected" ])
+        Item (Examples, TableRow [ "hello\\world"; "hello\\world" ])
+
+        // Scenario Outline: escaped newlines
+        Scenario "Scenario Outline: Values with escaped newlines are parsed correctly"
+        Step (GivenStep "a value <value>")
+        Step (ThenStep "the value is <expected>")
+        Examples
+        Item (Examples, TableRow [ "value"; "expected" ])
+        Item (Examples, TableRow [ "line1\nline2"; "line1\nline2" ])
+
+        // Scenario: step table with escaped pipes
         Scenario "Scenario: Step table with escaped pipes"
         Step (GivenStep "a table with escaped pipes")
         Item (Step (GivenStep "a table with escaped pipes"), TableRow [ "col1"; "col2" ])
@@ -632,20 +652,51 @@ let EscapedPipe_ParseLines () =
         Step (ThenStep "the table cell 0,0 is hello|world")
         Step (ThenStep "the table cell 0,1 is normal")
         Step (ThenStep "the table cell 1,0 is a|b|c")
+
+        // Scenario: step table with escaped backslashes
+        Scenario "Scenario: Step table with escaped backslashes"
+        Step (GivenStep "a table with escaped backslashes")
+        Item (Step (GivenStep "a table with escaped backslashes"), TableRow [ "col1"; "col2" ])
+        Item (Step (GivenStep "a table with escaped backslashes"), TableRow [ "hello\\world"; "normal" ])
+        Step (ThenStep "the table cell 0,0 is hello\\world")
+        Step (ThenStep "the table cell 0,1 is normal")
+
+        // Scenario: escaped backslash before pipe acts as delimiter
+        Scenario "Scenario: Escaped backslash before pipe acts as cell delimiter"
+        Step (GivenStep "a table with escaped backslash before pipe")
+        Item (Step (GivenStep "a table with escaped backslash before pipe"), TableRow [ "col1"; "col2"; "col3" ])
+        Item (Step (GivenStep "a table with escaped backslash before pipe"), TableRow [ "before\\"; "after"; "end" ])
+        Step (ThenStep "the table cell 0,0 is before\\")
+        Step (ThenStep "the table cell 0,1 is after")
+        Step (ThenStep "the table cell 0,2 is end")
+
+        // Scenario: triple backslash-pipe (\\\| -> \|)
+        Scenario "Scenario: Triple backslash-pipe is escaped backslash then escaped pipe"
+        Step (GivenStep "a table with triple backslash-pipe")
+        Item (Step (GivenStep "a table with triple backslash-pipe"), TableRow [ "col1"; "col2" ])
+        Item (Step (GivenStep "a table with triple backslash-pipe"), TableRow [ "a\\|b"; "normal" ])
+        Step (ThenStep "the table cell 0,0 is a\\|b")
+        Step (ThenStep "the table cell 0,1 is normal")
+
+        // Scenario: escaped backslash before n (\\n -> \n literal, not newline)
+        Scenario "Scenario: Escaped backslash before n is literal backslash-n not newline"
+        Step (GivenStep "a table with escaped backslash before n")
+        Item (Step (GivenStep "a table with escaped backslash before n"), TableRow [ "col1"; "col2" ])
+        Item (Step (GivenStep "a table with escaped backslash before n"), TableRow [ "test\\n"; "normal" ])
+        Step (ThenStep "the table cell 0,0 is test\\n")
+        Step (ThenStep "the table cell 0,1 is normal")
     ]
 
 [<Test>]
-let EscapedPipe_ParseFeature () =
+let EscapedCharacters_ParseFeature () =
     let featureSource =
         "TickSpec.Tests.EscapedPipe.feature"
         |> loadFeatureFile
         |> FeatureParser.parseFeature
 
-    Assert.AreEqual("Escaped pipe in table cells", featureSource.Name)
-    Assert.AreEqual(6, featureSource.Scenarios.Length)
+    Assert.AreEqual("Escaped characters in table cells", featureSource.Name)
 
-    // Verify the outline scenarios with escaped pipes produce correct parameter values
-    // Row order: 0=no pipe, 1=before|after, 2=|leading, 3=trailing|, 4=a|b|c
+    // Outline 1: escaped pipes (5 data rows -> scenarios 0-4)
     let scenario1 = featureSource.Scenarios.[1]
     let params1 = scenario1.Parameters |> dict
     Assert.AreEqual("before|after", params1.["value"])
@@ -656,12 +707,48 @@ let EscapedPipe_ParseFeature () =
     Assert.AreEqual("a|b|c", params4.["value"])
     Assert.AreEqual("a|b|c", params4.["expected"])
 
-    // Verify step table with escaped pipes
-    let tableScenario = featureSource.Scenarios.[5]
-    let tableStep = tableScenario.Steps.[0] |> fst
-    Assert.AreEqual(GivenStep "a table with escaped pipes", tableStep)
-    let table = (tableScenario.Steps.[0] |> snd).Table.Value
-    Assert.AreEqual([| "col1"; "col2" |], table.Header)
-    Assert.AreEqual("hello|world", table.Rows.[0].[0])
-    Assert.AreEqual("normal", table.Rows.[0].[1])
-    Assert.AreEqual("a|b|c", table.Rows.[1].[0])
+    // Outline 2: escaped backslashes (1 data row -> scenario 5)
+    let bsScenario = featureSource.Scenarios.[5]
+    let bsParams = bsScenario.Parameters |> dict
+    Assert.AreEqual("hello\\world", bsParams.["value"])
+    Assert.AreEqual("hello\\world", bsParams.["expected"])
+
+    // Outline 3: escaped newlines (1 data row -> scenario 6)
+    let nlScenario = featureSource.Scenarios.[6]
+    let nlParams = nlScenario.Parameters |> dict
+    Assert.AreEqual("line1\nline2", nlParams.["value"])
+    Assert.AreEqual("line1\nline2", nlParams.["expected"])
+
+    // Scenario: step table with escaped pipes (scenario 7)
+    let pipeTableScenario = featureSource.Scenarios.[7]
+    let pipeTable = (pipeTableScenario.Steps.[0] |> snd).Table.Value
+    Assert.AreEqual([| "col1"; "col2" |], pipeTable.Header)
+    Assert.AreEqual("hello|world", pipeTable.Rows.[0].[0])
+    Assert.AreEqual("normal", pipeTable.Rows.[0].[1])
+    Assert.AreEqual("a|b|c", pipeTable.Rows.[1].[0])
+
+    // Scenario: step table with escaped backslashes (scenario 8)
+    let bsTableScenario = featureSource.Scenarios.[8]
+    let bsTable = (bsTableScenario.Steps.[0] |> snd).Table.Value
+    Assert.AreEqual("hello\\world", bsTable.Rows.[0].[0])
+    Assert.AreEqual("normal", bsTable.Rows.[0].[1])
+
+    // Scenario: escaped backslash before pipe = cell delimiter (scenario 9)
+    let delimScenario = featureSource.Scenarios.[9]
+    let delimTable = (delimScenario.Steps.[0] |> snd).Table.Value
+    Assert.AreEqual([| "col1"; "col2"; "col3" |], delimTable.Header)
+    Assert.AreEqual("before\\", delimTable.Rows.[0].[0])
+    Assert.AreEqual("after", delimTable.Rows.[0].[1])
+    Assert.AreEqual("end", delimTable.Rows.[0].[2])
+
+    // Scenario: triple backslash-pipe \\\| -> \| (scenario 10)
+    let tripleScenario = featureSource.Scenarios.[10]
+    let tripleTable = (tripleScenario.Steps.[0] |> snd).Table.Value
+    Assert.AreEqual("a\\|b", tripleTable.Rows.[0].[0])
+    Assert.AreEqual("normal", tripleTable.Rows.[0].[1])
+
+    // Scenario: \\n -> literal \n, not newline (scenario 11)
+    let bsNScenario = featureSource.Scenarios.[11]
+    let bsNTable = (bsNScenario.Steps.[0] |> snd).Table.Value
+    Assert.AreEqual("test\\n", bsNTable.Rows.[0].[0])
+    Assert.IsFalse(bsNTable.Rows.[0].[0].Contains("\n"), "Should not contain actual newline")
