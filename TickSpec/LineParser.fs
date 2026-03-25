@@ -84,8 +84,21 @@ let (|ButLine|_|) s =
     |> Option.map (function Trim t -> ButLine t)
 let (|TableRowLine|_|) (s:string) =
     if s.Trim().StartsWith("|") then
-        let columnsStrings = s.Trim().Split([|'|'|], System.StringSplitOptions.RemoveEmptyEntries)
-        let columns = [ for (Trim s) in columnsStrings -> s ]
+        let escapedBackslash = "\u0000"
+        let escapedPipe = "\u0001"
+        let escapedNewline = "\u0002"
+        let escaped =
+            s.Trim()
+                .Replace("\\\\", escapedBackslash)
+                .Replace("\\|", escapedPipe)
+                .Replace("\\n", escapedNewline)
+        let columnsStrings = escaped.Split([|'|'|], System.StringSplitOptions.RemoveEmptyEntries)
+        let columns =
+            [ for (Trim s) in columnsStrings ->
+                s
+                    .Replace(escapedBackslash, "\\")
+                    .Replace(escapedPipe, "|")
+                    .Replace(escapedNewline, "\n") ]
         TableRowLine columns |> Some
     else None
 let (|Bullet|_|) (s:string) =
