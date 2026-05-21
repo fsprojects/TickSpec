@@ -1,3 +1,7 @@
+#### 2.0.5 (Released 2026/05/20)
+* [Feature] Support escaped pipe (`\|`) and other escape sequences in Gherkin table cells (issue #81) by @deyanp
+* [Fix] Fix FAKE build to accept command-line arguments (issue #79) by @mchaloupka
+
 #### 2.0.4 (Released 2026/01/20)
 * [Feature] Add support for Gherkin Rule keyword (issue #74) by @onurgumus
 
