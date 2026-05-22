@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <OutputType>exe</OutputType>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>1591</NoWarn>
+    <WarningsNotAsErrors>618,672</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Entities.fs" />
+    <Compile Include="GherkinParser.fs" />
+    <Compile Include="TestFixtureGenerator.fs" />
+    <Compile Include="HtmlGenerator.fs" />
+    <Compile Include="TestApi.fs" />
+    <Compile Include="Targets.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser.FSharp" Version="2.9.1" />
+    <PackageReference Include="TickSpec" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="7.0.200" />
+  </ItemGroup>
+
+</Project>
