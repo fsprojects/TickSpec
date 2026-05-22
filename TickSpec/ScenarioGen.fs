@@ -1,18 +1,34 @@
 ﻿module internal TickSpec.ScenarioGen
 
-#if !NETSTANDARD2_0
 open System
 open System.Collections.Generic
+open System.Diagnostics.SymbolStore
 open System.Reflection
 open System.Reflection.Emit
 open Microsoft.FSharp.Reflection
+
+/// Sanitizes scenario name for use as a type name
+/// Replaces characters that have special meaning in .NET type names:
+/// comma (,), plus (+), ampersand (&), asterisk (*), brackets ([ ]), period (.), backslash (\)
+/// Also replaces angle brackets (< >) which cause issues in metadata
+let sanitizeTypeName (name: string) =
+    name
+        .Replace("\\", "_")  // backslash first to avoid double-escaping
+        .Replace(",", "_")
+        .Replace("+", "_")
+        .Replace("&", "_")
+        .Replace("*", "_")
+        .Replace("[", "_")
+        .Replace("]", "_")
+        .Replace("<", "_")
+        .Replace(">", "_")
 
 /// Defines scenario type
 let defineScenarioType
         (module_:ModuleBuilder)
         (scenarioName) =
     module_.DefineType(
-        scenarioName,
+        sanitizeTypeName scenarioName,
         TypeAttributes.Public ||| TypeAttributes.Class)
 
 /// Defines _provider field
@@ -368,7 +384,7 @@ let storeMethodResultInProvider
 
 /// Defines step method
 let defineStepMethod
-        doc
+        (doc:ISymbolDocumentWriter)
         (scenarioBuilder:TypeBuilder)
         (providerField:FieldBuilder)
         (parsers:IDictionary<Type,MethodInfo>)
@@ -383,8 +399,8 @@ let defineStepMethod
              [||])
     /// Step method ILGenerator
     let gen = stepMethod.GetILGenerator()
-    // Set marker in source document
-    gen.MarkSequencePoint(doc,n,1,n,line.Text.Length+1)
+    // Mark sequence point for debugging/breakpoints
+    gen.MarkSequencePoint(doc, n, 1, n, 100)
     // Handle generic methods
     let mi =
         if mi.ContainsGenericParameters then
@@ -410,7 +426,7 @@ let defineStepMethod
         emitArgument gen providerField parsers (arg,p)
         gen.Emit(OpCodes.Stloc, locals.[i])
         // }
-        gen.Emit(OpCodes.Leave_S, block)
+        gen.Emit(OpCodes.Leave, block)
         // catch(Exception ex) {
         gen.BeginCatchBlock(typeof<Exception>)
         // throw ArgumentException(message, name, ex);
@@ -533,24 +549,24 @@ let defineRunMethod
         beforeStepEvents |> emitEvents
         gen.Emit(OpCodes.Ldarg_0)
         gen.Emit(OpCodes.Callvirt,stepMethod)
-        gen.Emit(OpCodes.Leave_S, exit)
+        gen.Emit(OpCodes.Leave, exit)
         gen.BeginFinallyBlock()
         afterStepEvents |> emitEvents
         gen.EndExceptionBlock()
     )
-    gen.Emit(OpCodes.Leave_S, exit)
+    gen.Emit(OpCodes.Leave, exit)
     gen.BeginFinallyBlock()
     // Execute after scenario events
     afterScenarioEvents |> emitEvents
     gen.EndExceptionBlock()
-    gen.Emit(OpCodes.Leave_S, exitOuter)
+    gen.Emit(OpCodes.Leave, exitOuter)
     gen.BeginFinallyBlock()
     // Dispose the ServiceProvider if it is IDisposable
     gen.Emit(OpCodes.Ldarg_0)
     gen.Emit(OpCodes.Ldfld, providerField)
     gen.Emit(OpCodes.Isinst, typeof<IDisposable>)
     let labelNoDispose = gen.DefineLabel()
-    gen.Emit(OpCodes.Brfalse_S, labelNoDispose)
+    gen.Emit(OpCodes.Brfalse, labelNoDispose)
     gen.Emit(OpCodes.Ldarg_0)
     gen.Emit(OpCodes.Ldfld, providerField)
     gen.Emit(OpCodes.Callvirt, typeof<IDisposable>.GetMethod("Dispose"))
@@ -560,6 +576,7 @@ let defineRunMethod
     gen.Emit(OpCodes.Ret)
 
 /// Generates Type for specified Scenario
+/// Returns the type name (for lookup after assembly is loaded)
 let generateScenario
         (module_:ModuleBuilder)
         doc
@@ -581,7 +598,6 @@ let generateScenario
         |> Array.map (defineStepMethod doc scenarioBuilder providerField parsers)
 
     defineRunMethod scenarioBuilder providerField events stepMethods
-    /// Return scenario
-    scenarioBuilder.CreateType()
-
-#endif
+    /// Create the type and return its sanitized name (for lookup after assembly load)
+    scenarioBuilder.CreateType() |> ignore
+    sanitizeTypeName scenarioName

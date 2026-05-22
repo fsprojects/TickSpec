@@ -5,7 +5,7 @@ module NUnitExtensions =
     open NUnit.Framework
     type Assert with
         static member Contains(expected:obj, xs:'a list) =
-            Assert.Contains(expected, xs |> List.toArray)
+            CollectionAssert.Contains(xs |> List.toArray, expected)
 
 module Union =
     open Microsoft.FSharp.Reflection

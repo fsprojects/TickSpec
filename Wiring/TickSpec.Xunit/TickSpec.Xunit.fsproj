@@ -1,8 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="../../netfx.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
+    <TargetFramework>net9.0</TargetFramework>
     <Title>TickSpec.Xunit</Title>
     <Description>
       TickSpec integration with Xunit.
@@ -18,6 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\TickSpec\TickSpec.fsproj" />
-    <PackageReference Include="Xunit" Version="2.4.0" />
+    <PackageReference Include="Xunit" Version="2.9.3" />
   </ItemGroup>
 </Project>

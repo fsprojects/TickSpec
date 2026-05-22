@@ -26,8 +26,8 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     static let getStepAttributes (m:MemberInfo) =
         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
     static let isMethodInScope (feature:string) (scenario:ScenarioSource) (scopedTags,scopedFeatures,scopedScenarios,m) =
-        let trim p (s:string) =
-            if s.StartsWith p then (s.Substring p.Length).Trim() else s
+        let trim (p:string) (s:string) =
+            if s.StartsWith(p) then (s.Substring p.Length).Trim() else s
         let tagged =
             match scopedTags with
             | [] -> true
@@ -259,7 +259,6 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
     member __.GenerateFeature (sourceUrl:string,lines:string[]) =
         let featureSource = parseFeature lines
         let feature = featureSource.Name
-#if !NETSTANDARD2_0
         let gen = FeatureGen(featureSource.Name,sourceUrl)
         let genType scenario =
             let lines =
@@ -271,10 +270,26 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 events
                 valueParsers
                 (scenario.Name, lines, scenario.Parameters)
-        let createAction scenario (scenarioMetadata: ScenarioMetadata) =
-            let t = lazy (genType scenario)
+        // Generate ALL types BEFORE accessing assembly (required for PersistedAssemblyBuilder)
+        let scenarioTypes =
+            featureSource.Scenarios
+            |> Seq.map (fun scenario ->
+                let scenarioMetadata =
+                    { Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags;Rule=scenario.Rule }
+                let typeName = genType scenario
+                (scenario, scenarioMetadata, typeName))
+            |> Seq.toArray
+        // Now get the assembly (this finalizes the builder)
+        let assembly = gen.Assembly
+        let createAction (typeName: string) (scenarioMetadata: ScenarioMetadata) =
             TickSpec.Action(fun () ->
-                let ctor = t.Force().GetConstructor([|
+                let t =
+                    assembly.GetTypes()
+                    |> Array.tryFind (fun t -> t.Name = typeName)
+                    |> Option.defaultWith (fun () ->
+                        failwithf "Type '%s' not found in generated assembly. Available types: %A"
+                            typeName (assembly.GetTypes() |> Array.map (fun t -> t.FullName)))
+                let ctor = t.GetConstructor([|
                     typeof<FSharpFunc<unit, IInstanceProvider>>
                     typeof<ScenarioMetadata>
                 |])
@@ -288,18 +303,11 @@ type StepDefinitions (givens,whens,thens,events,valueParsers) =
                 mi.Invoke(instance,[||]) |> ignore
             )
         let scenarios =
-            featureSource.Scenarios
-            |> Seq.map (fun scenario ->
-                let scenarioMetadata =
-                    { Name=scenario.Name;Description=getDescription scenario.Steps;Parameters=scenario.Parameters;Tags=scenario.Tags;Rule=scenario.Rule }
-                createAction scenario scenarioMetadata
+            scenarioTypes
+            |> Seq.map (fun (_, scenarioMetadata, typeName) ->
+                createAction typeName scenarioMetadata
                 |> Scenario.fromScenarioMetadata scenarioMetadata
             )
-        let assembly = gen.Assembly
-#else
-        let scenarios = __.GenerateScenarios lines
-        let assembly = null
-#endif
         { Name = featureSource.Name;
           Source = sourceUrl;
           Assembly = assembly;

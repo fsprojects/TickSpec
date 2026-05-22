@@ -30,5 +30,5 @@ let additionTests = featureTest "Addition.feature"
 
 [<EntryPoint>]
 let main args =
-    runTestsInAssembly defaultConfig args
+    runTestsInAssemblyWithCLIArgs [] args
 

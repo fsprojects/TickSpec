@@ -81,17 +81,12 @@ let createTargets () =
     )
 
     Target.create "Test" (fun _ ->
-        // Xunit seems to be failing under Linux with net452 runner, let's just skip it
-        // the .NET 4 tests all together there
-        let framework = if Environment.isWindows then None else Some "net6.0"
-
         Sln
         |> DotNet.test (fun o ->
             { o with
                 Configuration = DotNet.Release
                 NoBuild = true
                 MSBuildParams = { o.MSBuildParams with DisableInternalBinLog = true }
-                Framework = framework
             }
         )
     )
